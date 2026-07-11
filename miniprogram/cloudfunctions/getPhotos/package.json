@@ -1,0 +1,9 @@
+{
+  "name": "getPhotos",
+  "version": "1.0.0",
+  "description": "照片日历数据查询云函数（服务端查询，规避客户端冷启动超时）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

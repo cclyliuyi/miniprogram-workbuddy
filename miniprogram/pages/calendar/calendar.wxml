@@ -1,0 +1,139 @@
+<!-- pages/calendar/calendar.wxml —— 月历网格 · 磨砂浮顶栏 + 底部浮动操作栏 -->
+<view class="screen cal" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
+
+  <!-- 权限提示（数据为空或加载失败时显示） -->
+  <view wx:if="{{!hasData || loadError}}" class="perm-hint rise">
+    <view class="perm-ic">⚠️</view>
+    <view class="perm-title display">{{loadError ? '加载出错' : '无法加载照片'}}</view>
+    <view wx:if="{{loadError}}" class="perm-desc kicker" style="color:#b06a4f">{{loadError}}</view>
+    <view wx:else class="perm-desc">请检查数据库权限后重试</view>
+    <view class="perm-steps kicker">
+      1. 微信开发者工具 → 顶部「云开发」按钮<br/>
+      2. 「数据库」→ calendar_photos →「权限设置」<br/>
+      3. 改为「所有用户可读，仅创建者可写」<br/>
+      4. 返回此页重新加载
+    </view>
+    <view class="btn" bindtap="loadMonth" data-month="{{month}}">重新加载</view>
+  </view>
+
+  <!-- 磨砂背景层：当月1号照片 + 高斯模糊 + 半透明蒙版 -->
+  <view class="frosted-bg">
+    <image
+      wx:if="{{monthThumb}}"
+      class="frosted-img"
+      src="{{monthThumb}}"
+      mode="aspectFill" />
+    <view class="frosted-overlay"></view>
+  </view>
+
+  <!-- 磨砂浮顶栏：左小字月份+年、右导航箭头。透明叠在网格上 -->
+  <view class="float-top rise">
+    <view class="ft-left">
+      <view class="ft-search" bindtap="goSearch">
+        <view class="ft-search-ico"></view>
+      </view>
+      <view class="ft-month display">{{monthLabel}}</view>
+      <view class="ft-year num">{{year}}</view>
+    </view>
+    <view class="ft-nav">
+      <view class="ft-btn ft-today" wx:if="{{showGoToday}}" bindtap="goToday">今</view>
+      <view class="ft-btn" bindtap="changeMonth" data-delta="-1">‹</view>
+      <view class="ft-btn" bindtap="changeMonth" data-delta="1">›</view>
+    </view>
+  </view>
+
+  <!-- 打卡进度条：连续天数 + 进度环 -->
+  <view class="streak-bar rise" wx:if="{{streakCount > 0 || readCount > 0}}">
+    <view class="streak-left">
+      <view class="streak-flame {{streakCount >= 3 ? 'is-hot' : ''}}">
+        <view class="flame-dot"></view>
+      </view>
+      <view class="streak-info">
+        <view class="streak-num num">{{streakCount}}</view>
+        <view class="streak-label">天连续</view>
+      </view>
+    </view>
+    <view class="streak-sep"></view>
+    <view class="streak-right">
+      <view class="ring-wrap">
+        <view class="ring-bg" style="background: conic-gradient(var(--sage) 0deg {{readPercent * 3.6}}deg, rgba(122,145,129,.15) {{readPercent * 3.6}}deg 360deg);"></view>
+        <view class="ring-hole"></view>
+        <view class="ring-num num">{{readPercent}}%</view>
+      </view>
+      <view class="streak-info">
+        <view class="streak-num num">{{readCount}}<text class="streak-small">/365</text></view>
+        <view class="streak-label">已学</view>
+      </view>
+    </view>
+  </view>
+  <!-- 空状态引导（还没打过卡时显示） -->
+  <view class="streak-bar streak-empty rise" wx:else>
+    <view class="streak-hint">翻开任意一天，开始你的电磁波之旅</view>
+  </view>
+  <view class="cal-content">
+
+    <!-- 星期头 -->
+    <view class="weekbar">
+      <text wx:for="{{weekdayLabels}}" wx:key="*this" class="wd">{{item}}</text>
+    </view>
+
+    <!-- 骨架屏：加载中显示 shimmer 占位网格 -->
+    <view wx:if="{{loading}}" class="grid sk-grid">
+      <view wx:for="{{skeletonRows}}" wx:key="*this" class="week sk-week">
+        <view wx:for="{{skeletonCells}}" wx:key="*this" class="cell">
+          <view class="skeleton sk-cell"></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 月历网格：每格 = 缩略图全铺 + 底部渐变蒙版 + 阳历/农历日期 -->
+    <view wx:else class="grid">
+      <view
+        wx:for="{{weeks}}" wx:for-item="week" wx:key="index" class="week">
+        <view
+          wx:for="{{week}}" wx:for-item="cell" wx:key="day"
+          class="cell {{cell.empty ? 'is-empty' : ''}}"
+          bindtap="openDay" data-day="{{cell.day}}">
+          <!-- 有数据的格子：图片 + 蒙版 + 双历日期 -->
+          <block wx:if="{{!cell.empty}}">
+            <view class="cell-card {{cell.day === todayDay && month === todayMonth ? 'is-today' : ''}} {{cell.day === todayDay && month === todayMonth && !cell.hasPhoto ? 'is-today-noimg' : ''}} {{cell.hasPhoto ? 'has-img' : 'no-img'}} {{cell.isRead ? 'is-read-cell' : ''}}">
+              <!-- 已读标记：右上角小圆点 -->
+              <view wx:if="{{cell.isRead}}" class="read-dot"></view>
+              <!-- 今日标记：左上角脉冲圆点（优先于已读） -->
+              <view wx:if="{{cell.day === todayDay && month === todayMonth && !cell.isRead}}" class="today-dot"></view>
+              <!-- 缩略图撑满 -->
+              <image
+                wx:if="{{cell.hasPhoto}}"
+                class="card-img"
+                src="{{cell.thumb}}"
+                mode="aspectFill"
+                binderror="onImgError"
+                data-day="{{cell.day}}" />
+              <!-- 无图占位 -->
+              <view wx:elif="{{true}}" class="card-placeholder"></view>
+
+              <!-- 底部渐变蒙版 + 日期文字 -->
+              <view class="card-mask">
+                <view class="mask-inner">
+                  <text class="date-solar">{{cell.day}}</text>
+                  <text class="date-lunar {{cell.isTerm ? 'lunar-term' : ''}} {{cell.isFestival ? 'lunar-fest' : ''}}">{{cell.lunarDay}}</text>
+                </view>
+              </view>
+            </view>
+          </block>
+        </view>
+      </view>
+    </view>
+
+    <!-- 月度主题描述：季节特征 + 知识主线 -->
+    <view class="month-blurb rise" wx:if="{{monthTheme}}">
+      <view class="blurb-tag">本月主题</view>
+      <view class="blurb-theme display">{{monthTheme}}</view>
+      <view class="blurb-vibe">{{monthVibe}}</view>
+    </view>
+
+    <!-- 底部留白：给 tabBar 腾位 -->
+    <view style="height:140rpx"></view>
+  </view>
+
+</view>

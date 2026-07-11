@@ -1,0 +1,166 @@
+/* app.wxss —— 全局设计系统：暖色纸感 · 编辑风画廊（现代化 v2） */
+page {
+  /* 色彩 */
+  --paper: #f3efe6;
+  --paper-2: #eae3d4;
+  --card: #fbf9f4;
+  --ink: #20201c;
+  --ink-soft: #4c463c;
+  --muted: #9b9384;
+  --line: rgba(32, 32, 28, 0.10);
+  --line-soft: rgba(32, 32, 28, 0.06);
+  --accent: #b06a4f;       /* 赤陶（主点缀） */
+  --accent-2: #c89b6e;     /* 暖金 */
+  --sage: #7a9181;         /* 鼠尾草绿（莫兰迪辅色，年轻化） */
+  --shadow: 0 4rpx 20rpx rgba(32, 32, 28, 0.08);
+  --shadow-lg: 0 16rpx 50rpx rgba(32, 32, 28, 0.14);
+
+  /* 字体 */
+  --serif: 'Songti SC', 'STSong', 'Source Han Serif SC', 'Noto Serif SC', 'SimSun', serif;
+  --sans: -apple-system, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 28rpx;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+view, text, image { box-sizing: border-box; }
+
+/* —— 排版工具类 —— */
+.kicker {
+  font-family: var(--sans);
+  font-size: 22rpx;
+  letter-spacing: 6rpx;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 500;
+}
+.display {
+  font-family: var(--serif);
+  font-weight: 600;
+  letter-spacing: 2rpx;
+  color: var(--ink);
+}
+.num {
+  font-family: var(--serif);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+/* —— 照片框：细边 + 柔影 + 圆角，编辑风装裱 —— */
+.frame {
+  position: relative;
+  background: var(--card);
+  border: 1rpx solid var(--line);
+  border-radius: 14rpx;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 14rpx;
+  box-shadow: inset 0 0 0 1rpx rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+}
+
+/* —— 通用按钮 —— */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 84rpx;
+  padding: 0 40rpx;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  letter-spacing: 2rpx;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+}
+.btn.ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1rpx solid var(--line);
+}
+.btn.accent { background: var(--ink); color: var(--paper); }
+.btn.sage { background: var(--sage); color: #fff; }
+/* 渐变按钮：赤陶→暖金柔和渐变，年轻化主 CTA */
+.btn.grad {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+  color: #fff;
+  box-shadow: 0 6rpx 20rpx rgba(176, 106, 79, 0.25);
+}
+.btn.grad:active { transform: scale(.96); }
+
+/* —— 分隔 —— */
+.rule { height: 1rpx; background: var(--line); }
+.rule-dot {
+  width: 10rpx; height: 10rpx; border-radius: 50%;
+  background: var(--accent-2); display: inline-block;
+}
+
+/* —— 页面留白 —— */
+.screen { padding: 0 40rpx; }
+
+/* 轻量进场动画 —— 弹性曲线，更年轻 */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(18rpx) scale(.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.rise { animation: rise 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+/* 弹性弹出（按钮/卡片用） */
+@keyframes pop {
+  0%   { opacity: 0; transform: scale(.9); }
+  60%  { transform: scale(1.03); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.pop { animation: pop 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+/* 骨架屏 shimmer */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--paper-2) 25%,
+    var(--card) 50%,
+    var(--paper-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* ════════════════════════════════════════
+   暗色模式（跟随系统，所有页面自动切换）
+   ════════════════════════════════════════ */
+@media (prefers-color-scheme: dark) {
+  page {
+    --paper: #1a1814;
+    --paper-2: #252220;
+    --card: #2a2724;
+    --ink: #f0ebe2;
+    --ink-soft: #c4bcae;
+    --muted: #7a7268;
+    --line: rgba(240, 235, 226, 0.10);
+    --line-soft: rgba(240, 235, 226, 0.06);
+    --accent: #d4836a;        /* 暗色下提亮的赤陶 */
+    --accent-2: #d4ad7e;      /* 暗色下提亮的暖金 */
+    --sage: #8faa98;          /* 暗色下提亮的鼠尾草绿 */
+    --shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.30);
+    --shadow-lg: 0 16rpx 50rpx rgba(0, 0, 0, 0.40);
+    background: var(--paper);
+    color: var(--ink);
+  }
+  /* 照片框内边高光在暗色下减弱 */
+  .frame::after {
+    box-shadow: inset 0 0 0 1rpx rgba(255, 255, 255, 0.08);
+  }
+}

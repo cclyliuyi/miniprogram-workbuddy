@@ -1,0 +1,78 @@
+<!-- pages/favs/favs.wxml —— 我的收藏：卡片瀑布流 -->
+<view class="screen favs">
+
+  <!-- 标题栏 -->
+  <view class="fv-head rise">
+    <view class="fv-title display">我的收藏</view>
+    <view class="fv-count num" wx:if="{{list.length}}">{{list.length}} 篇</view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{isEmpty && !loading}}" class="fv-empty rise">
+    <view class="fv-empty-heart"></view>
+    <view class="fv-empty-title display">还没有收藏</view>
+    <view class="fv-empty-desc">在每日详情页点击右上的心形按钮，<br/>收藏喜欢的日子，它们会出现在这里。</view>
+  </view>
+
+  <!-- 加载中（骨架屏 shimmer） -->
+  <view wx:if="{{loading}}" class="fv-list">
+    <view wx:for="{{[0,1,2,3]}}" wx:key="*this" class="fv-card">
+      <view class="skeleton fv-sk-thumb"></view>
+      <view class="fv-info" style="flex:1;">
+        <view class="skeleton" style="width:120rpx;height:32rpx;border-radius:8rpx;"></view>
+        <view class="skeleton" style="width:90%;height:44rpx;margin-top:14rpx;border-radius:8rpx;"></view>
+        <view class="skeleton" style="width:60rpx;height:24rpx;margin-top:12rpx;border-radius:999rpx;"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 收藏列表：瀑布流卡片 -->
+  <view wx:if="{{list.length > 0}}" class="fv-list">
+    <view
+      wx:for="{{list}}"
+      wx:key="index"
+      class="fv-card rise"
+      bindtap="openDay"
+      data-month="{{item.month}}"
+      data-day="{{item.day}}">
+
+      <!-- 缩略图 -->
+      <view class="fv-thumb-wrap">
+        <image
+          wx:if="{{item.thumb}}"
+          class="fv-thumb"
+          src="{{item.thumb}}"
+          mode="aspectFill"
+          lazy-load="true" />
+        <view wx:else class="fv-thumb-ph">
+          <view class="fv-thumb-day num">{{item.day}}</view>
+        </view>
+        <!-- 角标：DAY n -->
+        <view class="fv-day-tag num">DAY {{item.dayNum}}</view>
+      </view>
+
+      <!-- 信息区 -->
+      <view class="fv-info">
+        <view class="fv-date-row">
+          <view class="fv-date num">{{item.date}}</view>
+          <view
+            class="fv-remove"
+            catchtap="removeFav"
+            data-month="{{item.month}}"
+            data-day="{{item.day}}"
+            data-index="{{index}}">
+            <view class="fv-x"></view>
+          </view>
+        </view>
+        <view class="fv-hook" wx:if="{{item.hook}}">{{item.hook}}</view>
+        <view class="fv-topic" wx:if="{{item.topic}}">
+          <view class="fv-tag num">{{item.tag}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部留白（给 tabBar 腾位） -->
+    <view style="height:140rpx"></view>
+  </view>
+
+</view>

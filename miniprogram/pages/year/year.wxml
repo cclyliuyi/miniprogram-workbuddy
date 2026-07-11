@@ -1,0 +1,41 @@
+<!-- pages/year/year.wxml —— 年视图：十二月的同一天 -->
+<view class="screen yr">
+  <view class="yr-head rise">
+    <view class="kicker">{{year}}</view>
+  </view>
+
+  <!-- 权限提示 -->
+  <view wx:if="{{!loading && months.length === 0}}" class="perm-hint rise">
+    <view class="perm-ic">⚠️</view>
+    <view class="perm-title display">无法加载照片</view>
+    <view class="perm-desc">请按以下步骤检查数据库权限：</view>
+    <view class="perm-steps kicker">
+      1. 打开微信开发者工具 → 点击顶部「云开发」按钮<br/>
+      2. 进入「数据库」→ 找到 calendar_photos 集合<br/>
+      3. 点击「权限设置」→ 改为「所有用户可读，仅创建者可写」<br/>
+      4. 改完后返回此页面重新加载
+    </view>
+    <view class="btn" bindtap="loadYear">重新加载</view>
+  </view>
+
+  <view wx:if="{{months.length > 0}}" class="yr-grid">
+    <view class="yr-cell" wx:for="{{months}}" wx:key="month" bindtap="openMonth" bindlongpress="onLongPress" data-month="{{item.month}}">
+      <view class="yr-frame frame {{item.hasPhoto ? '' : 'is-blank'}}">
+        <image wx:if="{{item.hasPhoto}}" class="yr-img" src="{{item.thumb}}" mode="widthFix" />
+        <view wx:else class="yr-ph">·</view>
+      </view>
+      <view class="yr-label num">{{item.label}}</view>
+    </view>
+  </view>
+
+  <view style="height:50rpx"></view>
+</view>
+
+<!-- 长按预览浮层 -->
+<view class="yr-preview" wx:if="{{previewMonth}}" catchtap="closePreview">
+  <view class="yr-preview-card" catchtap="">
+    <image class="yr-preview-img" src="{{previewMonth.thumb}}" mode="widthFix" />
+    <view class="yr-preview-label num">{{previewMonth.label}}</view>
+    <button class="btn grad yr-preview-btn" bindtap="previewToMonth">进入{{previewMonth.label}}</button>
+  </view>
+</view>

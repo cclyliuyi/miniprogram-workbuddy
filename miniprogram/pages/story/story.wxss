@@ -1,0 +1,98 @@
+/* pages/story/story.wxss —— 暗调影院风 */
+.story {
+  position: relative;
+  height: 100vh;            /* ← 必须是 height 不是 min-height，否则子元素 % 高度失效 */
+  background:
+    radial-gradient(120% 80% at 50% 0%, #2a2722 0%, #16140f 60%, #100e0a 100%);
+  color: #f3efe6;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.st-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 88rpx 44rpx 10rpx;
+  flex-shrink: 0;           /* 防止被 swiper 挤压 */
+}
+.st-month { font-size: 52rpx; color: #f3efe6; }
+
+/* 分段进度条 */
+.st-progress {
+  display: flex;
+  gap: 4rpx;
+  padding: 0 44rpx 12rpx;
+  flex-shrink: 0;
+}
+.st-progress-bar {
+  flex: 1;
+  height: 4rpx;
+  background: rgba(243, 239, 230, 0.15);
+  border-radius: 2rpx;
+  transition: background 0.3s;
+}
+.st-progress-bar.done {
+  background: rgba(212, 131, 106, 0.8);
+}
+.st-progress-bar.active {
+  background: rgba(212, 131, 106, 0.5);
+}
+.st-close {
+  width: 64rpx; height: 64rpx; border-radius: 50%;
+  border: 1rpx solid rgba(255,255,255,.25);
+  display: flex; align-items: center; justify-content: center;
+  color: #f3efe6; font-size: 34rpx;
+}
+
+/* swiper 必须有确定高度：用 calc 减去 header + footer 的固定高度 */
+.st-swiper {
+  flex: 1;
+  width: 100%;
+  /* 不写 height:100%（依赖 flex 自动撑满），改由父级 height:100vh 保证确定 */
+}
+.swiper-item {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.st-stage {
+  position: relative;
+  width: 100%;
+  height: 70vh;
+  /* 非当前页缩小+透明，切换时丝滑放大 */
+  transform: scale(.88);
+  opacity: .55;
+  transition: transform .38s cubic-bezier(0.25,0.46,0.45,0.94), opacity .38s ease;
+}
+.st-stage.is-active {
+  transform: scale(1);
+  opacity: 1;
+}
+.st-img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 70vh;             /* 固定高度，mode=heightFix 据此算宽度保持 2:3 比例 */
+  width: auto;
+  max-width: 92vw;
+  border-radius: 16rpx;
+  box-shadow: 0 30rpx 80rpx rgba(0,0,0,.5);
+  opacity: 0;
+  transition: opacity .4s ease;
+}
+.st-img.show { opacity: 1; }
+.st-img.hide { opacity: 0; }
+
+.st-bar {
+  display: flex; align-items: center; gap: 24rpx;
+  padding: 30rpx 44rpx calc(40rpx + env(safe-area-inset-bottom));
+  flex-shrink: 0;           /* 防止被 swiper 挤压 */
+}
+.st-label { font-size: 40rpx; color: #f3efe6; }
+.st-hint { font-size: 22rpx; color: rgba(243,239,230,.6); margin-top: 6rpx; letter-spacing: 1rpx; }
+.st-card { height: 76rpx; padding: 0 34rpx; font-size: 26rpx; }

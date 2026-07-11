@@ -1,0 +1,47 @@
+<!-- pages/card/card.wxml —— 日签分享卡（9:16 手账风） -->
+<view class="screen cd">
+
+  <!-- 预览区：9:16 朋友圈竖版 -->
+  <view class="cd-preview">
+    <image wx:if="{{cardPath}}" class="cd-img pop" src="{{cardPath}}" mode="aspectFit" />
+    <view wx:else class="cd-loading skeleton">正在合成日签卡…</view>
+  </view>
+
+  <view class="cd-quote display">"{{quote}}"</view>
+
+  <view class="cd-actions">
+    <button class="btn grad" bindtap="save">保存到相册</button>
+    <button class="btn ghost cd-share-friend" open-type="share">发送给朋友</button>
+  </view>
+
+  <!-- 朋友圈分享引导 -->
+  <view class="cd-moment" bindtap="shareMoment">
+    <view class="cd-moment-left">
+      <view class="cd-moment-ico"></view>
+      <view class="cd-moment-txt">分享到朋友圈</view>
+    </view>
+    <view class="cd-moment-arrow">›</view>
+  </view>
+
+  <!-- 朋友圈引导弹窗 -->
+  <view class="cd-guide" wx:if="{{showMomentGuide}}" catchtap="closeGuide">
+    <view class="cd-guide-card" catchtap="">
+      <view class="cd-guide-step">
+        <view class="cd-guide-num num">1</view>
+        <view class="cd-guide-text">先点「保存到相册」，把日签卡存到手机</view>
+      </view>
+      <view class="cd-guide-step">
+        <view class="cd-guide-num num">2</view>
+        <view class="cd-guide-text">点右上角 <text class="cd-guide-dots">···</text></view>
+      </view>
+      <view class="cd-guide-step">
+        <view class="cd-guide-num num">3</view>
+        <view class="cd-guide-text">选「分享到朋友圈」，选刚才保存的图</view>
+      </view>
+      <button class="btn grad cd-guide-btn" catchtap="closeGuide">知道了</button>
+    </view>
+  </view>
+
+  <!-- 离屏画布，仅用于导出 -->
+  <canvas type="2d" id="cardCanvas" class="cd-canvas"></canvas>
+</view>

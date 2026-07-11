@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@cloudbase/manager-node": "^5.5.7",
+    "@cloudbase/node-sdk": "^2.11.0",
+    "sharp": "^0.35.3",
+    "tcb-admin-node": "^1.23.0"
+  }
+}

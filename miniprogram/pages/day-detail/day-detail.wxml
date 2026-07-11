@@ -1,0 +1,95 @@
+<!-- pages/day-detail/day-detail.wxml —— 翻卡详情（swiper 全量模式 v6） -->
+<view class="screen detail">
+
+  <!-- ═══ 原生 swiper 全量舞台：一天一个 item，current 直接对应当天 ═══ -->
+  <swiper
+    class="stage-swiper"
+    current="{{swiperCurrent}}"
+    bindchange="onSwiperChange"
+    duration="300"
+    easing-function="easeOutCubic"
+    style="aspect-ratio: 3 / 4; min-height: 56vh;">
+
+    <swiper-item wx:for="{{swiperList}}" wx:key="key" class="stage-item">
+
+      <view class="flip" bindtap="onStageTap">
+        <view class="flip-inner {{flipped && index === swiperCurrent ? 'flipped' : ''}}">
+          <image
+            wx:if="{{item.front}}"
+            class="flip-face flip-front"
+            src="{{item.front}}"
+            mode="aspectFit" />
+          <image
+            wx:if="{{item.back}}"
+            class="flip-face flip-back"
+            src="{{item.back}}"
+            mode="aspectFit" />
+        </view>
+        <view wx:if="{{index === swiperCurrent}}" class="flip-tag num">{{flipped ? '反面' : '正面'}}</view>
+      </view>
+
+    </swiper-item>
+  </swiper>
+
+  <!-- ═══ 知识盲盒：每天一个"诶？" ═══ -->
+  <view class="kn-wrap {{cardAnim}}" wx:if="{{card}}">
+    <view class="kn-month-bar" wx:if="{{card.monthTheme}}">
+      <view class="kn-month-tag num">{{month}}月</view>
+      <view class="kn-month-theme">{{card.monthTheme}}</view>
+      <view class="bar-fav {{isFav ? 'is-fav' : ''}} {{justChecked ? 'just-checked' : ''}}" bindtap="toggleFav">
+        <view class="fav-heart-sm"></view>
+      </view>
+    </view>
+    <view class="kn-head">
+      <view class="kn-head-left">
+        <view class="kn-tag num">{{card.tag}}</view>
+        <view class="kn-level kn-level-imp" wx:if="{{card.level === '重要'}}">核心</view>
+      </view>
+      <view class="kn-idx num">DAY {{cardIdx}}</view>
+    </view>
+    <view class="kn-hook">{{card.hook}}</view>
+    <view class="kn-body">{{card.body}}</view>
+    <view class="kn-link" wx:if="{{card.link}}">
+      <view class="kn-ico kn-ico-link"></view>
+      <view class="kn-link-txt">{{card.link}}</view>
+    </view>
+    <view class="kn-trivia" wx:if="{{card.trivia}}">
+      <view class="kn-ico kn-ico-bulb"></view>
+      <view class="kn-trivia-txt">{{card.trivia}}</view>
+    </view>
+    <view class="kn-legacy" wx:if="{{card.legacy}}">"{{card.legacy}}"</view>
+  </view>
+
+  <view class="d-hint">
+    <text wx:if="{{favsHint}}" class="d-favs-count num">{{favsHint}}</text>
+    <text>轻触翻转 · 左右滑动{{favsHint ? '切换收藏' : '切换日期'}}</text>
+  </view>
+
+  <!-- 操作：生成日签卡 -->
+  <view class="d-actions">
+    <button class="btn grad d-card" bindtap="openCard">生成日签卡</button>
+  </view>
+
+  <!-- 前后日导航 -->
+  <view class="d-nav">
+    <button class="nav-btn {{swiperCurrent > 0 ? '' : 'is-disabled'}}" bindtap="goAdjacent" data-delta="-1" disabled="{{swiperCurrent <= 0}}">‹ 前一天</button>
+    <view class="nav-sep num">{{month}}月{{day}}日</view>
+    <button class="nav-btn {{swiperCurrent < swiperList.length - 1 ? '' : 'is-disabled'}}" bindtap="goAdjacent" data-delta="1" disabled="{{swiperCurrent >= swiperList.length - 1}}">后一天 ›</button>
+  </view>
+
+  <view style="height:60rpx"></view>
+</view>
+
+<!-- ═══ 里程碑庆祝弹窗 ═══ -->
+<view class="ms-overlay" wx:if="{{showMilestone}}" bindtap="closeMilestone">
+  <view class="ms-card" catchtap="">
+    <view class="ms-flame-wrap">
+      <view class="ms-flame"></view>
+    </view>
+    <view class="ms-count num">{{milestoneCount}}</view>
+    <view class="ms-unit">天连续打卡</view>
+    <view class="ms-title display">{{milestoneTitle}}</view>
+    <view class="ms-desc">坚持是最好的学习方法</view>
+    <button class="btn grad ms-btn" bindtap="closeMilestone">继续学习</button>
+  </view>
+</view>

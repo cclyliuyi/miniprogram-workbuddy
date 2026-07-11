@@ -1,0 +1,8 @@
+{
+  "*": {
+    "invoke": "auth != null"
+  },
+  "getPhotos": {
+    "invoke": true
+  }
+}

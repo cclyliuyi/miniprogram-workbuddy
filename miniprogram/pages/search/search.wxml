@@ -1,0 +1,68 @@
+<!-- pages/search/search.wxml —— 知识点搜索 -->
+<view class="screen sr">
+
+  <!-- 搜索框 -->
+  <view class="sr-bar rise">
+    <view class="sr-ico"></view>
+    <input
+      class="sr-input"
+      type="text"
+      placeholder="搜索知识点，如「偶极子」「增益」「相控阵」"
+      placeholder-class="sr-ph"
+      value="{{keyword}}"
+      bindinput="onInput"
+      confirm-type="search"
+      focus="{{true}}" />
+    <view class="sr-clear" wx:if="{{keyword}}" bindtap="onClear">×</view>
+  </view>
+
+  <!-- 热门标签（无搜索词时显示） -->
+  <view class="sr-tags" wx:if="{{!keyword && hotTags.length}}">
+    <view class="sr-tags-title kicker">热门标签</view>
+    <view class="sr-tags-list">
+      <view
+        wx:for="{{hotTags}}"
+        wx:key="tag"
+        class="sr-tag-chip"
+        bindtap="onTagTap"
+        data-tag="{{item.tag}}">
+        <text class="sr-tag-name">{{item.tag}}</text>
+        <text class="sr-tag-count num">{{item.count}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 搜索结果 -->
+  <view class="sr-results" wx:if="{{keyword}}">
+    <view class="sr-count kicker" wx:if="{{results.length}}">
+      找到 {{results.length}} 条结果
+    </view>
+    <view class="sr-count kicker" wx:elif="{{!searching}}">
+      未找到「{{keyword}}」相关内容
+    </view>
+
+    <view
+      wx:for="{{results}}"
+      wx:key="*this"
+      class="sr-card rise"
+      bindtap="openResult"
+      data-month="{{item.month}}"
+      data-day="{{item.day}}">
+
+      <view class="sr-card-left">
+        <view class="sr-date num">{{item.date}}</view>
+        <view class="sr-level sr-level-imp" wx:if="{{item.level === '重要'}}">核心</view>
+      </view>
+
+      <view class="sr-card-body">
+        <view class="sr-topic">{{item.topic}}</view>
+        <view class="sr-hook">{{item.hook}}</view>
+        <view class="sr-card-tag" wx:if="{{item.tag}}">{{item.tag}}</view>
+      </view>
+
+      <view class="sr-arrow">›</view>
+    </view>
+  </view>
+
+  <view style="height:80rpx"></view>
+</view>

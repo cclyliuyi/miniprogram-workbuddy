@@ -1,0 +1,85 @@
+/* pages/year/year.wxss */
+.yr { padding-top: 40rpx; padding-bottom: 30rpx; }
+
+.yr-head { margin-bottom: 20rpx; }
+.yr-title { font-size: 60rpx; line-height: 1.1; margin-top: 10rpx; }
+
+.yr-grid {
+  display: flex; flex-wrap: wrap;
+  gap: 22rpx 18rpx;
+}
+.yr-cell { width: calc((100% - 36rpx) / 3); }
+
+.yr-frame {
+  position: relative; border-radius: 16rpx; overflow: visible;
+  background: transparent;
+}
+.yr-frame.is-blank { background: var(--card); border: 1rpx dashed var(--line); }
+.yr-img { width: 100%; display: block; border-radius: 16rpx; }
+.yr-ph { color: var(--muted); font-size: 40rpx; }
+
+.yr-label {
+  text-align: center; font-size: 26rpx; color: var(--ink-soft);
+  margin-top: 12rpx; letter-spacing: 2rpx;
+}
+.yr-cell:active .yr-frame { transform: translateY(-4px); transition: transform .2s ease; }
+
+/* 权限提示 */
+.perm-hint {
+  margin: 40rpx 30rpx; padding: 36rpx;
+  background: var(--card, #fff); border-radius: 14rpx;
+  box-shadow: var(--shadow, 0 2rpx 12rpx rgba(0,0,0,.06));
+}
+.perm-ic { font-size: 48rpx; text-align: center; margin-bottom: 16rpx; }
+.perm-title { font-size: 34rpx; text-align: center; margin-bottom: 20rpx; color: var(--accent, #b06a4f); }
+.perm-desc { font-size: 26rpx; color: var(--muted, #9b9384); margin-bottom: 16rpx; }
+.perm-steps {
+  font-size: 24rpx; line-height: 1.8; color: var(--ink, #20201c);
+  background: var(--paper, #f3efe6); padding: 20rpx 24rpx; border-radius: 10rpx;
+  margin-bottom: 24rpx;
+}
+
+/* ═══ 长按预览浮层 ═══ */
+.yr-preview {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(32, 32, 28, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: yr-fade 0.25s ease both;
+}
+@keyframes yr-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.yr-preview-card {
+  width: 500rpx;
+  padding: 32rpx;
+  background: var(--card);
+  border-radius: 24rpx;
+  text-align: center;
+  box-shadow: 0 20rpx 60rpx rgba(0,0,0,.25);
+  animation: yr-pop 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes yr-pop {
+  0%   { opacity: 0; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.yr-preview-img {
+  width: 100%;
+  border-radius: 16rpx;
+  display: block;
+}
+.yr-preview-label {
+  font-size: 32rpx;
+  color: var(--ink);
+  margin: 20rpx 0 24rpx;
+  letter-spacing: 2rpx;
+}
+.yr-preview-btn {
+  width: 100%;
+}

@@ -1,0 +1,169 @@
+/* pages/favs/favs.wxss —— 我的收藏 */
+.favs { padding-top: 40rpx; padding-bottom: 30rpx; }
+
+/* ═══ 标题栏 ═══ */
+.fv-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 36rpx;
+}
+.fv-title { font-size: 52rpx; }
+.fv-count { font-size: 26rpx; color: var(--muted); }
+
+/* ═══ 空状态 ═══ */
+.fv-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 100rpx 40rpx;
+  text-align: center;
+}
+.fv-empty-heart {
+  width: 80rpx;
+  height: 80rpx;
+  margin-bottom: 30rpx;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: .3;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b06a4f' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z'/%3E%3C/svg%3E");
+}
+.fv-empty-title { font-size: 36rpx; color: var(--ink-soft); margin-bottom: 16rpx; }
+.fv-empty-desc { font-size: 26rpx; color: var(--muted); line-height: 1.8; }
+
+/* ═══ 加载中 ═══ */
+.fv-loading { text-align: center; padding: 80rpx 0; }
+.fv-loading-txt { font-size: 26rpx; color: var(--muted); }
+
+/* 骨架屏缩略图 */
+.fv-sk-thumb {
+  width: 220rpx;
+  height: 200rpx;
+  border-radius: 12rpx;
+  flex-shrink: 0;
+}
+
+/* ═══ 收藏卡片列表（单列大卡，编辑风） ═══ */
+.fv-list {
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+}
+
+.fv-card {
+  display: flex;
+  background: var(--card);
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 24rpx rgba(32, 32, 28, .07);
+  transition: transform 0.2s ease;
+}
+.fv-card:active { transform: scale(.98); }
+
+/* 缩略图区 */
+.fv-thumb-wrap {
+  position: relative;
+  width: 220rpx;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: linear-gradient(160deg, var(--paper-2), var(--paper));
+}
+.fv-thumb {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.fv-thumb-ph {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.fv-thumb-day { font-size: 48rpx; color: var(--muted); opacity: .4; }
+
+/* DAY 角标 */
+.fv-day-tag {
+  position: absolute;
+  top: 12rpx;
+  left: 12rpx;
+  font-size: 18rpx;
+  color: #fff;
+  background: rgba(32, 32, 28, .55);
+  padding: 3rpx 10rpx;
+  border-radius: 999rpx;
+  letter-spacing: 1rpx;
+}
+
+/* 信息区 */
+.fv-info {
+  flex: 1;
+  padding: 22rpx 24rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0; /* 让文字可以省略 */
+}
+.fv-date-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10rpx;
+}
+.fv-date { font-size: 30rpx; color: var(--ink); font-weight: 600; }
+
+/* 取消收藏 × 按钮 */
+.fv-remove {
+  width: 44rpx;
+  height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.fv-x {
+  width: 20rpx;
+  height: 20rpx;
+  position: relative;
+}
+.fv-x::before,
+.fv-x::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 3rpx;
+  background: var(--muted);
+  border-radius: 2rpx;
+}
+.fv-x::before { transform: rotate(45deg); }
+.fv-x::after { transform: rotate(-45deg); }
+.fv-remove:active .fv-x::before,
+.fv-remove:active .fv-x::after { background: var(--accent); }
+
+/* 标题钩子 */
+.fv-hook {
+  font-size: 25rpx;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  opacity: .85;
+  margin-bottom: 8rpx;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* 标签 */
+.fv-topic { display: flex; }
+.fv-tag {
+  font-size: 18rpx;
+  letter-spacing: 1rpx;
+  color: #fff;
+  background: var(--sage);
+  padding: 3rpx 14rpx;
+  border-radius: 999rpx;
+  align-self: flex-start;
+}

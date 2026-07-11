@@ -1,0 +1,41 @@
+<!-- pages/story/story.wxml —— 故事流：全屏肖像沉浸滑动 -->
+<view class="story">
+  <view class="st-top">
+    <view class="st-month display">{{monthLabel}}</view>
+  </view>
+
+  <!-- 分段进度条（Instagram Stories 风格） -->
+  <view class="st-progress" wx:if="{{list.length > 1}}">
+    <view
+      wx:for="{{list}}"
+      wx:key="day"
+      class="st-progress-bar {{index < current ? 'done' : ''}} {{index === current ? 'active' : ''}}">
+    </view>
+  </view>
+
+  <swiper
+    wx:if="{{list.length}}"
+    class="st-swiper"
+    current="{{current}}"
+    bindchange="onSwiperChange"
+    duration="380"
+    easing-function="easeOutCubic"
+    cache-extent="3"
+    previous-margin="60rpx"
+    next-margin="60rpx">
+    <swiper-item wx:for="{{list}}" wx:key="day" class="swiper-item">
+      <view class="st-stage {{index === current ? 'is-active' : ''}}" bindtap="toggleFlip">
+        <image class="st-img {{flipped ? 'hide' : 'show'}}" src="{{item.front}}" mode="heightFix" />
+        <image wx:if="{{item.back}}" class="st-img st-back {{flipped ? 'show' : 'hide'}}" src="{{item.back}}" mode="heightFix" />
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <view class="st-bar" wx:if="{{list.length}}">
+    <view class="st-meta">
+      <view class="st-label display">{{list[current].label}}</view>
+      <view class="st-hint">轻触翻转正反面 · 左右滑动翻页</view>
+    </view>
+    <button class="btn grad st-card" bindtap="openCard">日签卡</button>
+  </view>
+</view>
