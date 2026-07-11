@@ -1,0 +1,70 @@
+<!-- pages/tools/index.wxml —— 常用工具首页 -->
+<view class="screen tl">
+
+  <!-- 标题区 -->
+  <view class="tl-head rise">
+    <view class="kicker">ENGINEERING TOOLS</view>
+    <view class="tl-title display">常用工具</view>
+    <view class="tl-sub">天线 · 雷达 · 通信 — 工程师口袋计算器</view>
+  </view>
+
+  <!-- 工具卡片网格 -->
+  <view class="tl-grid">
+
+    <!-- 专用计算 -->
+    <view class="tl-card rise" bindtap="goCalc" style="animation-delay:.05s">
+      <view class="tl-card-icon tl-icon-calc">
+        <view class="tl-icon-inner">RF</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">专用计算</view>
+        <view class="tl-card-desc">dBm↔W · 波长 · VSWR · 趋肤深度</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 天线阵列 -->
+    <view class="tl-card rise" bindtap="goArray" style="animation-delay:.10s">
+      <view class="tl-card-icon tl-icon-array">
+        <view class="tl-icon-inner">⬡</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">天线阵列</view>
+        <view class="tl-card-desc">方向图 · 阵列因子 · 波束扫描</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 通信链路 -->
+    <view class="tl-card rise" bindtap="goLink" style="animation-delay:.15s">
+      <view class="tl-card-icon tl-icon-link">
+        <view class="tl-icon-inner">📶</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">通信链路</view>
+        <view class="tl-card-desc">弗里斯方程 · 路径损耗 · 链路预算</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- Radar 链路 -->
+    <view class="tl-card rise" bindtap="goRadar" style="animation-delay:.20s">
+      <view class="tl-card-icon tl-icon-radar">
+        <view class="tl-icon-inner">⊙</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">Radar 链路</view>
+        <view class="tl-card-desc">雷达方程 · RCS · 多普勒频移</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+  </view>
+
+  <!-- 底部说明 -->
+  <view class="tl-foot">
+    <view class="rule-dot"></view>
+    <text class="tl-foot-text">所有公式基于 IEEE / 雷达手册标准，离线可用</text>
+  </view>
+
+</view>

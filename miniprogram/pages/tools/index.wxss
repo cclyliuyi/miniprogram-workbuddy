@@ -1,0 +1,108 @@
+/* pages/tools/index.wxss —— 常用工具首页 */
+.tl { padding-top: 20rpx; }
+
+/* ═══ 标题区 ═══ */
+.tl-head {
+  padding: 20rpx 12rpx 36rpx;
+}
+.tl-title {
+  font-size: 52rpx;
+  margin: 8rpx 0 6rpx;
+}
+.tl-sub {
+  font-size: 24rpx;
+  color: var(--muted);
+  letter-spacing: 1rpx;
+}
+
+/* ═══ 卡片网格 ═══ */
+.tl-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  padding: 0 12rpx;
+}
+
+.tl-card {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 32rpx 28rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.05);
+  transition: transform .18s, box-shadow .18s;
+}
+.tl-card:active {
+  transform: scale(.97);
+  box-shadow: 0 4rpx 24rpx rgba(32,32,28,.10);
+}
+
+/* 图标圆 */
+.tl-card-icon {
+  width: 88rpx; height: 88rpx;
+  border-radius: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.tl-icon-inner {
+  font-size: 34rpx;
+  font-weight: 700;
+  letter-spacing: 1rpx;
+}
+.tl-icon-calc {
+  background: linear-gradient(135deg, rgba(176,106,79,.15), rgba(200,155,110,.15));
+  color: var(--accent);
+}
+.tl-icon-array {
+  background: linear-gradient(135deg, rgba(122,145,129,.15), rgba(143,170,152,.15));
+  color: var(--sage);
+}
+.tl-icon-link {
+  background: linear-gradient(135deg, rgba(200,155,110,.15), rgba(176,106,79,.10));
+  color: var(--accent-2);
+}
+.tl-icon-radar {
+  background: linear-gradient(135deg, rgba(176,106,79,.12), rgba(122,145,129,.12));
+  color: var(--accent);
+}
+
+.tl-card-body {
+  flex: 1;
+  min-width: 0;
+}
+.tl-card-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6rpx;
+}
+.tl-card-desc {
+  font-size: 24rpx;
+  color: var(--muted);
+  letter-spacing: .5rpx;
+}
+.tl-card-arrow {
+  font-size: 40rpx;
+  color: var(--muted);
+  opacity: .4;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* ═══ 底部 ═══ */
+.tl-foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 48rpx 0 40rpx;
+}
+.tl-foot-text {
+  font-size: 22rpx;
+  color: var(--muted);
+  letter-spacing: 1rpx;
+}

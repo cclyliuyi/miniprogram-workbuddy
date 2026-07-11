@@ -1,0 +1,162 @@
+<!-- pages/tools/calc/calc.wxml —— 专用计算（RF换算合集） -->
+<view class="screen tc">
+
+  <!-- Tab 切换 -->
+  <scroll-view scroll-x class="tc-tabs" enhanced show-scrollbar="{{false}}">
+    <view class="tc-tabs-inner">
+      <view
+        wx:for="{{tabs}}"
+        wx:key="key"
+        class="tc-tab {{activeTab === index ? 'tc-tab-on' : ''}}"
+        bindtap="switchTab"
+        data-index="{{index}}">
+        {{item}}
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- ══════ dBm ↔ Watt ══════ -->
+  <view class="tc-panel rise" wx:if="{{activeTab === 0}}">
+    <view class="tc-panel-title kicker">功率单位换算</view>
+
+    <view class="tc-field">
+      <text class="tc-label">输入值</text>
+      <view class="tc-input-row">
+        <input class="tc-input num" type="digit" value="{{dBmInput}}" bindinput="onDBmInput" placeholder="0" />
+        <view class="tc-unit-toggle">
+          <view class="tu-pill {{dBmMode === 0 ? 'tu-on' : ''}}" bindtap="toggleDBm" data-mode="0">dBm</view>
+          <view class="tu-pill {{dBmMode === 1 ? 'tu-on' : ''}}" bindtap="toggleDBm" data-mode="1">W</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="tc-result-card pop" wx:if="{{dBmResult}}">
+      <view class="tc-result-row">
+        <text class="tc-result-label">{{dBmMode === 0 ? '功率 (W)' : '功率 (dBm)'}}</text>
+        <text class="tc-result-value num">{{dBmResult}}</text>
+      </view>
+      <view class="tc-result-row tc-result-sub" wx:if="{{dBmExtra}}">
+        <text class="tc-result-label">{{dBmExtraLabel}}</text>
+        <text class="tc-result-value num">{{dBmExtra}}</text>
+      </view>
+    </view>
+
+    <view class="tc-tip">参考：0 dBm = 1 mW · 30 dBm = 1 W · -30 dBm = 1 μW</view>
+  </view>
+
+  <!-- ══════ 频率 ↔ 波长 ══════ -->
+  <view class="tc-panel rise" wx:if="{{activeTab === 1}}">
+    <view class="tc-panel-title kicker">频率 / 波长换算</view>
+
+    <view class="tc-field">
+      <text class="tc-label">频率</text>
+      <view class="tc-input-row">
+        <input class="tc-input num" type="digit" value="{{freqInput}}" bindinput="onFreqInput" placeholder="2400" />
+        <view class="tc-unit-toggle">
+          <view class="tu-pill {{freqUnit === 0 ? 'tu-on' : ''}}" bindtap="setFreqUnit" data-unit="0">MHz</view>
+          <view class="tu-pill {{freqUnit === 1 ? 'tu-on' : ''}}" bindtap="setFreqUnit" data-unit="1">GHz</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="tc-field">
+      <text class="tc-label">介质</text>
+      <view class="tc-medium-row">
+        <view
+          wx:for="{{mediums}}"
+          wx:key="key"
+          class="tc-medium {{medium === index ? 'tc-medium-on' : ''}}"
+          bindtap="setMedium"
+          data-index="{{index}}">
+          {{item}}
+        </view>
+      </view>
+    </view>
+
+    <view class="tc-result-card pop" wx:if="{{wlResult}}">
+      <view class="tc-result-row">
+        <text class="tc-result-label">波长 λ</text>
+        <text class="tc-result-value num">{{wlResult}}</text>
+      </view>
+      <view class="tc-result-row tc-result-sub">
+        <text class="tc-result-label">λ/2</text>
+        <text class="tc-result-value num">{{wlHalf}}</text>
+      </view>
+      <view class="tc-result-row tc-result-sub">
+        <text class="tc-result-label">λ/4</text>
+        <text class="tc-result-value num">{{wlQuarter}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ══════ VSWR ↔ 回波损耗 ↔ 反射系数 ══════ -->
+  <view class="tc-panel rise" wx:if="{{activeTab === 2}}">
+    <view class="tc-panel-title kicker">驻波比 / 反射 / 回波损耗</view>
+
+    <view class="tc-field">
+      <text class="tc-label">VSWR（驻波比）</text>
+      <input class="tc-input num" type="digit" value="{{vswrInput}}" bindinput="onVSWRInput" placeholder="1.5" />
+    </view>
+
+    <view class="tc-result-card pop" wx:if="{{vswrResult}}">
+      <view class="tc-result-row">
+        <text class="tc-result-label">反射系数 |Γ|</text>
+        <text class="tc-result-value num">{{vswrResult.gamma}}</text>
+      </view>
+      <view class="tc-result-row tc-result-sub">
+        <text class="tc-result-label">回波损耗 RL</text>
+        <text class="tc-result-value num">{{vswrResult.rl}} dB</text>
+      </view>
+      <view class="tc-result-row tc-result-sub">
+        <text class="tc-result-label">反射功率</text>
+        <text class="tc-result-value num">{{vswrResult.pref}} %</text>
+      </view>
+      <view class="tc-result-row tc-result-sub">
+        <text class="tc-result-label">失配损耗</text>
+        <text class="tc-result-value num">{{vswrResult.mismatch}} dB</text>
+      </view>
+    </view>
+
+    <view class="tc-tip">VSWR=1 完美匹配 · VSWR≤1.5 为良好 · VSWR≥2 需调匹配</view>
+  </view>
+
+  <!-- ══════ 趋肤深度 ══════ -->
+  <view class="tc-panel rise" wx:if="{{activeTab === 3}}">
+    <view class="tc-panel-title kicker">趋肤深度计算</view>
+
+    <view class="tc-field">
+      <text class="tc-label">频率</text>
+      <view class="tc-input-row">
+        <input class="tc-input num" type="digit" value="{{skinFreq}}" bindinput="onSkinFreq" placeholder="1000" />
+        <view class="tc-unit-toggle">
+          <view class="tu-pill {{skinFreqUnit === 0 ? 'tu-on' : ''}}" bindtap="setSkinFreqUnit" data-unit="0">MHz</view>
+          <view class="tu-pill {{skinFreqUnit === 1 ? 'tu-on' : ''}}" bindtap="setSkinFreqUnit" data-unit="1">GHz</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="tc-field">
+      <text class="tc-label">导体材料</text>
+      <view class="tc-medium-row">
+        <view
+          wx:for="{{materials}}"
+          wx:key="key"
+          class="tc-medium {{material === index ? 'tc-medium-on' : ''}}"
+          bindtap="setMaterial"
+          data-index="{{index}}">
+          {{item.name}}
+        </view>
+      </view>
+    </view>
+
+    <view class="tc-result-card pop" wx:if="{{skinResult}}">
+      <view class="tc-result-row">
+        <text class="tc-result-label">趋肤深度 δ</text>
+        <text class="tc-result-value num">{{skinResult}}</text>
+      </view>
+    </view>
+
+    <view class="tc-tip">趋肤深度 δ = √(2ρ / ωμ) = 1/√(πfμσ)</view>
+  </view>
+
+</view>

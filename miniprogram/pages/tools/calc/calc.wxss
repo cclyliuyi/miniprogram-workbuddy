@@ -1,0 +1,155 @@
+/* pages/tools/calc/calc.wxss —— 专用计算 */
+.tc { padding-top: 12rpx; }
+
+/* ═══ Tab 切换 ═══ */
+.tc-tabs {
+  margin: 0 0 24rpx;
+  white-space: nowrap;
+}
+.tc-tabs-inner {
+  display: inline-flex;
+  gap: 12rpx;
+  padding: 0 12rpx;
+}
+.tc-tab {
+  display: inline-block;
+  padding: 16rpx 32rpx;
+  font-size: 26rpx;
+  color: var(--muted);
+  background: transparent;
+  border-radius: 999rpx;
+  border: 1rpx solid var(--line-soft);
+  white-space: nowrap;
+  transition: all .2s;
+}
+.tc-tab-on {
+  color: #fff;
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+/* ═══ 面板 ═══ */
+.tc-panel {
+  padding: 0 12rpx;
+  animation-delay: .02s;
+}
+.tc-panel-title {
+  margin-bottom: 28rpx;
+}
+
+/* ═══ 输入字段 ═══ */
+.tc-field {
+  margin-bottom: 32rpx;
+}
+.tc-label {
+  display: block;
+  font-size: 24rpx;
+  color: var(--muted);
+  margin-bottom: 12rpx;
+  letter-spacing: 1rpx;
+}
+.tc-input {
+  width: 100%;
+  height: 88rpx;
+  padding: 0 28rpx;
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--card);
+  border: 1rpx solid var(--line);
+  border-radius: 16rpx;
+  box-sizing: border-box;
+}
+.tc-input-row {
+  display: flex;
+  gap: 16rpx;
+  align-items: stretch;
+}
+.tc-input-row .tc-input {
+  flex: 1;
+}
+
+/* 单位切换 */
+.tc-unit-toggle {
+  display: flex;
+  background: var(--card);
+  border: 1rpx solid var(--line);
+  border-radius: 16rpx;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.tu-pill {
+  padding: 0 24rpx;
+  display: flex;
+  align-items: center;
+  font-size: 24rpx;
+  color: var(--muted);
+  height: 88rpx;
+  transition: all .2s;
+}
+.tu-on {
+  color: #fff;
+  background: var(--ink);
+}
+
+/* 介质 / 材料选择 */
+.tc-medium-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+.tc-medium {
+  padding: 12rpx 28rpx;
+  font-size: 26rpx;
+  color: var(--ink-soft);
+  background: var(--card);
+  border: 1rpx solid var(--line-soft);
+  border-radius: 999rpx;
+  transition: all .2s;
+}
+.tc-medium-on {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(176,106,79,.06);
+}
+
+/* ═══ 结果卡片 ═══ */
+.tc-result-card {
+  background: var(--card);
+  border-radius: 20rpx;
+  padding: 32rpx 28rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 4rpx 20rpx rgba(32,32,28,.06);
+  margin-bottom: 24rpx;
+}
+.tc-result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 10rpx 0;
+}
+.tc-result-label {
+  font-size: 26rpx;
+  color: var(--muted);
+}
+.tc-result-value {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: var(--ink);
+}
+.tc-result-sub .tc-result-label {
+  font-size: 24rpx;
+}
+.tc-result-sub .tc-result-value {
+  font-size: 28rpx;
+  color: var(--ink-soft);
+}
+
+/* 提示 */
+.tc-tip {
+  font-size: 22rpx;
+  color: var(--muted);
+  line-height: 1.6;
+  padding: 8rpx 4rpx;
+  opacity: .8;
+}

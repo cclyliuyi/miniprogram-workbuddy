@@ -6,7 +6,12 @@
     "pages/story/story",
     "pages/card/card",
     "pages/favs/favs",
-    "pages/search/search"
+    "pages/search/search",
+    "pages/tools/index",
+    "pages/tools/calc/calc",
+    "pages/tools/array/array",
+    "pages/tools/link/link",
+    "pages/tools/radar/radar"
   ],
   "window": {
     "navigationBarTitleText": "天线与电磁波知识日历",
@@ -23,7 +28,8 @@
       { "pagePath": "pages/calendar/calendar", "text": "日历" },
       { "pagePath": "pages/story/story", "text": "故事流" },
       { "pagePath": "pages/year/year", "text": "年视图" },
-      { "pagePath": "pages/favs/favs", "text": "我的收藏" }
+      { "pagePath": "pages/favs/favs", "text": "收藏" },
+      { "pagePath": "pages/tools/index", "text": "工具" }
     ]
   },
   "sitemapLocation": "sitemap.json",

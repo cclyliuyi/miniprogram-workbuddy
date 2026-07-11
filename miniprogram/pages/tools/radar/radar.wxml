@@ -1,0 +1,151 @@
+<!-- pages/tools/radar/radar.wxml —— Radar 链路计算 -->
+<view class="screen tr">
+
+  <!-- Tab 切换：雷达方程 / 多普勒 -->
+  <view class="tr-tabs">
+    <view class="tr-tab {{radarTab === 0 ? 'tr-tab-on' : ''}}" bindtap="switchRadarTab" data-i="0">雷达方程</view>
+    <view class="tr-tab {{radarTab === 1 ? 'tr-tab-on' : ''}}" bindtap="switchRadarTab" data-i="1">多普勒/模糊</view>
+  </view>
+
+  <!-- ══════ 雷达方程 ══════ -->
+  <view wx:if="{{radarTab === 0}}">
+    <view class="tr-section rise">
+      <view class="kicker">发射参数</view>
+
+      <view class="tr-field">
+        <text class="tr-label">峰值功率 Pt</text>
+        <view class="tr-input-row">
+          <input class="tr-input num" type="digit" value="{{rPt}}" bindinput="onRPtChange" />
+          <view class="tr-unit-toggle">
+            <view class="tru {{rPtUnit === 0 ? 'tru-on' : ''}}" bindtap="setRPtUnit" data-u="0">kW</view>
+            <view class="tru {{rPtUnit === 1 ? 'tru-on' : ''}}" bindtap="setRPtUnit" data-u="1">W</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="tr-field">
+        <text class="tr-label">天线增益 G</text>
+        <input class="tr-input num" type="digit" value="{{rG}}" bindinput="onRGChange" />
+        <text class="tr-hint">dBi（收发共用天线）</text>
+      </view>
+
+      <view class="tr-field">
+        <text class="tr-label">频率</text>
+        <view class="tr-input-row">
+          <input class="tr-input num" type="digit" value="{{rFreq}}" bindinput="onRFreqChange" />
+          <view class="tr-unit-toggle">
+            <view class="tru {{rFreqUnit === 0 ? 'tru-on' : ''}}" bindtap="setRFreqUnit" data-u="0">MHz</view>
+            <view class="tru {{rFreqUnit === 1 ? 'tru-on' : ''}}" bindtap="setRFreqUnit" data-u="1">GHz</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="tr-section rise">
+      <view class="kicker">目标 & 接收</view>
+
+      <view class="tr-field">
+        <text class="tr-label">目标 RCS（雷达截面积）σ</text>
+        <input class="tr-input num" type="digit" value="{{rcs}}" bindinput="onRcsChange" />
+        <text class="tr-hint">m²（典型值：战机 1-5 · 车辆 10-50 · 舰船 1000+）</text>
+      </view>
+
+      <view class="tr-field">
+        <text class="tr-label">最小可检测信号 Smin</text>
+        <input class="tr-input num" type="digit" value="{{smin}}" bindinput="onSminChange" />
+        <text class="tr-hint">dBm（典型值 -110 ~ -130 dBm）</text>
+      </view>
+
+      <view class="tr-field">
+        <text class="tr-label">系统损耗 L</text>
+        <input class="tr-input num" type="digit" value="{{rLoss}}" bindinput="onRLossChange" />
+        <text class="tr-hint">dB（大气、馈线、处理损耗等）</text>
+      </view>
+    </view>
+
+    <button class="btn grad tr-calc-btn" bindtap="calcRange">计算最大探测距离</button>
+
+    <view class="tr-result pop" wx:if="{{rangeResult}}">
+      <view class="kicker tr-result-title">雷达方程结果</view>
+
+      <view class="tr-result-big">
+        <view class="tr-result-big-label">R_max（最大探测距离）</view>
+        <view class="tr-result-big-value num">{{rangeResult.rKm}}</view>
+        <view class="tr-result-big-unit">km</view>
+      </view>
+
+      <view class="tr-result-item">
+        <text class="tr-result-label">波长 λ</text>
+        <text class="tr-result-value num">{{rangeResult.wavelength}}</text>
+      </view>
+      <view class="tr-result-item">
+        <text class="tr-result-label">等效孔径 Ae</text>
+        <text class="tr-result-value num">{{rangeResult.ae}}</text>
+      </view>
+
+      <view class="tr-note">
+        R_max = [Pt·G²·λ²·σ / ((4π)³·Smin·L)]^(1/4)
+      </view>
+    </view>
+  </view>
+
+  <!-- ══════ 多普勒 / 模糊 ══════ -->
+  <view wx:if="{{radarTab === 1}}">
+    <view class="tr-section rise">
+      <view class="kicker">多普勒频移</view>
+
+      <view class="tr-field">
+        <text class="tr-label">载频</text>
+        <view class="tr-input-row">
+          <input class="tr-input num" type="digit" value="{{dFreq}}" bindinput="onDFreq" />
+          <view class="tr-unit-toggle">
+            <view class="tru {{dFreqUnit === 0 ? 'tru-on' : ''}}" bindtap="setDFreqUnit" data-u="0">MHz</view>
+            <view class="tru {{dFreqUnit === 1 ? 'tru-on' : ''}}" bindtap="setDFreqUnit" data-u="1">GHz</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="tr-field">
+        <text class="tr-label">目标径向速度 vr</text>
+        <input class="tr-input num" type="digit" value="{{dVel}}" bindinput="onDVel" />
+        <text class="tr-hint">m/s（正值=远离雷达）</text>
+      </view>
+
+      <button class="btn grad tr-calc-btn" bindtap="calcDoppler">计算多普勒频移</button>
+
+      <view class="tr-doppler pop" wx:if="{{dopplerResult}}">
+        <view class="tr-result-item">
+          <text class="tr-result-label">多普勒频移 fd</text>
+          <text class="tr-result-value num tr-highlight">{{dopplerResult}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="tr-section rise">
+      <view class="kicker">距离 / 速度模糊</view>
+
+      <view class="tr-field">
+        <text class="tr-label">脉冲重复频率 PRF</text>
+        <input class="tr-input num" type="digit" value="{{prf}}" bindinput="onPrf" />
+        <text class="tr-hint">Hz</text>
+      </view>
+
+      <button class="btn grad tr-calc-btn" bindtap="calcAmbiguity">计算模糊距离/速度</button>
+
+      <view class="tr-ambig pop" wx:if="{{ambigResult}}">
+        <view class="tr-result-item">
+          <text class="tr-result-label">最大不模糊距离 Ru</text>
+          <text class="tr-result-value num">{{ambigResult.ru}}</text>
+        </view>
+        <view class="tr-result-item">
+          <text class="tr-result-label">最大不模糊速度 va</text>
+          <text class="tr-result-value num">{{ambigResult.va}}</text>
+        </view>
+        <view class="tr-note">
+          Ru = c / (2·PRF) · va = λ·PRF / 4
+        </view>
+      </view>
+    </view>
+  </view>
+
+</view>

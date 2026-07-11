@@ -1,0 +1,92 @@
+<!-- pages/tools/link/link.wxml —— 通信链路计算 -->
+<view class="screen tl2">
+
+  <view class="tl2-section rise">
+    <view class="kicker">发射参数</view>
+
+    <view class="tl2-field">
+      <text class="tl2-label">发射功率 Pt</text>
+      <view class="tl2-input-row">
+        <input class="tl2-input num" type="digit" value="{{pt}}" bindinput="onPtChange" />
+        <view class="tl2-unit-toggle">
+          <view class="tu2 {{ptUnit === 0 ? 'tu2-on' : ''}}" bindtap="setPtUnit" data-unit="0">dBm</view>
+          <view class="tu2 {{ptUnit === 1 ? 'tu2-on' : ''}}" bindtap="setPtUnit" data-unit="1">W</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="tl2-field">
+      <text class="tl2-label">发射天线增益 Gt</text>
+      <input class="tl2-input num" type="digit" value="{{gt}}" bindinput="onGtChange" />
+      <text class="tl2-hint">dBi</text>
+    </view>
+
+    <view class="tl2-field">
+      <text class="tl2-label">频率</text>
+      <view class="tl2-input-row">
+        <input class="tl2-input num" type="digit" value="{{freq}}" bindinput="onFreqChange" />
+        <view class="tl2-unit-toggle">
+          <view class="tu2 {{freqUnit === 0 ? 'tu2-on' : ''}}" bindtap="setFreqUnit" data-unit="0">MHz</view>
+          <view class="tu2 {{freqUnit === 1 ? 'tu2-on' : ''}}" bindtap="setFreqUnit" data-unit="1">GHz</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="tl2-section rise">
+    <view class="kicker">链路参数</view>
+
+    <view class="tl2-field">
+      <text class="tl2-label">距离 R</text>
+      <input class="tl2-input num" type="digit" value="{{distance}}" bindinput="onDistChange" />
+      <text class="tl2-hint">km</text>
+    </view>
+
+    <view class="tl2-field">
+      <text class="tl2-label">接收天线增益 Gr</text>
+      <input class="tl2-input num" type="digit" value="{{gr}}" bindinput="onGrChange" />
+      <text class="tl2-hint">dBi</text>
+    </view>
+
+    <view class="tl2-field">
+      <text class="tl2-label">系统损耗 L_sys</text>
+      <input class="tl2-input num" type="digit" value="{{sysLoss}}" bindinput="onLossChange" />
+      <text class="tl2-hint">dB（馈线、雨衰等附加损耗）</text>
+    </view>
+
+    <view class="tl2-field">
+      <text class="tl2-label">接收灵敏度 P_min</text>
+      <input class="tl2-input num" type="digit" value="{{sensitivity}}" bindinput="onSensChange" />
+      <text class="tl2-hint">dBm（接收机最小可检测功率）</text>
+    </view>
+  </view>
+
+  <button class="btn grad tl2-calc-btn" bindtap="calculate">计算链路预算</button>
+
+  <!-- 结果 -->
+  <view class="tl2-results pop" wx:if="{{result}}">
+    <view class="kicker tl2-results-title">链路预算结果</view>
+
+    <view class="tl2-result-item">
+      <text class="tl2-result-label">EIRP（等效全向辐射功率）</text>
+      <text class="tl2-result-value num">{{result.eirp}} dBm</text>
+    </view>
+    <view class="tl2-result-item">
+      <text class="tl2-result-label">FSPL（自由空间路径损耗）</text>
+      <text class="tl2-result-value num">{{result.fspl}} dB</text>
+    </view>
+    <view class="tl2-result-item">
+      <text class="tl2-result-label">接收功率 Pr</text>
+      <text class="tl2-result-value num tl2-highlight">{{result.pr}} dBm</text>
+    </view>
+    <view class="tl2-result-item">
+      <text class="tl2-result-label">链路余量（Margin）</text>
+      <text class="tl2-result-value num {{result.marginClass}}">{{result.margin}} dB</text>
+    </view>
+
+    <view class="tl2-verdict {{result.verdictClass}}">
+      {{result.verdict}}
+    </view>
+  </view>
+
+</view>

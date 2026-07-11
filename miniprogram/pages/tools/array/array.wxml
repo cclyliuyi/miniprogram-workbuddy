@@ -1,0 +1,80 @@
+<!-- pages/tools/array/array.wxml —— 天线阵列方向图 -->
+<view class="screen ta">
+
+  <!-- 参数面板 -->
+  <view class="ta-params rise">
+    <view class="kicker">ARRAY PARAMETERS</view>
+
+    <view class="ta-param-grid">
+      <view class="ta-param">
+        <text class="ta-param-label">阵元数 N</text>
+        <input class="ta-param-input num" type="number" value="{{N}}" bindinput="onNChange" />
+      </view>
+      <view class="ta-param">
+        <text class="ta-param-label">间距 d/λ</text>
+        <input class="ta-param-input num" type="digit" value="{{dLam}}" bindinput="onDChange" />
+      </view>
+      <view class="ta-param">
+        <text class="ta-param-label">扫描角 θ₀°</text>
+        <input class="ta-param-input num" type="digit" value="{{theta0}}" bindinput="onThetaChange" />
+      </view>
+    </view>
+
+    <view class="ta-param">
+      <text class="ta-param-label">幅度加权（窗函数）</text>
+      <view class="ta-window-row">
+        <view
+          wx:for="{{windows}}"
+          wx:key="*this"
+          class="ta-window {{winType === index ? 'ta-window-on' : ''}}"
+          bindtap="setWindow"
+          data-index="{{index}}">
+          {{item}}
+        </view>
+      </view>
+    </view>
+
+    <button class="btn grad ta-calc-btn" bindtap="calculate">计算方向图</button>
+  </view>
+
+  <!-- 方向图 Canvas -->
+  <view class="ta-chart-area" wx:if="{{hasResult}}">
+    <view class="kicker ta-chart-title">极坐标方向图（dB）</view>
+    <canvas
+      type="2d"
+      id="polarChart"
+      class="ta-canvas"
+      bindtouchstart="onChartTouch"></canvas>
+  </view>
+
+  <!-- 结果指标 -->
+  <view class="ta-metrics pop" wx:if="{{hasResult}}">
+    <view class="ta-metric">
+      <view class="ta-metric-label">主瓣指向</view>
+      <view class="ta-metric-value num">{{metrics.mainLobe}}°</view>
+    </view>
+    <view class="ta-metric">
+      <view class="ta-metric-label">HPBW</view>
+      <view class="ta-metric-value num">{{metrics.hpbw}}°</view>
+    </view>
+    <view class="ta-metric">
+      <view class="ta-metric-label">SLL</view>
+      <view class="ta-metric-value num">{{metrics.sll}} dB</view>
+    </view>
+    <view class="ta-metric">
+      <view class="ta-metric-label">方向性 D</view>
+      <view class="ta-metric-value num">{{metrics.directivity}} dBi</view>
+    </view>
+  </view>
+
+  <!-- 提示 -->
+  <view class="ta-note" wx:if="{{gratingWarning}}">
+    <text class="ta-note-icon">⚠</text>
+    <text>注意：d/λ > 0.5 且大角度扫描时可能出现栅瓣（Grating Lobe）</text>
+  </view>
+
+  <view class="ta-tip" wx:if="{{!hasResult}}">
+    设置参数后点击「计算方向图」，将绘制均匀线阵的阵列因子极坐标方向图。
+  </view>
+
+</view>
