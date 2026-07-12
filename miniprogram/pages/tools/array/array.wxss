@@ -1,6 +1,58 @@
 /* pages/tools/array/array.wxss —— 天线阵列 */
 .ta { padding-top: 20rpx; }
 
+/* ═══ 偶极子尺寸卡片 ═══ */
+.ta-dipole {
+  margin: 0 12rpx 24rpx;
+  padding: 28rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.05);
+}
+.ta-dipole-row { margin-top: 16rpx; }
+.ta-dipole-input { display: flex; gap: 16rpx; }
+.ta-dipole-freq {
+  flex: 1;
+  height: 80rpx;
+  padding: 0 24rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1rpx solid var(--line);
+  border-radius: 14rpx;
+  box-sizing: border-box;
+}
+.ta-dipole-unit {
+  display: flex;
+  background: var(--paper);
+  border: 1rpx solid var(--line);
+  border-radius: 14rpx;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.ta-du {
+  padding: 0 24rpx;
+  display: flex;
+  align-items: center;
+  font-size: 24rpx;
+  color: var(--muted);
+  height: 80rpx;
+}
+.ta-du-on { color: #fff; background: var(--ink); }
+.ta-dipole-result { display: flex; gap: 12rpx; margin-top: 20rpx; }
+.ta-dr-item {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 8rpx;
+  background: rgba(122,145,129,.06);
+  border-radius: 12rpx;
+}
+.ta-dr-type { display: block; font-size: 22rpx; color: var(--muted); margin-bottom: 6rpx; }
+.ta-dr-val { display: block; font-size: 28rpx; font-weight: 700; color: var(--accent); margin-bottom: 4rpx; }
+.ta-dr-note { font-size: 20rpx; color: var(--muted); opacity: .7; }
+
 /* ═══ 参数面板 ═══ */
 .ta-params {
   padding: 28rpx;

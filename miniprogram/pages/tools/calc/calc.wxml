@@ -159,4 +159,90 @@
     <view class="tc-tip">趋肤深度 δ = √(2ρ / ωμ) = 1/√(πfμσ)</view>
   </view>
 
+  <!-- ══════ 增益 ↔ 有效口径 ══════ -->
+  <view class="tc-panel rise" wx:if="{{activeTab === 4}}">
+    <view class="tc-panel-title kicker">天线增益 ↔ 有效口径</view>
+
+    <view class="tc-field">
+      <text class="tc-label">天线增益 G</text>
+      <input class="tc-input num" type="digit" value="{{gainInput}}" bindinput="onGainInput" placeholder="15" />
+      <text class="tc-label" style="margin-top:6rpx;font-size:20rpx">dBi</text>
+    </view>
+
+    <view class="tc-field">
+      <text class="tc-label">频率</text>
+      <view class="tc-input-row">
+        <input class="tc-input num" type="digit" value="{{gainFreq}}" bindinput="onGainFreq" placeholder="10" />
+        <view class="tc-unit-toggle">
+          <view class="tu-pill {{gainFreqUnit === 0 ? 'tu-on' : ''}}" bindtap="setGainFreqUnit" data-unit="0">MHz</view>
+          <view class="tu-pill {{gainFreqUnit === 1 ? 'tu-on' : ''}}" bindtap="setGainFreqUnit" data-unit="1">GHz</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="tc-result-card pop" wx:if="{{gainResult}}">
+      <view class="tc-result-row">
+        <text class="tc-result-label">有效口径 Ae</text>
+        <text class="tc-result-value num">{{gainResult.ae}}</text>
+      </view>
+      <view class="tc-result-row tc-result-sub">
+        <text class="tc-result-label">Ae (cm²)</text>
+        <text class="tc-result-value num">{{gainResult.aeCm}}</text>
+      </view>
+      <view class="tc-result-row tc-result-sub">
+        <text class="tc-result-label">波长 λ</text>
+        <text class="tc-result-value num">{{gainResult.wavelength}}</text>
+      </view>
+      <view class="tc-result-row tc-result-sub">
+        <text class="tc-result-label">G (线性)</text>
+        <text class="tc-result-value num">{{gainResult.gLin}}</text>
+      </view>
+    </view>
+
+    <view class="tc-tip">Ae = G·λ² / (4π) · G(线性) = 10^(G_dBi / 10)</view>
+  </view>
+
+  <!-- ══════ 远场距离 (Fraunhofer) ══════ -->
+  <view class="tc-panel rise" wx:if="{{activeTab === 5}}">
+    <view class="tc-panel-title kicker">远场距离（Fraunhofer 边界）</view>
+
+    <view class="tc-field">
+      <text class="tc-label">频率</text>
+      <view class="tc-input-row">
+        <input class="tc-input num" type="digit" value="{{ffFreq}}" bindinput="onFFFreq" placeholder="10" />
+        <view class="tc-unit-toggle">
+          <view class="tu-pill {{ffFreqUnit === 0 ? 'tu-on' : ''}}" bindtap="setFFFreqUnit" data-unit="0">MHz</view>
+          <view class="tu-pill {{ffFreqUnit === 1 ? 'tu-on' : ''}}" bindtap="setFFFreqUnit" data-unit="1">GHz</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="tc-field">
+      <text class="tc-label">天线最大尺寸 D</text>
+      <input class="tc-input num" type="digit" value="{{ffD}}" bindinput="onFFD" placeholder="1" />
+      <text class="tc-label" style="margin-top:6rpx;font-size:20rpx">m（如抛物面直径、阵列最大边长）</text>
+    </view>
+
+    <view class="tc-result-card pop" wx:if="{{ffResult}}">
+      <view class="tc-result-row">
+        <text class="tc-result-label">远场边界 R_ff</text>
+        <text class="tc-result-value num">{{ffResult.rFF}}</text>
+      </view>
+      <view class="tc-result-row tc-result-sub">
+        <text class="tc-result-label">感应近场 R_nf</text>
+        <text class="tc-result-value num">{{ffResult.rNF}}</text>
+      </view>
+      <view class="tc-result-row tc-result-sub">
+        <text class="tc-result-label">波长 λ</text>
+        <text class="tc-result-value num">{{ffResult.wavelength}}</text>
+      </view>
+      <view class="tc-result-row tc-result-sub">
+        <text class="tc-result-label">D/λ</text>
+        <text class="tc-result-value num">{{ffResult.dOverLam}}</text>
+      </view>
+    </view>
+
+    <view class="tc-tip">R_ff = 2D²/λ（Fraunhofer）· R_nf ≈ 0.62√(D³/λ)（感应近场）</view>
+  </view>
+
 </view>

@@ -16,6 +16,37 @@ Page({
       sll: '—',
       directivity: '—',
     },
+
+    // 偶极子尺寸
+    dipoleFreq: '433',
+    dipoleFreqUnit: 0,
+    dipoleResult: null,
+  },
+
+  onLoad() {
+    this.calcDipole()
+  },
+
+  // ══════ 偶极子尺寸 ══════
+  onDipoleFreq(e) { this.setData({ dipoleFreq: e.detail.value }, () => this.calcDipole()) },
+  setDipoleUnit(e) { haptic.light(); this.setData({ dipoleFreqUnit: +e.currentTarget.dataset.u }, () => this.calcDipole()) },
+  calcDipole() {
+    const f = parseFloat(this.data.dipoleFreq)
+    if (isNaN(f) || f <= 0) { this.setData({ dipoleResult: null }); return }
+    const freqHz = f * (this.data.dipoleFreqUnit === 0 ? 1e6 : 1e9)
+    const wl = 299792458 / freqHz
+    this.setData({
+      dipoleResult: {
+        halfDipole: this.fmtLen(wl / 2),
+        quarterMono: this.fmtLen(wl / 4),
+        fullLoop: this.fmtLen(wl),
+      }
+    })
+  },
+  fmtLen(m) {
+    if (m >= 1) return m.toFixed(2) + ' m'
+    if (m >= 1e-2) return (m * 100).toFixed(1) + ' cm'
+    return (m * 1000).toFixed(1) + ' mm'
   },
 
   onNChange(e) { this.setData({ N: +e.detail.value || 1 }) },

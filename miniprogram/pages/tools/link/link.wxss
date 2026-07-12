@@ -1,5 +1,53 @@
 /* pages/tools/link/link.wxss —— 通信链路 */
-.tl2 { padding-top: 20rpx; }
+.tl2 { padding-top: 12rpx; }
+
+/* ═══ Tab 切换 ═══ */
+.tl2-tabs {
+  margin: 0 0 24rpx;
+  white-space: nowrap;
+}
+.tl2-tabs-inner {
+  display: inline-flex;
+  gap: 12rpx;
+  padding: 0 12rpx;
+}
+.tl2-tab {
+  display: inline-block;
+  padding: 16rpx 28rpx;
+  font-size: 26rpx;
+  color: var(--muted);
+  background: transparent;
+  border-radius: 999rpx;
+  border: 1rpx solid var(--line-soft);
+  white-space: nowrap;
+  transition: all .2s;
+}
+.tl2-tab-on {
+  color: #fff;
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+/* 介质/系数选择 */
+.tl2-medium-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+.tl2-medium {
+  padding: 12rpx 24rpx;
+  font-size: 24rpx;
+  color: var(--ink-soft);
+  background: var(--paper);
+  border: 1rpx solid var(--line-soft);
+  border-radius: 999rpx;
+  transition: all .2s;
+}
+.tl2-medium-on {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(176,106,79,.08);
+}
 
 .tl2-section {
   padding: 28rpx;

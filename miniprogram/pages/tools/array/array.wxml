@@ -1,6 +1,37 @@
 <!-- pages/tools/array/array.wxml —— 天线阵列方向图 -->
 <view class="screen ta">
 
+  <!-- 偶极子/单极子快速尺寸 -->
+  <view class="ta-dipole rise">
+    <view class="kicker">天线尺寸速查</view>
+    <view class="ta-dipole-row">
+      <view class="ta-dipole-input">
+        <input class="ta-dipole-freq num" type="digit" value="{{dipoleFreq}}" bindinput="onDipoleFreq" />
+        <view class="ta-dipole-unit">
+          <view class="ta-du {{dipoleFreqUnit === 0 ? 'ta-du-on' : ''}}" bindtap="setDipoleUnit" data-u="0">MHz</view>
+          <view class="ta-du {{dipoleFreqUnit === 1 ? 'ta-du-on' : ''}}" bindtap="setDipoleUnit" data-u="1">GHz</view>
+        </view>
+      </view>
+    </view>
+    <view class="ta-dipole-result pop" wx:if="{{dipoleResult}}">
+      <view class="ta-dr-item">
+        <text class="ta-dr-type">半波偶极子</text>
+        <text class="ta-dr-val num">{{dipoleResult.halfDipole}}</text>
+        <text class="ta-dr-note">L = λ/2</text>
+      </view>
+      <view class="ta-dr-item">
+        <text class="ta-dr-type">λ/4 单极子</text>
+        <text class="ta-dr-val num">{{dipoleResult.quarterMono}}</text>
+        <text class="ta-dr-note">L = λ/4</text>
+      </view>
+      <view class="ta-dr-item">
+        <text class="ta-dr-type">全波环天线</text>
+        <text class="ta-dr-val num">{{dipoleResult.fullLoop}}</text>
+        <text class="ta-dr-note">L = λ</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 参数面板 -->
   <view class="ta-params rise">
     <view class="kicker">ARRAY PARAMETERS</view>
