@@ -10,9 +10,9 @@
     <view class="perm-title display">无法加载照片</view>
     <view class="perm-desc">请按以下步骤检查数据库权限：</view>
     <view class="perm-steps kicker">
-      1. 打开微信开发者工具 -&gt; 点击顶部「云开发」按钮<br/>
-      2. 进入「数据库」-&gt; 找到 calendar_photos 集合<br/>
-      3. 点击「权限设置」-&gt; 改为「所有用户可读，仅创建者可写」<br/>
+      1. 打开微信开发者工具 → 点击顶部「云开发」按钮<br/>
+      2. 进入「数据库」→ 找到 calendar_photos 集合<br/>
+      3. 点击「权限设置」→ 改为「所有用户可读，仅创建者可写」<br/>
       4. 改完后返回此页面重新加载
     </view>
     <view class="btn" bindtap="loadYear">重新加载</view>
