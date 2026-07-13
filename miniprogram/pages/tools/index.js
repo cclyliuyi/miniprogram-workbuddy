@@ -20,4 +20,12 @@ Page({
     haptic.light()
     wx.navigateTo({ url: '/pages/tools/radar/radar' })
   },
+  goMatch() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/tools/match/match' })
+  },
+  goSmith() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/tools/smith/smith' })
+  },
 })

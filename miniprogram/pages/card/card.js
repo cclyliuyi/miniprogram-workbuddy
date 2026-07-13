@@ -151,7 +151,7 @@ Page({
       }
       const canvas = res[0].node;
       const ctx = canvas.getContext('2d');
-      const dpr = (wx.getWindowInfo ? wx.getWindowInfo().pixelRatio : wx.getSystemInfoSync().pixelRatio) || 2;
+      const dpr = wx.getWindowInfo().pixelRatio || 2;
 
       // 获取当月季节主题色
       const theme = getSeasonTheme(this.data.month);

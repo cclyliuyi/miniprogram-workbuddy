@@ -69,6 +69,14 @@
   background: linear-gradient(135deg, rgba(176,106,79,.12), rgba(122,145,129,.12));
   color: var(--accent);
 }
+.tl-icon-match {
+  background: linear-gradient(135deg, rgba(122,145,129,.15), rgba(143,170,152,.10));
+  color: var(--sage);
+}
+.tl-icon-smith {
+  background: linear-gradient(135deg, rgba(176,106,79,.12), rgba(200,155,110,.15));
+  color: var(--accent);
+}
 
 .tl-card-body {
   flex: 1;
