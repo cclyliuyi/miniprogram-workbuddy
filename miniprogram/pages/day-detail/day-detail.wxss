@@ -52,6 +52,34 @@
   backdrop-filter: blur(6px);
 }
 
+/* 全屏放大按钮（左上角） */
+.zoom-btn {
+  position: absolute; top: 22rpx; left: 22rpx;
+  width: 56rpx; height: 56rpx;
+  background: rgba(32, 32, 28, .55);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(6px);
+  z-index: 5;
+}
+.zoom-btn:active { transform: scale(.9); }
+/* 放大镜 = 圆圈 + 斜手柄（纯 CSS） */
+.zoom-icon {
+  width: 22rpx; height: 22rpx;
+  border: 3rpx solid #fff;
+  border-radius: 50%;
+  position: relative;
+}
+.zoom-icon::after {
+  content: '';
+  position: absolute;
+  bottom: -8rpx; right: -6rpx;
+  width: 10rpx; height: 3rpx;
+  background: #fff;
+  border-radius: 2rpx;
+  transform: rotate(45deg);
+}
+
 .d-hint {
   text-align: center; color: var(--muted);
   font-size: 24rpx; letter-spacing: 2rpx; margin: 20rpx 0 30rpx;

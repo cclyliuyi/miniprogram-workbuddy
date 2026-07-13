@@ -26,6 +26,9 @@
             mode="aspectFit" />
         </view>
         <view wx:if="{{index === swiperCurrent}}" class="flip-tag num">{{flipped ? '反面' : '正面'}}</view>
+        <view wx:if="{{index === swiperCurrent}}" class="zoom-btn" catchtap="preview">
+          <view class="zoom-icon"></view>
+        </view>
       </view>
 
     </swiper-item>
