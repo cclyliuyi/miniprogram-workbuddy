@@ -11,9 +11,7 @@
     "pages/tools/calc/calc",
     "pages/tools/array/array",
     "pages/tools/link/link",
-    "pages/tools/radar/radar",
-    "pages/tools/match/match",
-    "pages/tools/smith/smith"
+    "pages/tools/radar/radar"
   ],
   "window": {
     "navigationBarTitleText": "天线与电磁波知识日历",

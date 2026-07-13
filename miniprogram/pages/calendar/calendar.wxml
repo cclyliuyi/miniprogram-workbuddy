@@ -8,8 +8,8 @@
     <view wx:if="{{loadError}}" class="perm-desc kicker" style="color:#b06a4f">{{loadError}}</view>
     <view wx:else class="perm-desc">请检查数据库权限后重试</view>
     <view class="perm-steps kicker">
-      1. 微信开发者工具 -&gt; 顶部「云开发」按钮<br/>
-      2. 「数据库」-&gt; calendar_photos -&gt;「权限设置」<br/>
+      1. 微信开发者工具 → 顶部「云开发」按钮<br/>
+      2. 「数据库」→ calendar_photos →「权限设置」<br/>
       3. 改为「所有用户可读，仅创建者可写」<br/>
       4. 返回此页重新加载
     </view>

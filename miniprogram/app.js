@@ -20,13 +20,8 @@ App({
       envid: this.globalData.env, // 多端应用运行时使用
       traceUser: true,
     });
-
-    // 延迟初始化 database：首屏渲染完毕后再执行，减少 onLaunch 耗时
-    setTimeout(() => {
-      this.globalData.db = wx.cloud.database();
-    }, 500);
+    this.globalData.db = wx.cloud.database();
+    // 启动即后台预热云函数 getPhotos（不阻塞首屏），避免首次交互撞冷启动
+    try { require('./utils/db').warmAll(); } catch (e) { /* 预热失败不影响首屏 */ }
   },
-
-  // 拦截全局运行时 error（云函数超时等框架内部行为不阻断业务）
-  onError() {},
 });

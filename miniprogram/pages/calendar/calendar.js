@@ -1,6 +1,6 @@
 // pages/calendar/calendar.js —— 月历网格主页 + 磨砂背景
 const { WEEKDAYS, buildMonthGrid } = require('../../utils/date');
-const { getMonthPhotos, getDayPhoto } = require('../../utils/db');
+const { getMonthPhotos, getDayPhoto, warmAll } = require('../../utils/db');
 const progress = require('../../utils/progress');
 const { CARDS } = require('../../utils/quotes');
 const haptic = require('../../utils/haptic');
@@ -86,6 +86,7 @@ Page({
     this.loadMonth(month);
     this.loadMonthThumb(month);
     this.updateGoToday();
+    warmAll(); // 后台静默预热全量缓存，之后切月免云查询
   },
 
   // 刷新打卡进度数据（从本地存储读取）
@@ -120,6 +121,8 @@ Page({
       this.loadMonth(month);
       this.loadMonthThumb(month);
     }
+    // 后台预热（每次 onShow 都触发一次无害的 warmAll，有缓存直接跳过）
+    warmAll();
   },
 
   // 加载当月1号照片作为磨砂背景
@@ -167,10 +170,6 @@ Page({
       });
       this.setData({ weeks, monthLabel: `${month}月`, hasData: list.length > 0, loading: false });
 
-      // 后台批量预签名：把所有 thumb 的 cloud:// 转成新鲜 HTTPS 签名 URL
-      // 避免框架自动签名过期后 binderror → refreshThumb 的串行闪烁
-      this.batchSignThumbs(weeks, token);
-
       // 诊断：打印实际加载了多少天，方便排查"21号后空白"
       const daysWithData = Object.keys(photosMap).length;
       console.log(`[calendar] ${month}月: DB返回${list.length}条, 网格有图${daysWithData}天, 总天数${weeks.flat().filter(c => !c.empty).length}`);
@@ -179,54 +178,6 @@ Page({
       console.error('[calendar] loadMonth FAIL:', e);
       this.setData({ loadError: (e.errMsg || e.message || '未知错误'), loading: false });
       wx.showToast({ title: '加载失败：' + this.data.loadError, icon: 'none', duration: 3000 });
-    }
-  },
-
-  // 批量预签名 thumb 的 cloud:// URL，避免渲染后签名过期 404
-  async batchSignThumbs(weeks, token) {
-    // 收集所有需要签名的 cloud:// fileID
-    const fileIds = [];
-    weeks.forEach(week => {
-      week.forEach(cell => {
-        if (!cell.empty && cell.thumb && cell.thumb.indexOf('cloud://') === 0) {
-          fileIds.push(cell.thumb);
-        }
-      });
-    });
-    if (fileIds.length === 0) return;
-
-    try {
-      const res = await wx.cloud.getTempFileURL({ fileList: fileIds });
-      if (token !== this._reqToken) return; // 已切月
-
-      // 建立 fileID → 签名 URL 映射
-      const urlMap = {};
-      (res.fileList || []).forEach(f => {
-        if (f.status === 0 && f.tempFileURL) {
-          urlMap[f.fileID] = f.tempFileURL;
-        }
-      });
-
-      // 只在有成功签名时更新（避免空覆盖）
-      const hasUpdate = Object.keys(urlMap).length > 0;
-      if (!hasUpdate) return;
-
-      // 更新 weeks 中匹配的 cell
-      let changed = false;
-      const newWeeks = weeks.map(week =>
-        week.map(cell => {
-          if (!cell.empty && cell.thumb && urlMap[cell.thumb]) {
-            changed = true;
-            return Object.assign({}, cell, { thumb: urlMap[cell.thumb] });
-          }
-          return cell;
-        })
-      );
-      if (changed && token === this._reqToken) {
-        this.setData({ weeks: newWeeks });
-      }
-    } catch (e) {
-      // 预签名失败不影响渲染，框架仍会自动签名（只是可能过期）
     }
   },
 
@@ -307,9 +258,8 @@ Page({
 
   onImgError(e) {
     const day = e.currentTarget.dataset.day;
-    // COS 签名 URL 过期导致 404 是可预期的行为（cloud:// 转 HTTPS 签名有效期约 2h）
-    // refreshThumb 会自动获取新签名修复，这里用 warn 而非 error 避免噪音
-    console.warn('[calendar] 缩略图签名过期 day=', day, '→ 自动刷新中');
+    console.error('[calendar] 图片加载失败 day=', day, 'src=', e.detail && e.detail.errMsg);
+    // COS 签名 URL 过期会导致 404/HTTP2 错误，重新拉取该天数据获取新签名
     this.refreshThumb(day);
   },
 

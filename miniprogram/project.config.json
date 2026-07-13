@@ -37,16 +37,11 @@
   },
   "packOptions": {
     "ignore": [
-      {
-        "type": "folder",
-        "value": "tools"
-      },
-      {
-        "type": "folder",
-        "value": "tools/node_modules"
-      }
+      { "type": "folder", "value": "tools" },
+      { "type": "folder", "value": "tools/node_modules" }
     ],
     "include": []
   },
-  "editorSetting": {}
+  "editorSetting": {},
+  "projectArchitecture": "multiPlatform"
 }
