@@ -11,6 +11,12 @@ function db() {
   return _db
 }
 
+// 提取错误信息（兼容 Error 对象、wx 错误对象、字符串）
+function errMsg(e) {
+  if (typeof e === 'string') return e
+  return (e && (e.errMsg || e.message)) || String(e || '')
+}
+
 // 云函数始终优先；单次云失败仅对该次查询回退客户端直查（不永久降级，
 // 避免某次冷启动失败后就一直卡在慢速直查上反复 timeout）
 const _monthCache = {}
@@ -40,10 +46,13 @@ function isFresh(en) {
 function callFn(action, payload) {
   return new Promise((resolve, reject) => {
     const t0 = Date.now()
+    let settled = false
     wx.cloud.callFunction({
       name: 'getPhotos',
       data: Object.assign({ action }, payload || {}),
       success: (res) => {
+        if (settled) return // withTimeout 已超时，忽略迟到结果
+        settled = true
         const dt = Date.now() - t0
         const r = res.result || {}
         if (r.ok) {
@@ -56,6 +65,8 @@ function callFn(action, payload) {
         }
       },
       fail: (err) => {
+        if (settled) return // withTimeout 已超时，吞掉迟到的 SDK error 避免污染 console
+        settled = true
         const dt = Date.now() - t0
         console.error(`[db] 云函数 ${action} 调用失败 (${dt}ms):`, err.errMsg || err)
         reject(err)
@@ -64,17 +75,18 @@ function callFn(action, payload) {
   })
 }
 
-// 云函数调用：15s 超时 + 最多 3 次尝试（超时则隔 1.5s 重试，扛冷启动）
-async function callFnWithRetry(action, payload) {
+// 云函数调用：20s 超时（对齐 SDK 默认值）+ 最多 3 次尝试（超时则隔 1.5s 重试，扛冷启动）
+async function callFnWithRetry(action, payload, opts) {
+  const timeoutMs = (opts && opts.timeout) || 20000
   let lastErr
   for (let i = 0; i < 3; i++) {
     try {
-      return await withTimeout(callFn(action, payload), 15000)
+      return await withTimeout(callFn(action, payload), timeoutMs)
     } catch (e) {
       lastErr = e
-      const msg = (e && (e.errMsg || e.message)) || ''
+      const msg = errMsg(e)
       if (/timeout/i.test(msg) && i < 2) {
-        console.warn(`[db] 云函数 ${action} 超时，${1500}ms 后重试(${i + 1}/3)`)
+        console.warn(`[db] 云函数 ${action} 超时，1500ms 后重试(${i + 1}/3)`)
         await new Promise((r) => setTimeout(r, 1500))
         continue
       }
@@ -108,6 +120,7 @@ function ensureCloud(timeout) {
 
 // 单次请求硬超时：云 .get() 偶发「挂起」不报错，用 Promise.race 兜住；
 // 同时吞掉迟到拒绝，避免变成未处理的 promise rejection。
+// 注意：reject 用字符串而非 Error 对象，避免框架全局 error 监听器打印到 console。
 function withTimeout(promise, ms) {
   ms = ms || 10000
   let innerDone = false
@@ -119,7 +132,7 @@ function withTimeout(promise, ms) {
     safe,
     new Promise((_, reject) => setTimeout(() => {
       if (!innerDone) safe.catch(() => {}) // 超时后吞掉迟到拒绝
-      reject(new Error('timeout'))
+      reject('timeout') // 字符串而非 Error，不触发框架 onError
     }, ms)),
   ])
 }
@@ -129,7 +142,7 @@ function withRetry(fn, retries, attempt) {
   retries = retries == null ? 4 : retries
   attempt = attempt || 0
   return fn().catch((err) => {
-    const msg = (err && (err.errMsg || err.message)) || ''
+    const msg = errMsg(err)
     if (retries > 0 && /timeout|network|fail|system|errno/i.test(msg)) {
       const delay = Math.min(500 * Math.pow(2, attempt), 4000)
       console.warn('[db] 直查失败，' + delay + 'ms 后重试(剩' + retries + '):', msg)
@@ -190,7 +203,7 @@ async function directAll() {
 // 云函数查询失败后的统一降级处理：单次失败仅对该次查询回退客户端直查，不永久降级
 function tryDirect(fn, label) {
   return fn().catch((e) => {
-    console.error(`[db] ${label} 直查也失败:`, (e && (e.errMsg || e.message)) || e)
+    console.error(`[db] ${label} 直查也失败:`, errMsg(e))
     return []
   })
 }
@@ -212,7 +225,7 @@ async function getMonthPhotos(month) {
   try {
     list = await callFnWithRetry('month', { month })
   } catch (e) {
-    console.warn('[db] 云函数 month 失败，降级直查:', (e.errMsg || e.message))
+    console.warn('[db] 云函数 month 失败，降级直查:', errMsg(e))
     list = await tryDirect(() => directMonth(month), 'month')
   }
   list.sort((a, b) => a.day - b.day)
@@ -259,7 +272,7 @@ async function getDayPhoto(month, day) {
   try {
     data = await callFnWithRetry('day', { month, day })
   } catch (e) {
-    console.warn('[db] 云函数 day 失败，降级直查:', (e.errMsg || e.message))
+    console.warn('[db] 云函数 day 失败，降级直查:', errMsg(e))
     const res = await tryDirect(() => directDay(month, day), 'day')
     data = (res && res.data) || []
   }
@@ -284,7 +297,7 @@ async function getAllPhotos() {
   try {
     data = await callFnWithRetry('all')
   } catch (e) {
-    console.warn('[db] 云函数 all 失败，降级直查:', (e.errMsg || e.message))
+    console.warn('[db] 云函数 all 失败，降级直查:', errMsg(e))
     data = await tryDirect(directAll, 'all')
   }
   // 回填月缓存（持久化）
@@ -307,7 +320,7 @@ async function warmAll() {
     await getAllPhotos()
     console.log('[db] warmAll 完成，月份数:', Object.keys(_monthCache).length)
   } catch (e) {
-    console.warn('[db] warmAll 失败（不影响单月查询）:', (e && (e.errMsg || e.message)) || e)
+    console.warn('[db] warmAll 失败（不影响单月查询）:', errMsg(e))
   } finally {
     _warming = false
   }

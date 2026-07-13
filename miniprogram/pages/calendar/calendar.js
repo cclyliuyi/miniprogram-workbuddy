@@ -1,6 +1,6 @@
 // pages/calendar/calendar.js —— 月历网格主页 + 磨砂背景
 const { WEEKDAYS, buildMonthGrid } = require('../../utils/date');
-const { getMonthPhotos, getDayPhoto, warmAll } = require('../../utils/db');
+const { getMonthPhotos, getDayPhoto } = require('../../utils/db');
 const progress = require('../../utils/progress');
 const { CARDS } = require('../../utils/quotes');
 const haptic = require('../../utils/haptic');
@@ -86,7 +86,6 @@ Page({
     this.loadMonth(month);
     this.loadMonthThumb(month);
     this.updateGoToday();
-    warmAll(); // 后台静默预热全量缓存，之后切月免云查询
   },
 
   // 刷新打卡进度数据（从本地存储读取）
@@ -121,8 +120,6 @@ Page({
       this.loadMonth(month);
       this.loadMonthThumb(month);
     }
-    // 后台预热（每次 onShow 都触发一次无害的 warmAll，有缓存直接跳过）
-    warmAll();
   },
 
   // 加载当月1号照片作为磨砂背景

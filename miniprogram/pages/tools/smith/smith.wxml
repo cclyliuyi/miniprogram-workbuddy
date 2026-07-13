@@ -1,0 +1,106 @@
+<!-- pages/tools/smith/smith.wxml —— 交互式 Smith 圆图 -->
+<view class="screen ts">
+
+  <!-- 标题 -->
+  <view class="ts-head rise">
+    <view class="kicker">SMITH CHART</view>
+    <view class="ts-title display">阻抗圆图</view>
+    <view class="ts-sub">点击圆图任意位置自动求解 Γ 和 Z</view>
+  </view>
+
+  <!-- Smith 圆图 Canvas -->
+  <view class="ts-canvas-wrap rise">
+    <canvas
+      type="2d"
+      id="smithChart"
+      class="ts-canvas"
+      bindtap="onCanvasTap">
+    </canvas>
+  </view>
+
+  <!-- 输入区 -->
+  <view class="ts-section rise">
+    <view class="kicker">归一化阻抗输入</view>
+
+    <view class="ts-field">
+      <text class="ts-label">参考阻抗 Z₀</text>
+      <input class="ts-input num" type="digit" value="{{z0}}" bindinput="onZ0" />
+      <text class="ts-hint">Ω（通常 50Ω）</text>
+    </view>
+
+    <view class="ts-field-row">
+      <view class="ts-field-half">
+        <text class="ts-label">归一化电阻 r</text>
+        <input class="ts-input num" type="digit" value="{{zR}}" bindinput="onZR" />
+      </view>
+      <view class="ts-field-half">
+        <text class="ts-label">归一化电抗 x</text>
+        <input class="ts-input num" type="digit" value="{{zX}}" bindinput="onZX" />
+      </view>
+    </view>
+
+    <view class="ts-quick-btns">
+      <view class="ts-quick" bindtap="setMatch">匹配 (1+j0)</view>
+      <view class="ts-quick" bindtap="setOpen">开路 (∞)</view>
+      <view class="ts-quick" bindtap="setShort">短路 (0)</view>
+      <view class="ts-quick" bindtap="setExample">示例 (0.5+j1)</view>
+    </view>
+  </view>
+
+  <!-- 结果区 -->
+  <view class="ts-results pop" wx:if="{{gamma}}">
+    <view class="kicker ts-results-title">反射与驻波参数</view>
+
+    <view class="ts-result-grid">
+      <view class="ts-result-card">
+        <view class="ts-rc-label">|Γ|</view>
+        <view class="ts-rc-value num">{{gamma}}</view>
+      </view>
+      <view class="ts-result-card">
+        <view class="ts-rc-label">∠Γ</view>
+        <view class="ts-rc-value num">{{gammaDeg}}°</view>
+      </view>
+      <view class="ts-result-card">
+        <view class="ts-rc-label">SWR</view>
+        <view class="ts-rc-value num ts-highlight">{{swr}}</view>
+      </view>
+      <view class="ts-result-card">
+        <view class="ts-rc-label">回波损耗</view>
+        <view class="ts-rc-value num">{{returnLoss}} dB</view>
+      </view>
+      <view class="ts-result-card">
+        <view class="ts-rc-label">失配损耗</view>
+        <view class="ts-rc-value num">{{mismatchLoss}} dB</view>
+      </view>
+      <view class="ts-result-card">
+        <view class="ts-rc-label">Q 值</view>
+        <view class="ts-rc-value num">{{qValue}}</view>
+      </view>
+    </view>
+
+    <view class="ts-impedance-display">
+      <view class="ts-imp-label">实际阻抗</view>
+      <view class="ts-imp-val">
+        Z = <text class="num ts-highlight">{{realImpedance}}</text> + j<text class="num ts-highlight">{{imagImpedance}}</text> Ω
+      </view>
+      <view class="ts-imp-note">|z| = <text class="num">{{absZ}}</text> (归一化)</view>
+    </view>
+
+    <view class="ts-impedance-display">
+      <view class="ts-imp-label">Γ 复数形式</view>
+      <view class="ts-imp-val">
+        Γ = <text class="num">{{gammaRe}}</text> + j<text class="num">{{gammaIm}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 公式说明 -->
+  <view class="ts-formula-note rise">
+    <view class="kicker">关键公式</view>
+    <view class="ts-formula-item">Γ = (Z − Z₀) / (Z + Z₀)</view>
+    <view class="ts-formula-item">SWR = (1 + |Γ|) / (1 − |Γ|)</view>
+    <view class="ts-formula-item">回波损耗 RL = −20log|Γ|</view>
+    <view class="ts-formula-item">失配损耗 ML = −10log(1 − |Γ|²)</view>
+  </view>
+
+</view>

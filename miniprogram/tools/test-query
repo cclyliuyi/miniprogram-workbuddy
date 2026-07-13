@@ -1,0 +1,39 @@
+// tools/test-query.js —— 模拟小程序端查询，定位「只载出7月6号」的原因
+const fs = require('fs'), path = require('path'), os = require('os');
+const cred = JSON.parse(fs.readFileSync(path.join(os.homedir(), '.config', '.cloudbase', 'auth.json'), 'utf8')).credential;
+const tcb = require('tcb-admin-node');
+const app = tcb.init({ env: 'cloud1-d3gsxamaw26beccb8', secretId: cred.tmpSecretId, secretKey: cred.tmpSecretKey, sessionToken: cred.tmpToken });
+const db = app.database();
+
+(async () => {
+  // A. 不加 limit 的月查询（模拟 getMonthPhotos）—— 微信默认最多返回 20 条！
+  const rA = await db.collection('calendar_photos').where({ month: 7 }).get();
+  console.log('[A] where({month:7}).get() 返回条数:', rA.data.length, '（微信默认上限=20，7月应有31条）');
+
+  // B. 加 limit(100) 的月查询
+  const rB = await db.collection('calendar_photos').where({ month: 7 }).limit(100).get();
+  console.log('[B] where({month:7}).limit(100).get() 返回条数:', rB.data.length);
+
+  // C. 类型检查：month/day 存的是 number 还是 string？
+  const sample = rB.data[0] || {};
+  console.log('[C] 类型: month=', typeof sample.month, 'day=', typeof sample.day, '| 值:', sample.month, sample.day);
+
+  // D. getDayPhoto 模拟（limit(1)）
+  const rD = await db.collection('calendar_photos').where({ month: 7, day: 6 }).limit(1).get();
+  console.log('[D] where({month:7,day:6}).limit(1) 返回条数:', rD.data.length);
+
+  // E. 如果 month 是字符串，数字查询会失败吗？
+  const rE = await db.collection('calendar_photos').where({ month: '7' }).limit(100).get();
+  console.log('[E] where({month:"7"}).limit(100) 返回条数:', rE.data.length, '（若>0说明存的是字符串）');
+
+  console.log('\n=== 结论 ===');
+  if (rA.data.length <= 20 && rB.data.length > 20) {
+    console.log('❌ 找到根因：getMonthPhotos 没加 .limit()，微信默认只返回 20 条。需加 .limit(100)。');
+  }
+  if (rE.data.length > 0 && rB.data.length === 0) {
+    console.log('❌ 找到根因：month 存的是字符串，数字查询匹配不到。需统一类型。');
+  }
+  if (rB.data.length >= 31) {
+    console.log('✅ 加 .limit(100) 后 7 月能取全 31 条，问题在查询 limit。');
+  }
+})().catch((e) => { console.error('❌', e.message); process.exit(1); });

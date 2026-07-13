@@ -59,6 +59,30 @@
       <view class="tl-card-arrow">›</view>
     </view>
 
+    <!-- 传输线 & 阻抗匹配 -->
+    <view class="tl-card rise" bindtap="goMatch" style="animation-delay:.25s">
+      <view class="tl-card-icon tl-icon-match">
+        <view class="tl-icon-inner">Z₀</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">传输线 & 匹配</view>
+        <view class="tl-card-desc">微带线 · λ/4 变换器 · L 型匹配 · 波导截止</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- Smith 圆图 -->
+    <view class="tl-card rise" bindtap="goSmith" style="animation-delay:.30s">
+      <view class="tl-card-icon tl-icon-smith">
+        <view class="tl-icon-inner">◎</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">Smith 圆图</view>
+        <view class="tl-card-desc">交互式阻抗图 · Γ/SWR/回波损耗 · 实时标点</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
   </view>
 
   <!-- 底部说明 -->

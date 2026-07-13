@@ -1,0 +1,248 @@
+<!-- pages/tools/match/match.wxml —— 传输线 & 阻抗匹配 -->
+<view class="screen tl3">
+
+  <!-- Tab 切换 -->
+  <scroll-view scroll-x class="tl3-tabs" enhanced show-scrollbar="{{false}}">
+    <view class="tl3-tabs-inner">
+      <view
+        wx:for="{{tabs}}"
+        wx:key="*this"
+        class="tl3-tab {{activeTab === index ? 'tl3-tab-on' : ''}}"
+        bindtap="switchTab"
+        data-index="{{index}}">
+        {{item}}
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- ══════ Tab1: 微带线特征阻抗 ══════ -->
+  <view wx:if="{{activeTab === 0}}">
+    <view class="tl3-section rise">
+      <view class="kicker">微带线参数 (Hammerstad-Jensen)</view>
+
+      <view class="tl3-field">
+        <text class="tl3-label">线宽 W</text>
+        <input class="tl3-input num" type="digit" value="{{msW}}" bindinput="onMsW" />
+        <text class="tl3-hint">mm（微带线导体宽度）</text>
+      </view>
+
+      <view class="tl3-field">
+        <text class="tl3-label">介质厚度 H</text>
+        <input class="tl3-input num" type="digit" value="{{msH}}" bindinput="onMsH" />
+        <text class="tl3-hint">mm（基板厚度，FR4 典型 1.6mm）</text>
+      </view>
+
+      <view class="tl3-field">
+        <text class="tl3-label">铜厚 T</text>
+        <input class="tl3-input num" type="digit" value="{{msT}}" bindinput="onMsT" />
+        <text class="tl3-hint">mm（标准 1oz = 0.035mm）</text>
+      </view>
+
+      <view class="tl3-field">
+        <text class="tl3-label">介电常数 εr</text>
+        <input class="tl3-input num" type="digit" value="{{msEr}}" bindinput="onMsEr" />
+        <text class="tl3-hint">FR4 ≈ 4.4 · Rogers RO4350B ≈ 3.48 · 聚四氟乙烯 ≈ 2.1</text>
+      </view>
+    </view>
+
+    <button class="btn grad tl3-calc-btn" bindtap="calcMicrostrip">计算特征阻抗</button>
+
+    <view class="tl3-results pop" wx:if="{{msResult}}">
+      <view class="kicker tl3-results-title">微带线特征阻抗</view>
+
+      <view class="tl3-result-item">
+        <text class="tl3-result-label">特征阻抗 Z₀</text>
+        <text class="tl3-result-value num tl3-highlight">{{msResult.z0}} Ω</text>
+      </view>
+      <view class="tl3-result-item">
+        <text class="tl3-result-label">有效介电常数 εeff</text>
+        <text class="tl3-result-value num">{{msResult.erEff}}</text>
+      </view>
+      <view class="tl3-result-item">
+        <text class="tl3-result-label">W/H 比值</text>
+        <text class="tl3-result-value num">{{msResult.wOverH}}</text>
+      </view>
+
+      <view class="tl3-verdict tl3-verdict-ok">{{msResult.hint}}</view>
+      <view class="tl3-formula">Z₀ = (60/√εeff)·ln(F(u)/u + √(1+4/u²))</view>
+    </view>
+  </view>
+
+  <!-- ══════ Tab2: λ/4 阻抗变换器 ══════ -->
+  <view wx:if="{{activeTab === 1}}">
+    <view class="tl3-section rise">
+      <view class="kicker">λ/4 阻抗变换器</view>
+
+      <view class="tl3-field">
+        <text class="tl3-label">源端阻抗 Z_in</text>
+        <input class="tl3-input num" type="digit" value="{{qZin}}" bindinput="onQZin" />
+        <text class="tl3-hint">Ω（通常 50Ω）</text>
+      </view>
+
+      <view class="tl3-field">
+        <text class="tl3-label">负载阻抗 Z_L</text>
+        <input class="tl3-input num" type="digit" value="{{qZl}}" bindinput="onQZl" />
+        <text class="tl3-hint">Ω（待匹配的负载）</text>
+      </view>
+
+      <view class="tl3-field">
+        <text class="tl3-label">中心频率</text>
+        <input class="tl3-input num" type="digit" value="{{qFreq}}" bindinput="onQFreq" />
+        <text class="tl3-hint">MHz（设计频率）</text>
+      </view>
+
+      <view class="tl3-field">
+        <text class="tl3-label">基板介电常数 εr</text>
+        <input class="tl3-input num" type="digit" value="{{qEr}}" bindinput="onQEr" />
+        <text class="tl3-hint">用于估算波长（精确 εeff 需查微带线 Tab）</text>
+      </view>
+    </view>
+
+    <button class="btn grad tl3-calc-btn" bindtap="calcQuarter">计算 λ/4 变换器</button>
+
+    <view class="tl3-results pop" wx:if="{{qResult}}">
+      <view class="kicker tl3-results-title">变换器设计参数</view>
+
+      <view class="tl3-result-item">
+        <text class="tl3-result-label">变换段特征阻抗 Z₀</text>
+        <text class="tl3-result-value num tl3-highlight">{{qResult.z0Q}} Ω</text>
+      </view>
+      <view class="tl3-result-item">
+        <text class="tl3-result-label">λ/4 长度（自由空间）</text>
+        <text class="tl3-result-value num">{{qResult.lambda0Q}}</text>
+      </view>
+      <view class="tl3-result-item">
+        <text class="tl3-result-label">自由空间波长 λ₀</text>
+        <text class="tl3-result-value num">{{qResult.lambda0}}</text>
+      </view>
+      <view class="tl3-result-item">
+        <text class="tl3-result-label">失配系数 Γ₀</text>
+        <text class="tl3-result-value num">{{qResult.gamma0}}</text>
+      </view>
+
+      <view class="tl3-verdict tl3-verdict-warn">{{qResult.bwHint}}</view>
+      <view class="tl3-formula">Z₀ = √(Z_in × Z_L)</view>
+      <view class="tl3-formula tl3-formula-sub">{{qResult.msHint}}</view>
+    </view>
+  </view>
+
+  <!-- ══════ Tab3: L 型匹配网络 ══════ -->
+  <view wx:if="{{activeTab === 2}}">
+    <view class="tl3-section rise">
+      <view class="kicker">L 型阻抗匹配网络</view>
+
+      <view class="tl3-field">
+        <text class="tl3-label">源电阻 R_S</text>
+        <input class="tl3-input num" type="digit" value="{{lRs}}" bindinput="onLRs" />
+        <text class="tl3-hint">Ω（纯阻，如 50Ω）</text>
+      </view>
+
+      <view class="tl3-field">
+        <text class="tl3-label">负载电阻 R_L</text>
+        <input class="tl3-input num" type="digit" value="{{lRl}}" bindinput="onLRl" />
+        <text class="tl3-hint">Ω（纯阻待匹配）</text>
+      </view>
+
+      <view class="tl3-field">
+        <text class="tl3-label">工作频率</text>
+        <input class="tl3-input num" type="digit" value="{{lFreq}}" bindinput="onLFreq" />
+        <text class="tl3-hint">MHz</text>
+      </view>
+
+      <view class="tl3-field">
+        <text class="tl3-label">网络拓扑</text>
+        <text class="tl3-hint">两种方案同时给出，按谐波抑制需求选用</text>
+      </view>
+    </view>
+
+    <button class="btn grad tl3-calc-btn" bindtap="calcLMatch">设计 L 型匹配</button>
+
+    <view class="tl3-results pop" wx:if="{{lResult}}">
+      <view class="kicker tl3-results-title">L 型匹配设计结果</view>
+
+      <view class="tl3-result-item">
+        <text class="tl3-result-label">品质因数 Q</text>
+        <text class="tl3-result-value num tl3-highlight">{{lResult.q}}</text>
+      </view>
+      <view class="tl3-result-item">
+        <text class="tl3-result-label">串联臂电抗 |Xs|</text>
+        <text class="tl3-result-value num">{{lResult.xs}} Ω</text>
+      </view>
+      <view class="tl3-result-item">
+        <text class="tl3-result-label">并联臂电抗 |Xp|</text>
+        <text class="tl3-result-value num">{{lResult.xp}} Ω</text>
+      </view>
+
+      <view class="tl3-topology">
+        <view class="tl3-topo-name">低通型（抑制高次谐波）</view>
+        <view class="tl3-topo-desc">串联电感 Ls = <text class="num tl3-highlight">{{lResult.lSeries}}</text> · 并联电容 Cp = <text class="num tl3-highlight">{{lResult.cShunt}}</text></view>
+      </view>
+
+      <view class="tl3-topology">
+        <view class="tl3-topo-name">高通型（通过直流/低频）</view>
+        <view class="tl3-topo-desc">串联电容 Cs = <text class="num tl3-highlight">{{lResult.cSeries}}</text> · 并联电感 Lp = <text class="num tl3-highlight">{{lResult.lShunt}}</text></view>
+      </view>
+
+      <view class="tl3-verdict tl3-verdict-ok">{{lResult.topologyNote}}</view>
+      <view class="tl3-formula">Q = √(R_high/R_low − 1) · Xs = Q·R_low · Xp = R_high/Q</view>
+    </view>
+  </view>
+
+  <!-- ══════ Tab4: 波导截止频率 ══════ -->
+  <view wx:if="{{activeTab === 3}}">
+    <view class="tl3-section rise">
+      <view class="kicker">矩形波导截止频率</view>
+
+      <view class="tl3-field">
+        <text class="tl3-label">宽边 a</text>
+        <input class="tl3-input num" type="digit" value="{{wgA}}" bindinput="onWgA" />
+        <text class="tl3-hint">mm（宽边，决定 TE10 截止）</text>
+      </view>
+
+      <view class="tl3-field">
+        <text class="tl3-label">窄边 b</text>
+        <input class="tl3-input num" type="digit" value="{{wgB}}" bindinput="onWgB" />
+        <text class="tl3-hint">mm（通常 b ≈ a/2）</text>
+      </view>
+
+      <view class="tl3-field">
+        <text class="tl3-label">填充介质 εr</text>
+        <input class="tl3-input num" type="digit" value="{{wgEr}}" bindinput="onWgEr" />
+        <text class="tl3-hint">空气波导填 1</text>
+      </view>
+    </view>
+
+    <button class="btn grad tl3-calc-btn" bindtap="calcWaveguide">计算截止频率</button>
+
+    <view class="tl3-results pop" wx:if="{{wgResult}}">
+      <view class="kicker tl3-results-title">波导模式截止</view>
+
+      <view class="tl3-result-item">
+        <text class="tl3-result-label">TE₁₀ 主模截止（f_c10）</text>
+        <text class="tl3-result-value num tl3-highlight">{{wgResult.fc10}} GHz</text>
+      </view>
+      <view class="tl3-result-item">
+        <text class="tl3-result-label">TE₂₀ 截止</text>
+        <text class="tl3-result-value num">{{wgResult.fc20}} GHz</text>
+      </view>
+      <view class="tl3-result-item">
+        <text class="tl3-result-label">TE₀₁ 截止</text>
+        <text class="tl3-result-value num">{{wgResult.fc01}} GHz</text>
+      </view>
+      <view class="tl3-result-item">
+        <text class="tl3-result-label">TE₁₁ 截止</text>
+        <text class="tl3-result-value num">{{wgResult.fc11}} GHz</text>
+      </view>
+
+      <view class="tl3-band">
+        <view class="tl3-band-label">单模工作带</view>
+        <view class="tl3-band-val">{{wgResult.fLowRec}} ~ {{wgResult.fHighRec}} GHz</view>
+        <view class="tl3-band-sub">建议范围（1.25~1.9 × f_c10）</view>
+      </view>
+
+      <view class="tl3-verdict tl3-verdict-ok" wx:if="{{wgResult.bandName}}">{{wgResult.bandName}}</view>
+      <view class="tl3-formula">f_c(TE₁₀) = c / (2a·√εr)</view>
+    </view>
+  </view>
+
+</view>
