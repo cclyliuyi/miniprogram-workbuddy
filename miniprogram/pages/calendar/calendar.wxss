@@ -105,7 +105,7 @@
 .cal-content {
   position: relative;
   z-index: 1;
-  padding: 96rpx 30rpx 0;  /* 96rpx = 浮顶栏高度，网格下移避开 */
+  padding: 56rpx 30rpx 0;  /* 56rpx = 紧贴浮顶栏下方 */
 }
 
 /* ═══════ 打卡进度条 ═══════ */
