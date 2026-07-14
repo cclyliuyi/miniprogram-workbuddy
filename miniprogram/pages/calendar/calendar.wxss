@@ -101,6 +101,19 @@
 }
 .ft-today:active { background: #6a8275; }
 
+/* 「故事」「年历」跳转按钮 — 胶囊型，比月份箭头稍突出 */
+.ft-jump {
+  width: auto;
+  min-width: 64rpx;
+  padding: 0 18rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  background: rgba(122,145,129,.12);
+  color: var(--sage);
+  letter-spacing: 1rpx;
+}
+.ft-jump:active { background: rgba(122,145,129,.25); }
+
 /* 前景内容：顶部留出浮顶栏高度 */
 .cal-content {
   position: relative;

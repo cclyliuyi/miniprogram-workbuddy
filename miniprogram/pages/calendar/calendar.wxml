@@ -36,6 +36,8 @@
       <view class="ft-year num">{{year}}</view>
     </view>
     <view class="ft-nav">
+      <view class="ft-btn ft-jump" bindtap="goStory">故事</view>
+      <view class="ft-btn ft-jump" bindtap="goYear">年历</view>
       <view class="ft-btn ft-today" wx:if="{{showGoToday}}" bindtap="goToday">今</view>
       <view class="ft-btn" bindtap="changeMonth" data-delta="-1">‹</view>
       <view class="ft-btn" bindtap="changeMonth" data-delta="1">›</view>

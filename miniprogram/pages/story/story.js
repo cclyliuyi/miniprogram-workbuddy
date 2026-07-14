@@ -74,7 +74,7 @@ Page({
   },
 
   goYear() {
-    wx.switchTab({ url: '/pages/year/year' });
+    wx.navigateTo({ url: '/pages/year/year' });
   },
 
   onShareAppMessage() {

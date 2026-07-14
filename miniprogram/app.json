@@ -28,8 +28,6 @@
     "borderStyle": "white",
     "list": [
       { "pagePath": "pages/calendar/calendar", "text": "日历" },
-      { "pagePath": "pages/story/story", "text": "故事流" },
-      { "pagePath": "pages/year/year", "text": "年视图" },
       { "pagePath": "pages/favs/favs", "text": "收藏" },
       { "pagePath": "pages/tools/index", "text": "工具" }
     ]

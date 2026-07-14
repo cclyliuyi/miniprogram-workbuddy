@@ -292,17 +292,16 @@ Page({
   },
 
   goYear() {
-    wx.switchTab({ url: '/pages/year/year' });
+    haptic.light();
+    wx.navigateTo({ url: '/pages/year/year' });
   },
 
   goStory() {
+    haptic.light();
     const app = getApp();
-    // 故事流现在是 tabBar 页面，用 switchTab 跳转。
-    // 月份通过 globalData.currentMonth 传递（story.js 的 onLoad/onShow 会读取）。
     const month = (app && app.globalData && app.globalData.currentMonth) || this.data.month;
     if (app && app.globalData) app.globalData.currentMonth = month;
-    console.log('[calendar] goStory →', month);
-    wx.switchTab({ url: '/pages/story/story' });
+    wx.navigateTo({ url: `/pages/story/story?month=${month}` });
   },
 
   onImgError(e) {
