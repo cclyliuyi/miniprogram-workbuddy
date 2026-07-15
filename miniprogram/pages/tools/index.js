@@ -29,6 +29,28 @@ Page({
     wx.navigateTo({ url: '/pages/tools/smith/smith' })
   },
 
+  // ═══ 交互动画模块 ═══
+  goFriis() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/friis/friis' })
+  },
+  goSynthesis() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/synthesis/synthesis' })
+  },
+  goSmithChart() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/smith-chart/smith-chart' })
+  },
+  goAperture() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/aperture/aperture' })
+  },
+  goTransmissionLine() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/transmission-line/transmission-line' })
+  },
+
   onShareAppMessage() {
     return {
       title: '天线与电磁波工程师工具箱 · 换算/链路/阵列/圆图',

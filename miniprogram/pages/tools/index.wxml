@@ -85,6 +85,78 @@
 
   </view>
 
+  <!-- ═══ 交互动画分区 ═══ -->
+  <view class="tl-section-title">
+    <view class="rule-dot"></view>
+    <text class="tl-section-name">交互动画</text>
+    <text class="tl-section-en">INTERACTIVE</text>
+    <view class="rule-dot"></view>
+  </view>
+
+  <view class="tl-grid">
+
+    <!-- 链路预算 -->
+    <view class="tl-card rise" bindtap="goFriis" style="animation-delay:.05s">
+      <view class="tl-card-icon tl-icon-link">
+        <view class="tl-icon-inner">📡</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">链路预算</view>
+        <view class="tl-card-desc">Friis 单程 + 雷达双程 · Pr vs 距离曲线</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 阵列综合 -->
+    <view class="tl-card rise" bindtap="goSynthesis" style="animation-delay:.10s">
+      <view class="tl-card-icon tl-icon-array">
+        <view class="tl-icon-inner">⊞</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">阵列综合</view>
+        <view class="tl-card-desc">均匀/余弦/汉明/切比雪夫加权 · 阵因子对比</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 阻抗圆图 -->
+    <view class="tl-card rise" bindtap="goSmithChart" style="animation-delay:.15s">
+      <view class="tl-card-icon tl-icon-smith">
+        <view class="tl-icon-inner">◎</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">阻抗圆图</view>
+        <view class="tl-card-desc">点击图面 · 实时求解 Γ / SWR / ZL</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 口径衍射 -->
+    <view class="tl-card rise" bindtap="goAperture" style="animation-delay:.20s">
+      <view class="tl-card-icon tl-icon-array">
+        <view class="tl-icon-inner">▭</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">口径衍射</view>
+        <view class="tl-card-desc">矩形/圆形口径 · 照明分布 · 远场方向图</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 传输线驻波 -->
+    <view class="tl-card rise" bindtap="goTransmissionLine" style="animation-delay:.25s">
+      <view class="tl-card-icon tl-icon-link">
+        <view class="tl-icon-inner">∿</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">传输线驻波</view>
+        <view class="tl-card-desc">V(z)/I(z) 分布 · Γ · SWR · 短路/开路/匹配</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+  </view>
+
   <!-- 底部说明 -->
   <view class="tl-foot">
     <view class="rule-dot"></view>

@@ -4,8 +4,7 @@
     "pages/favs/favs",
     "pages/eit/eit",
     "pages/method/method",
-    "pages/tools/index",
-    "pages/interactive/index"
+    "pages/tools/index"
   ],
   "subPackages": [
     {
@@ -106,7 +105,7 @@
     },
     "pages/tools/index": {
       "network": "wifi",
-      "packages": ["tool-calc"]
+      "packages": ["tool-calc", "iv-friis", "iv-synthesis"]
     },
     "pages/eit/eit": {
       "network": "wifi",
@@ -115,10 +114,6 @@
     "pages/method/method": {
       "network": "wifi",
       "packages": ["method-detail"]
-    },
-    "pages/interactive/index": {
-      "network": "wifi",
-      "packages": ["iv-friis", "iv-synthesis"]
     }
   },
   "window": {
@@ -137,7 +132,6 @@
       { "pagePath": "pages/eit/eit", "text": "前沿" },
       { "pagePath": "pages/method/method", "text": "方法论" },
       { "pagePath": "pages/tools/index", "text": "工具" },
-      { "pagePath": "pages/interactive/index", "text": "交互" },
       { "pagePath": "pages/favs/favs", "text": "收藏" }
     ]
   },

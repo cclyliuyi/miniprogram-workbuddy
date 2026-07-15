@@ -114,3 +114,31 @@
   color: var(--muted);
   letter-spacing: 1rpx;
 }
+
+/* ═══ 分区标题 ═══ */
+.tl-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 32rpx 12rpx 20rpx;
+}
+.tl-section-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--ink-soft);
+  letter-spacing: 2rpx;
+}
+.tl-section-en {
+  font-size: 18rpx;
+  color: var(--muted);
+  opacity: .5;
+  letter-spacing: 2rpx;
+}
+.tl-section-title .rule-dot {
+  width: 6rpx;
+  height: 6rpx;
+  border-radius: 50%;
+  background: var(--muted);
+  opacity: .3;
+}
