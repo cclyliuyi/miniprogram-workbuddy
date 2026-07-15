@@ -1,0 +1,90 @@
+<!-- pages/interactive/broadband-matching/broadband-matching.wxml —— 宽带匹配 -->
+<view class="screen bm">
+
+  <view class="bm-head rise">
+    <view class="kicker">BROADBAND MATCHING</view>
+    <view class="bm-title display">宽带匹配</view>
+    <view class="bm-sub">回波损耗 · Smith 阻抗轨迹 · 带宽分析</view>
+  </view>
+
+  <!-- 回波损耗曲线 -->
+  <view class="bm-canvas-wrap rise">
+    <view class="bm-sub-plot">回波损耗 |RL| vs f/f₀</view>
+    <canvas type="2d" id="rlCanvas" class="bm-canvas-wide"></canvas>
+  </view>
+
+  <!-- Smith 轨迹 -->
+  <view class="bm-canvas-wrap rise">
+    <view class="bm-sub-plot">归一化阻抗轨迹（Γ 平面）</view>
+    <canvas type="2d" id="smithCanvas" class="bm-canvas-sq"></canvas>
+  </view>
+
+  <!-- 天线类型 -->
+  <view class="bm-section rise">
+    <view class="kicker">天线模型</view>
+    <view class="bm-ant-btns">
+      <view class="bm-ant {{S.ant==='thin' ? 'active' : ''}}" bindtap="setThin">细偶极子</view>
+      <view class="bm-ant {{S.ant==='thick' ? 'active' : ''}}" bindtap="setThick">粗偶极子</view>
+      <view class="bm-ant {{S.ant==='folded' ? 'active' : ''}}" bindtap="setFolded">折合振子</view>
+      <view class="bm-ant {{S.ant==='bicone' ? 'active' : ''}}" bindtap="setBicone">双锥</view>
+    </view>
+  </view>
+
+  <!-- 匹配方式 -->
+  <view class="bm-section rise">
+    <view class="kicker">匹配方式</view>
+    <view class="bm-match-btns">
+      <view class="bm-match {{S.match==='none' ? 'active' : ''}}" bindtap="setNoMatch">无匹配</view>
+      <view class="bm-match {{S.match==='l' ? 'active' : ''}}" bindtap="setLMatch">L 匹配</view>
+      <view class="bm-match {{S.match==='taper' ? 'active' : ''}}" bindtap="setTaper">渐变宽带</view>
+    </view>
+  </view>
+
+  <!-- 参数 -->
+  <view class="bm-section rise">
+    <view class="kicker">结构参数</view>
+    <view class="bm-slider-row">
+      <text class="bm-slider-label">结构粗细</text>
+      <slider class="bm-slider" min="0" max="1" step="0.01" value="{{S.thick}}"
+        bindchange="onThick" show-value />
+    </view>
+    <view class="bm-slider-row">
+      <text class="bm-slider-label">扫频范围</text>
+      <slider class="bm-slider" min="0.3" max="0.8" step="0.02" value="{{S.span}}"
+        bindchange="onSpan" show-value />
+    </view>
+  </view>
+
+  <!-- 带宽读数 -->
+  <view class="bm-stats pop" wx:if="{{stats}}">
+    <view class="kicker bm-stats-title">带宽分析</view>
+    <view class="bm-stats-grid">
+      <view class="bm-stat">
+        <view class="bm-stat-label">-10dB 带宽</view>
+        <view class="bm-stat-value num">{{stats.bw}}</view>
+      </view>
+      <view class="bm-stat">
+        <view class="bm-stat-label">最佳 RL</view>
+        <view class="bm-stat-value num">{{stats.minrl}} dB</view>
+      </view>
+      <view class="bm-stat">
+        <view class="bm-stat-label">等效 Q</view>
+        <view class="bm-stat-value num">{{stats.qv}}</view>
+      </view>
+      <view class="bm-stat">
+        <view class="bm-stat-label">系统阻抗</view>
+        <view class="bm-stat-value num">50Ω</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 公式说明 -->
+  <view class="bm-formula-note rise">
+    <view class="kicker">阻抗模型</view>
+    <view class="bm-formula-item">Z(f) = R + jRQ(f/f₀ − f₀/f)</view>
+    <view class="bm-formula-item">Γ = (Z − Z₀)/(Z + Z₀),  RL = −20log|Γ|</view>
+    <view class="bm-formula-item">粗天线 Q 低 → 阻抗变化慢 → 带宽宽</view>
+    <view class="bm-formula-item">轨迹越靠近圆心 = 匹配越好</view>
+  </view>
+
+</view>

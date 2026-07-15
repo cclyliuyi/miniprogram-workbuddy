@@ -1,0 +1,86 @@
+<!-- pages/interactive/polarization/polarization.wxml —— 极化椭圆 -->
+<view class="screen po">
+
+  <view class="po-head rise">
+    <view class="kicker">POLARIZATION</view>
+    <view class="po-title display">极化椭圆</view>
+    <view class="po-sub">Ex / Ey 分量 · 线/圆/椭圆极化 · 行波传播</view>
+  </view>
+
+  <!-- 端面极化椭圆 -->
+  <view class="po-canvas-wrap rise">
+    <view class="po-sub-plot">端面极化椭圆（E 矢量轨迹）</view>
+    <canvas type="2d" id="ellipseCanvas" class="po-canvas-sq"></canvas>
+  </view>
+
+  <!-- 行波传播波形 -->
+  <view class="po-canvas-wrap rise">
+    <view class="po-sub-plot">行波传播（Ex 红 · Ey 蓝 · E 白）</view>
+    <canvas type="2d" id="waveCanvas" class="po-canvas-wide"></canvas>
+  </view>
+
+  <!-- 预设 -->
+  <view class="po-section rise">
+    <view class="kicker">预设</view>
+    <view class="po-preset-btns">
+      <view class="po-preset {{S.preset==='linear' ? 'active' : ''}}" bindtap="setLinear">线极化</view>
+      <view class="po-preset {{S.preset==='rhcp' ? 'active' : ''}}" bindtap="setRHCP">右旋圆</view>
+      <view class="po-preset {{S.preset==='lhcp' ? 'active' : ''}}" bindtap="setLHCP">左旋圆</view>
+      <view class="po-preset {{S.preset==='ellipse' ? 'active' : ''}}" bindtap="setEllipse">椭圆</view>
+    </view>
+  </view>
+
+  <!-- 参数滑块 -->
+  <view class="po-section rise">
+    <view class="kicker">场分量参数</view>
+    <view class="po-slider-row">
+      <text class="po-slider-label">Ex 幅度</text>
+      <slider class="po-slider" min="0" max="1" step="0.01" value="{{S.ex}}"
+        bindchange="onEx" show-value />
+    </view>
+    <view class="po-slider-row">
+      <text class="po-slider-label">Ey 幅度</text>
+      <slider class="po-slider" min="0" max="1" step="0.01" value="{{S.ey}}"
+        bindchange="onEy" show-value />
+    </view>
+    <view class="po-slider-row">
+      <text class="po-slider-label">相位差 δ</text>
+      <slider class="po-slider" min="-180" max="180" step="1" value="{{S.del}}"
+        bindchange="onDel" show-value />
+      <text class="po-slider-unit">°</text>
+    </view>
+  </view>
+
+  <!-- 读数 -->
+  <view class="po-stats pop" wx:if="{{params}}">
+    <view class="kicker po-stats-title">极化读数</view>
+    <view class="po-stats-grid">
+      <view class="po-stat">
+        <view class="po-stat-label">类型</view>
+        <view class="po-stat-value">{{params.type}}</view>
+      </view>
+      <view class="po-stat">
+        <view class="po-stat-label">轴比 AR</view>
+        <view class="po-stat-value num">{{params.ar}}</view>
+      </view>
+      <view class="po-stat">
+        <view class="po-stat-label">倾角 ψ</view>
+        <view class="po-stat-value num">{{params.tilt}}°</view>
+      </view>
+      <view class="po-stat">
+        <view class="po-stat-label">旋向</view>
+        <view class="po-stat-value">{{params.sense}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 公式说明 -->
+  <view class="po-formula-note rise">
+    <view class="kicker">极化参数</view>
+    <view class="po-formula-item">E(z,t) = x̂Ex cos(ωt−βz) + ŷEy cos(ωt−βz+δ)</view>
+    <view class="po-formula-item">倾角 ψ = ½ arctan(2ExEy cosδ / (Ex²−Ey²))</view>
+    <view class="po-formula-item">轴比 AR = 1/|tan χ|,  χ = ½ arcsin(sin2χ)</view>
+    <view class="po-formula-item">δ=0/180° → 线极化；Ex=Ey 且 δ=±90° → 圆极化</view>
+  </view>
+
+</view>

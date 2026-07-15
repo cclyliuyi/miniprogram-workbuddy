@@ -51,6 +51,24 @@ Page({
     wx.navigateTo({ url: '/pages/interactive/transmission-line/transmission-line' })
   },
 
+  // ═══ 第二批交互模块 ═══
+  goPhasedArray() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/phased-array/phased-array' })
+  },
+  goPolarization() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/polarization/polarization' })
+  },
+  goMomentMethod() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/moment-method/moment-method' })
+  },
+  goBroadbandMatching() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/broadband-matching/broadband-matching' })
+  },
+
   onShareAppMessage() {
     return {
       title: '天线与电磁波工程师工具箱 · 换算/链路/阵列/圆图',

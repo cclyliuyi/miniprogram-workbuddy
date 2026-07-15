@@ -1,0 +1,90 @@
+<!-- pages/interactive/moment-method/moment-method.wxml —— 矩量法 -->
+<view class="screen mm">
+
+  <view class="mm-head rise">
+    <view class="kicker">METHOD OF MOMENTS</view>
+    <view class="mm-title display">矩量法</view>
+    <view class="mm-sub">细线积分方程 → 阻抗矩阵 → 电流分布 → 远场</view>
+  </view>
+
+  <!-- 电流分布 -->
+  <view class="mm-canvas-wrap rise">
+    <view class="mm-sub-plot">细线分段电流 |Iₙ|</view>
+    <canvas type="2d" id="currentCanvas" class="mm-canvas-wide"></canvas>
+  </view>
+
+  <!-- 阻抗矩阵热图 -->
+  <view class="mm-canvas-wrap rise">
+    <view class="mm-sub-plot">阻抗矩阵 |Zmn| 热图</view>
+    <canvas type="2d" id="matrixCanvas" class="mm-canvas-sq"></canvas>
+  </view>
+
+  <!-- 远场方向图 -->
+  <view class="mm-canvas-wrap rise">
+    <view class="mm-sub-plot">远场方向图主截面</view>
+    <canvas type="2d" id="patternCanvas" class="mm-canvas-wide"></canvas>
+  </view>
+
+  <!-- 参数 -->
+  <view class="mm-section rise">
+    <view class="kicker">细线模型</view>
+    <view class="mm-slider-row">
+      <text class="mm-slider-label">分段数 N</text>
+      <slider class="mm-slider" min="7" max="35" step="2" value="{{S.N}}"
+        bindchange="onN" show-value />
+    </view>
+    <view class="mm-slider-row">
+      <text class="mm-slider-label">总长度 L/λ</text>
+      <slider class="mm-slider" min="0.2" max="1.6" step="0.02" value="{{S.L}}"
+        bindchange="onL" show-value />
+    </view>
+    <view class="mm-slider-row">
+      <text class="mm-slider-label">导线半径 a/λ</text>
+      <slider class="mm-slider" min="0.002" max="0.03" step="0.001" value="{{S.a}}"
+        bindchange="onA" show-value />
+    </view>
+  </view>
+
+  <!-- 馈电类型 -->
+  <view class="mm-section rise">
+    <view class="kicker">馈电与加载</view>
+    <view class="mm-load-btns">
+      <view class="mm-load {{S.load==='none' ? 'active' : ''}}" bindtap="setNone">中心馈电</view>
+      <view class="mm-load {{S.load==='tip' ? 'active' : ''}}" bindtap="setTip">端部加载</view>
+      <view class="mm-load {{S.load==='loss' ? 'active' : ''}}" bindtap="setLoss">有损导体</view>
+    </view>
+  </view>
+
+  <!-- 读数 -->
+  <view class="mm-stats pop" wx:if="{{stats}}">
+    <view class="kicker mm-stats-title">求解读数</view>
+    <view class="mm-stats-grid">
+      <view class="mm-stat">
+        <view class="mm-stat-label">输入阻抗 Z_in</view>
+        <view class="mm-stat-value num">{{stats.zin}}</view>
+      </view>
+      <view class="mm-stat">
+        <view class="mm-stat-label">矩阵耦合度</view>
+        <view class="mm-stat-value num">{{stats.cond}}</view>
+      </view>
+      <view class="mm-stat">
+        <view class="mm-stat-label">最大电流</view>
+        <view class="mm-stat-value num">{{stats.imax}}</view>
+      </view>
+      <view class="mm-stat">
+        <view class="mm-stat-label">HPBW</view>
+        <view class="mm-stat-value num">{{stats.hpbw}}°</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 公式说明 -->
+  <view class="mm-formula-note rise">
+    <view class="kicker">离散方程</view>
+    <view class="mm-formula-item">[Z]·{I} = {V}  —— Galerkin 矩量法</view>
+    <view class="mm-formula-item">Zmn ≈ mutual coupling between segment m,n</view>
+    <view class="mm-formula-item">对角自阻抗 Znn ≈ ln(2Δz/a)</view>
+    <view class="mm-formula-item">教学版：电流为近似正弦，阻抗为 Green 函数简化</view>
+  </view>
+
+</view>

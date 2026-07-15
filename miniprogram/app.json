@@ -96,6 +96,26 @@
       "root": "pages/interactive/transmission-line",
       "name": "iv-tline",
       "pages": ["transmission-line"]
+    },
+    {
+      "root": "pages/interactive/phased-array",
+      "name": "iv-phased",
+      "pages": ["phased-array"]
+    },
+    {
+      "root": "pages/interactive/polarization",
+      "name": "iv-polar",
+      "pages": ["polarization"]
+    },
+    {
+      "root": "pages/interactive/moment-method",
+      "name": "iv-moment",
+      "pages": ["moment-method"]
+    },
+    {
+      "root": "pages/interactive/broadband-matching",
+      "name": "iv-broadband",
+      "pages": ["broadband-matching"]
     }
   ],
   "preloadRule": {
@@ -105,7 +125,7 @@
     },
     "pages/tools/index": {
       "network": "wifi",
-      "packages": ["tool-calc", "iv-friis", "iv-synthesis"]
+      "packages": ["tool-calc", "iv-friis", "iv-synthesis", "iv-phased"]
     },
     "pages/eit/eit": {
       "network": "wifi",

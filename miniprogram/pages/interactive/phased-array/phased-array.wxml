@@ -1,0 +1,92 @@
+<!-- pages/interactive/phased-array/phased-array.wxml —— 相控阵波束扫描 -->
+<view class="screen pa">
+
+  <view class="pa-head rise">
+    <view class="kicker">PHASED ARRAY BEAM STEERING</view>
+    <view class="pa-title display">相控阵扫描</view>
+    <view class="pa-sub">渐进相移 β 控制波束指向 · 栅瓣检测</view>
+  </view>
+
+  <!-- 极坐标方向图 -->
+  <view class="pa-canvas-wrap rise">
+    <canvas type="2d" id="polarCanvas" class="pa-canvas"></canvas>
+  </view>
+
+  <!-- 阵列参数 -->
+  <view class="pa-section rise">
+    <view class="kicker">阵列配置</view>
+    <view class="pa-slider-row">
+      <text class="pa-slider-label">阵元数 N</text>
+      <slider class="pa-slider" min="2" max="24" step="1" value="{{S.N}}"
+        bindchange="onN" show-value />
+    </view>
+    <view class="pa-slider-row">
+      <text class="pa-slider-label">间距 d/λ</text>
+      <slider class="pa-slider" min="0.1" max="1.5" step="0.01" value="{{S.d}}"
+        bindchange="onD" show-value />
+    </view>
+  </view>
+
+  <!-- 波束扫描 -->
+  <view class="pa-section rise">
+    <view class="kicker">波束扫描 ★</view>
+    <view class="pa-slider-row">
+      <text class="pa-slider-label pa-accent">渐进相移 β</text>
+      <slider class="pa-slider pa-slider-accent" min="-180" max="180" step="1" value="{{S.beta}}"
+        bindchange="onBeta" show-value />
+      <text class="pa-slider-unit">°</text>
+    </view>
+    <view class="pa-preset-btns">
+      <view class="pa-preset {{S.beta > 60 ? 'active' : ''}}" bindtap="setEndfireBack">端射 ←</view>
+      <view class="pa-preset {{S.beta === 0 ? 'active' : ''}}" bindtap="setBroadside">边射</view>
+      <view class="pa-preset {{S.beta < -60 ? 'active' : ''}}" bindtap="setEndfireFwd">端射 →</view>
+    </view>
+    <view class="pa-scan-toggle" bindtap="toggleScan">
+      <view class="pa-scan-btn {{scanOn ? 'on' : ''}}">自动扫描动画 {{scanOn ? '●' : '○'}}</view>
+    </view>
+  </view>
+
+  <!-- 阵元方向图 -->
+  <view class="pa-section rise">
+    <view class="kicker">阵元因子</view>
+    <view class="pa-el-btns">
+      <view class="pa-el {{S.el === 'iso' ? 'active' : ''}}" bindtap="setIso">各向同性</view>
+      <view class="pa-el {{S.el === 'dipole' ? 'active' : ''}}" bindtap="setDipole">半波偶极子</view>
+    </view>
+  </view>
+
+  <!-- 统计 -->
+  <view class="pa-stats pop" wx:if="{{stats}}">
+    <view class="kicker pa-stats-title">阵列参数</view>
+    <view class="pa-stats-grid">
+      <view class="pa-stat">
+        <view class="pa-stat-label">波束指向</view>
+        <view class="pa-stat-value num">{{stats.theta}}°</view>
+      </view>
+      <view class="pa-stat">
+        <view class="pa-stat-label">方向性 D</view>
+        <view class="pa-stat-value num">{{stats.dbi}} dBi</view>
+      </view>
+      <view class="pa-stat">
+        <view class="pa-stat-label">HPBW</view>
+        <view class="pa-stat-value num">{{stats.hpbw}}°</view>
+      </view>
+      <view class="pa-stat">
+        <view class="pa-stat-label">副瓣电平</view>
+        <view class="pa-stat-value num">{{stats.sll}} dB</view>
+      </view>
+    </view>
+    <view class="pa-grating-warn" wx:if="{{stats.grating > 0}}">
+      ⚠ 检测到 {{stats.grating}} 个栅瓣 — 阵元间距过大，能量泄漏到非预期方向。减小 d/λ 可消除。
+    </view>
+  </view>
+
+  <!-- 公式说明 -->
+  <view class="pa-formula-note rise">
+    <view class="kicker">核心公式</view>
+    <view class="pa-formula-item">AF(θ) = sin(Nψ/2) / [N·sin(ψ/2)]</view>
+    <view class="pa-formula-item">ψ = kd·cosθ + β  （β = 渐进相移）</view>
+    <view class="pa-formula-item">栅瓣条件：d/λ > 1/(1+|cosθ₀|)</view>
+  </view>
+
+</view>

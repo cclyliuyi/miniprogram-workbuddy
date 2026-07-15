@@ -1,0 +1,149 @@
+/* pages/interactive/phased-array/phased-array.wxss —— 相控阵波束扫描 */
+.pa { padding-top: 20rpx; }
+
+.pa-head { padding: 20rpx 12rpx 24rpx; }
+.pa-title { font-size: 44rpx; margin: 8rpx 0 4rpx; }
+.pa-sub { font-size: 24rpx; color: var(--muted); }
+
+.pa-canvas-wrap {
+  margin: 0 12rpx 24rpx;
+  padding: 16rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.05);
+  display: flex;
+  justify-content: center;
+}
+.pa-canvas { width: 686rpx; height: 560rpx; }
+
+.pa-section {
+  margin: 0 12rpx 20rpx;
+  padding: 24rpx 28rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.04);
+}
+.pa-section .kicker { margin-bottom: 16rpx; }
+
+.pa-slider-row {
+  display: flex;
+  align-items: center;
+  padding: 10rpx 0;
+}
+.pa-slider-label {
+  font-size: 26rpx;
+  color: var(--ink-soft);
+  width: 180rpx;
+  flex-shrink: 0;
+}
+.pa-accent { color: var(--accent); font-weight: 600; }
+.pa-slider { flex: 1; margin: 0 12rpx; }
+.pa-slider-unit {
+  font-size: 22rpx;
+  color: var(--muted);
+  width: 48rpx;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.pa-preset-btns, .pa-el-btns {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 12rpx;
+}
+.pa-preset, .pa-el {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  font-size: 26rpx;
+  color: var(--muted);
+  background: var(--paper);
+  border: 1rpx solid var(--line-soft);
+  border-radius: 14rpx;
+  transition: all .2s;
+}
+.pa-preset.active, .pa-el.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(176,106,79,.06);
+  font-weight: 600;
+}
+
+.pa-scan-toggle {
+  margin-top: 12rpx;
+}
+.pa-scan-btn {
+  text-align: center;
+  padding: 16rpx;
+  font-size: 26rpx;
+  color: var(--muted);
+  background: var(--paper);
+  border: 1rpx solid var(--line-soft);
+  border-radius: 14rpx;
+  transition: all .2s;
+}
+.pa-scan-btn.on {
+  color: var(--sage);
+  border-color: var(--sage);
+  background: rgba(122,145,129,.08);
+  font-weight: 600;
+}
+
+.pa-stats {
+  margin: 0 12rpx 20rpx;
+  padding: 24rpx 28rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.04);
+}
+.pa-stats-title { margin-bottom: 16rpx; }
+.pa-stats-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+.pa-stat {
+  width: calc(25% - 9rpx);
+  padding: 18rpx 12rpx;
+  background: var(--paper);
+  border-radius: 14rpx;
+  text-align: center;
+}
+.pa-stat-label {
+  font-size: 20rpx;
+  color: var(--muted);
+  margin-bottom: 6rpx;
+}
+.pa-stat-value {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--ink);
+}
+.pa-grating-warn {
+  margin-top: 12rpx;
+  padding: 14rpx;
+  font-size: 22rpx;
+  color: var(--accent);
+  background: rgba(176,106,79,.08);
+  border: 1rpx solid rgba(176,106,79,.2);
+  border-radius: 12rpx;
+  line-height: 1.5;
+}
+
+.pa-formula-note {
+  margin: 0 12rpx 40rpx;
+  padding: 24rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+}
+.pa-formula-item {
+  font-size: 22rpx;
+  color: var(--muted);
+  font-family: 'SF Mono', 'Menlo', monospace;
+  padding: 6rpx 0;
+  letter-spacing: .5rpx;
+}

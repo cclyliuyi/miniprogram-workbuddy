@@ -155,6 +155,54 @@
       <view class="tl-card-arrow">›</view>
     </view>
 
+    <!-- 相控阵扫描 -->
+    <view class="tl-card rise" bindtap="goPhasedArray" style="animation-delay:.30s">
+      <view class="tl-card-icon tl-icon-array">
+        <view class="tl-icon-inner">⊟</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">相控阵扫描</view>
+        <view class="tl-card-desc">波束指向 · 渐进相移 · 栅瓣检测</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 极化椭圆 -->
+    <view class="tl-card rise" bindtap="goPolarization" style="animation-delay:.35s">
+      <view class="tl-card-icon tl-icon-smith">
+        <view class="tl-icon-inner">◯</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">极化椭圆</view>
+        <view class="tl-card-desc">Ex/Ey 分量 · 线/圆/椭圆 · 行波传播</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 矩量法 -->
+    <view class="tl-card rise" bindtap="goMomentMethod" style="animation-delay:.40s">
+      <view class="tl-card-icon tl-icon-link">
+        <view class="tl-icon-inner">Z</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">矩量法</view>
+        <view class="tl-card-desc">细线电流分布 · 阻抗矩阵热图 · 远场方向图</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 宽带匹配 -->
+    <view class="tl-card rise" bindtap="goBroadbandMatching" style="animation-delay:.45s">
+      <view class="tl-card-icon tl-icon-smith">
+        <view class="tl-icon-inner">∿</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">宽带匹配</view>
+        <view class="tl-card-desc">回波损耗曲线 · Smith 阻抗轨迹 · 带宽分析</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
   </view>
 
   <!-- 底部说明 -->
