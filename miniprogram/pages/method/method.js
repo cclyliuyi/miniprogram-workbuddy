@@ -33,4 +33,17 @@ Page({
       url: `/pages/method-detail/detail?index=${index}`,
     });
   },
+
+  onShareAppMessage() {
+    return {
+      title: '方法论迁移 · 从系统思维到AI Agent的12张知识卡',
+      path: '/pages/method/method',
+    };
+  },
+
+  onShareTimeline() {
+    return {
+      title: '方法论迁移 · 从系统思维到AI Agent的12张知识卡',
+    };
+  },
 });

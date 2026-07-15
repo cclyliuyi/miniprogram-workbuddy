@@ -28,4 +28,17 @@ Page({
     haptic.light()
     wx.navigateTo({ url: '/pages/tools/smith/smith' })
   },
+
+  onShareAppMessage() {
+    return {
+      title: '天线与电磁波工程师工具箱 · 换算/链路/阵列/圆图',
+      path: '/pages/tools/index',
+    };
+  },
+
+  onShareTimeline() {
+    return {
+      title: '天线与电磁波工程师工具箱',
+    };
+  },
 })

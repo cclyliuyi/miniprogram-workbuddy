@@ -33,4 +33,17 @@ Page({
       url: `/pages/eit-detail/detail?index=${index}`,
     });
   },
+
+  onShareAppMessage() {
+    return {
+      title: '电磁信息论 · 12张前沿知识卡片',
+      path: '/pages/eit/eit',
+    };
+  },
+
+  onShareTimeline() {
+    return {
+      title: '电磁信息论 · 12张前沿知识卡片',
+    };
+  },
 });
