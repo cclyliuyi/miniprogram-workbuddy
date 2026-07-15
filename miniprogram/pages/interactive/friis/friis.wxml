@@ -1,0 +1,149 @@
+<!-- pages/interactive/friis/friis.wxml —— Friis / 雷达方程交互 -->
+<view class="screen fm">
+
+  <!-- 标题 -->
+  <view class="fm-head rise">
+    <view class="kicker">FRIIS / RADAR EQUATION</view>
+    <view class="fm-title display">链路预算</view>
+    <view class="fm-sub">接收功率 P_r 随距离 R 的变化曲线</view>
+  </view>
+
+  <!-- Canvas -->
+  <view class="fm-canvas-wrap rise">
+    <canvas type="2d" id="chartCanvas" class="fm-canvas"></canvas>
+  </view>
+
+  <!-- 模式切换 -->
+  <view class="fm-section rise">
+    <view class="kicker">计算模式</view>
+    <view class="fm-mode-btns">
+      <view class="fm-mode {{S.mode==='friis' ? 'active' : ''}}" bindtap="setFriis">Friis 单程</view>
+      <view class="fm-mode {{S.mode==='radar' ? 'active' : ''}}" bindtap="setRadar">雷达双程</view>
+    </view>
+  </view>
+
+  <!-- 参数滑块 -->
+  <view class="fm-section rise">
+    <view class="kicker">发射与天线参数</view>
+
+    <view class="fm-slider-row">
+      <text class="fm-slider-label">发射功率 Pt</text>
+      <slider
+        class="fm-slider"
+        min="-10" max="60" step="1" value="{{S.pt}}"
+        bindchange="onPt"
+        show-value />
+      <text class="fm-slider-unit">dBm</text>
+    </view>
+
+    <view class="fm-slider-row">
+      <text class="fm-slider-label">发射增益 Gt</text>
+      <slider
+        class="fm-slider"
+        min="0" max="50" step="0.5" value="{{S.gt}}"
+        bindchange="onGt"
+        show-value />
+      <text class="fm-slider-unit">dBi</text>
+    </view>
+
+    <view class="fm-slider-row">
+      <text class="fm-slider-label">接收增益 Gr</text>
+      <slider
+        class="fm-slider"
+        min="0" max="50" step="0.5" value="{{S.gr}}"
+        bindchange="onGr"
+        show-value />
+      <text class="fm-slider-unit">dBi</text>
+    </view>
+
+    <view class="fm-slider-row">
+      <text class="fm-slider-label">频率 f</text>
+      <slider
+        class="fm-slider"
+        min="0.1" max="40" step="0.1" value="{{S.f}}"
+        bindchange="onFreq"
+        show-value />
+      <text class="fm-slider-unit">GHz</text>
+    </view>
+  </view>
+
+  <!-- 雷达特有参数 -->
+  <view class="fm-section rise" wx:if="{{S.mode === 'radar'}}">
+    <view class="kicker">雷达参数</view>
+
+    <view class="fm-slider-row">
+      <text class="fm-slider-label">目标 RCS σ</text>
+      <slider
+        class="fm-slider"
+        min="-30" max="40" step="1" value="{{S.rcsDbsm}}"
+        bindchange="onRcs"
+        show-value />
+      <text class="fm-slider-unit">dBsm</text>
+    </view>
+  </view>
+
+  <!-- 距离与灵敏度 -->
+  <view class="fm-section rise">
+    <view class="kicker">距离与接收灵敏度</view>
+
+    <view class="fm-slider-row">
+      <text class="fm-slider-label">距离量级 10^</text>
+      <slider
+        class="fm-slider"
+        min="0" max="5" step="0.1" value="{{S.rExp}}"
+        bindchange="onRExp"
+        show-value />
+      <text class="fm-slider-unit">m</text>
+    </view>
+
+    <view class="fm-slider-row">
+      <text class="fm-slider-label">灵敏度 P_min</text>
+      <slider
+        class="fm-slider"
+        min="-130" max="-40" step="1" value="{{S.smin}}"
+        bindchange="onSmin"
+        show-value />
+      <text class="fm-slider-unit">dBm</text>
+    </view>
+  </view>
+
+  <!-- 实时读数 -->
+  <view class="fm-readout pop" wx:if="{{readout}}">
+    <view class="kicker fm-readout-title">实时读数 @ R = {{readout.R}} m</view>
+    <view class="fm-readout-grid">
+      <view class="fm-rc">
+        <view class="fm-rc-label">P_r</view>
+        <view class="fm-rc-value num {{readout.aboveThreshold ? 'fm-warn' : 'fm-ok'}}">{{readout.Pr}} dBm</view>
+      </view>
+      <view class="fm-rc">
+        <view class="fm-rc-label">路径损耗</view>
+        <view class="fm-rc-value num">{{readout.pathLoss}} dB</view>
+      </view>
+      <view class="fm-rc" wx:if="{{S.mode === 'radar'}}">
+        <view class="fm-rc-label">最大探测距离</view>
+        <view class="fm-rc-value num">{{readout.maxRange}}</view>
+      </view>
+      <view class="fm-rc">
+        <view class="fm-rc-label">波长 λ</view>
+        <view class="fm-rc-value num">{{readout.lambda}} mm</view>
+      </view>
+    </view>
+    <view class="fm-link-status {{readout.aboveThreshold ? 'fm-link-ok' : 'fm-link-fail'}}">
+      {{readout.aboveThreshold ? '● 链路可达：Pr > Pmin' : '○ 链路中断：Pr < Pmin'}}
+    </view>
+  </view>
+
+  <!-- 公式说明 -->
+  <view class="fm-formula-note rise">
+    <view class="kicker">{{S.mode === 'friis' ? 'Friis 单程方程' : '雷达双程方程'}}</view>
+    <block wx:if="{{S.mode === 'friis'}}">
+      <view class="fm-formula-item">P_r = P_t + G_t + G_r − 20log₁₀(4πR/λ)</view>
+      <view class="fm-formula-item">λ = c / f （c = 3×10⁸ m/s）</view>
+    </block>
+    <block wx:else>
+      <view class="fm-formula-item">P_r = P_t + G_t + G_r + 10log₁₀(λ²σ) − 10log₁₀((4π)³R⁴)</view>
+      <view class="fm-formula-item">σ = RCS (m²)，双程损耗 ~R⁴</view>
+    </block>
+  </view>
+
+</view>

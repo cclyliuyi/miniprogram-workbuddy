@@ -1,0 +1,94 @@
+<!-- pages/interactive/aperture/aperture.wxml —— 口径场与波束宽度 -->
+<view class="screen ap">
+
+  <view class="ap-head rise">
+    <view class="kicker">APERTURE RADIATION</view>
+    <view class="ap-title display">口径衍射</view>
+    <view class="ap-sub">矩形/圆形口径 · 照明分布 → 远场方向图</view>
+  </view>
+
+  <!-- 远场方向图 -->
+  <view class="ap-canvas-wrap rise">
+    <view class="ap-sub-plot">远场方向图 AF(θ)</view>
+    <canvas type="2d" id="patternCanvas" class="ap-canvas-wide"></canvas>
+  </view>
+
+  <!-- 口径照明分布 -->
+  <view class="ap-canvas-wrap rise">
+    <view class="ap-sub-plot">口径照明分布 E(x)</view>
+    <canvas type="2d" id="illumCanvas" class="ap-canvas-wide"></canvas>
+  </view>
+
+  <!-- 参数 -->
+  <view class="ap-section rise">
+    <view class="kicker">口径参数</view>
+
+    <view class="ap-shape-btns">
+      <view class="ap-shape {{S.shape==='rect' ? 'active' : ''}}" bindtap="setRect">矩形口径</view>
+      <view class="ap-shape {{S.shape==='circ' ? 'active' : ''}}" bindtap="setCirc">圆形口径</view>
+    </view>
+
+    <view class="ap-slider-row">
+      <text class="ap-slider-label">口径尺寸 D</text>
+      <slider class="ap-slider" min="1" max="20" step="0.5" value="{{S.D}}"
+        bindchange="onD" show-value />
+      <text class="ap-slider-unit">λ</text>
+    </view>
+
+    <view class="ap-slider-row">
+      <text class="ap-slider-label">边缘锥削</text>
+      <slider class="ap-slider" min="-40" max="0" step="1" value="{{S.tap}}"
+        bindchange="onTap" show-value />
+      <text class="ap-slider-unit">dB</text>
+    </view>
+  </view>
+
+  <!-- 照明分布选择 -->
+  <view class="ap-section rise">
+    <view class="kicker">照明分布类型</view>
+    <view class="ap-illum-btns">
+      <view class="ap-illum {{S.illum==='uniform' ? 'active' : ''}}" bindtap="setUniform">均匀</view>
+      <view class="ap-illum {{S.illum==='cosine' ? 'active' : ''}}" bindtap="setCosine">余弦</view>
+      <view class="ap-illum {{S.illum==='tapered' ? 'active' : ''}}" bindtap="setTapered">锥削</view>
+    </view>
+  </view>
+
+  <!-- 统计 -->
+  <view class="ap-stats pop" wx:if="{{stats}}">
+    <view class="kicker ap-stats-title">方向图参数</view>
+    <view class="ap-stats-grid">
+      <view class="ap-stat">
+        <view class="ap-stat-label">HPBW</view>
+        <view class="ap-stat-value num">{{stats.hpbw}}°</view>
+      </view>
+      <view class="ap-stat">
+        <view class="ap-stat-label">最大旁瓣</view>
+        <view class="ap-stat-value num">{{stats.fsll}} dB</view>
+      </view>
+      <view class="ap-stat">
+        <view class="ap-stat-label">口径效率 η</view>
+        <view class="ap-stat-value num">{{stats.efficiency}}</view>
+      </view>
+      <view class="ap-stat">
+        <view class="ap-stat-label">增益 D</view>
+        <view class="ap-stat-value num">{{stats.directivity}} dB</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 公式说明 -->
+  <view class="ap-formula-note rise">
+    <view class="kicker">{{S.shape === 'rect' ? '矩形口径' : '圆形口径'}}</view>
+    <block wx:if="{{S.shape === 'rect'}}">
+      <view class="ap-formula-item">AF(u) ∝ sinc(u) = sin(πu)/(πu)</view>
+      <view class="ap-formula-item">u = (D/λ) sinθ</view>
+      <view class="ap-formula-item">HPBW ≈ 0.886 λ/D （均匀照明）</view>
+    </block>
+    <block wx:else>
+      <view class="ap-formula-item">AF(u) ∝ 2J₁(πu)/(πu) （Airy pattern）</view>
+      <view class="ap-formula-item">u = (D/λ) sinθ</view>
+      <view class="ap-formula-item">HPBW ≈ 1.028 λ/D （均匀照明）</view>
+    </block>
+  </view>
+
+</view>

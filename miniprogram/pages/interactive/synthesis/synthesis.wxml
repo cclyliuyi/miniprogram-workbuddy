@@ -1,0 +1,90 @@
+<!-- pages/interactive/synthesis/synthesis.wxml —— 方向图综合 -->
+<view class="screen sy">
+
+  <view class="sy-head rise">
+    <view class="kicker">ARRAY SYNTHESIS</view>
+    <view class="sy-title display">阵列综合</view>
+    <view class="sy-sub">线阵加权 · 阵因子 vs 方向角</view>
+  </view>
+
+  <!-- 方向图 Canvas -->
+  <view class="sy-canvas-wrap rise">
+    <canvas type="2d" id="patternCanvas" class="sy-canvas-wide"></canvas>
+  </view>
+
+  <!-- 加权系数柱状图 -->
+  <view class="sy-canvas-wrap rise">
+    <view class="sy-sub-plot">加权系数 wₙ</view>
+    <canvas type="2d" id="weightsCanvas" class="sy-canvas-wide"></canvas>
+  </view>
+
+  <!-- 参数控制 -->
+  <view class="sy-section rise">
+    <view class="kicker">阵列参数</view>
+
+    <view class="sy-slider-row">
+      <text class="sy-slider-label">阵元数 N</text>
+      <slider class="sy-slider" min="2" max="32" step="1" value="{{S.N}}"
+        bindchange="onN" show-value />
+    </view>
+
+    <view class="sy-slider-row">
+      <text class="sy-slider-label">间距 d/λ</text>
+      <slider class="sy-slider" min="0.1" max="1" step="0.05" value="{{S.d}}"
+        bindchange="onD" show-value />
+    </view>
+
+    <view class="sy-slider-row" wx:if="{{S.w === 'chebyshev'}}">
+      <text class="sy-slider-label">旁瓣电平 SLL</text>
+      <slider class="sy-slider" min="-50" max="-10" step="1" value="{{S.sll}}"
+        bindchange="onSll" show-value />
+      <text class="sy-slider-unit">dB</text>
+    </view>
+  </view>
+
+  <!-- 加权类型选择 -->
+  <view class="sy-section rise">
+    <view class="kicker">加权方式</view>
+    <view class="sy-weight-btns">
+      <view class="sy-w {{S.w === 'uniform' ? 'active' : ''}}" bindtap="setUniform">均匀</view>
+      <view class="sy-w {{S.w === 'cosine' ? 'active' : ''}}" bindtap="setCosine">余弦</view>
+      <view class="sy-w {{S.w === 'hamming' ? 'active' : ''}}" bindtap="setHamming">汉明</view>
+      <view class="sy-w {{S.w === 'chebyshev' ? 'active' : ''}}" bindtap="setChebyshev">切比雪夫</view>
+    </view>
+  </view>
+
+  <!-- 统计信息 -->
+  <view class="sy-stats pop" wx:if="{{stats}}">
+    <view class="kicker sy-stats-title">方向图参数</view>
+    <view class="sy-stats-grid">
+      <view class="sy-stat">
+        <view class="sy-stat-label">HPBW</view>
+        <view class="sy-stat-value num">{{stats.hpbw}}°</view>
+      </view>
+      <view class="sy-stat">
+        <view class="sy-stat-label">最大旁瓣</view>
+        <view class="sy-stat-value num">{{stats.sll}} dB</view>
+      </view>
+      <view class="sy-stat">
+        <view class="sy-stat-label">指向性 D</view>
+        <view class="sy-stat-value num">{{stats.directivity}} dB</view>
+      </view>
+      <view class="sy-stat">
+        <view class="sy-stat-label">效率 η</view>
+        <view class="sy-stat-value num">{{stats.efficiency}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 公式说明 -->
+  <view class="sy-formula-note rise">
+    <view class="kicker">阵因子公式</view>
+    <view class="sy-formula-item">AF(θ) = Σ wₙ · e^{j2πd(n−m)sinθ}</view>
+    <view class="sy-formula-item">m = (N−1)/2  （阵列中心）</view>
+    <view class="sy-formula-item">均匀：wₙ = 1</view>
+    <view class="sy-formula-item">余弦：wₙ = cos[π(n−m)/N]</view>
+    <view class="sy-formula-item">汉明：wₙ = 0.54 + 0.46cos[2π(n−m)/N]</view>
+    <view class="sy-formula-item">切比雪夫：Dolph 方法（等旁瓣）</view>
+  </view>
+
+</view>

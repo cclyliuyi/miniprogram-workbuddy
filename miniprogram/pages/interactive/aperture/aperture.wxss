@@ -1,0 +1,122 @@
+/* pages/interactive/aperture/aperture.wxss —— 口径衍射 */
+.ap { padding-top: 20rpx; }
+
+.ap-head { padding: 20rpx 12rpx 24rpx; }
+.ap-title { font-size: 44rpx; margin: 8rpx 0 4rpx; }
+.ap-sub { font-size: 24rpx; color: var(--muted); }
+
+.ap-canvas-wrap {
+  margin: 0 12rpx 20rpx;
+  padding: 16rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.05);
+}
+.ap-canvas-wide { width: 686rpx; height: 360rpx; }
+.ap-sub-plot {
+  font-size: 22rpx;
+  color: var(--muted);
+  margin-bottom: 8rpx;
+  padding-left: 8rpx;
+}
+
+.ap-section {
+  margin: 0 12rpx 20rpx;
+  padding: 24rpx 28rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.04);
+}
+.ap-section .kicker { margin-bottom: 16rpx; }
+
+.ap-shape-btns, .ap-illum-btns {
+  display: flex;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+.ap-shape, .ap-illum {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  font-size: 26rpx;
+  color: var(--muted);
+  background: var(--paper);
+  border: 1rpx solid var(--line-soft);
+  border-radius: 14rpx;
+  transition: all .2s;
+}
+.ap-shape.active, .ap-illum.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(176,106,79,.06);
+  font-weight: 600;
+}
+
+.ap-slider-row {
+  display: flex;
+  align-items: center;
+  padding: 10rpx 0;
+}
+.ap-slider-label {
+  font-size: 26rpx;
+  color: var(--ink-soft);
+  width: 170rpx;
+  flex-shrink: 0;
+}
+.ap-slider { flex: 1; margin: 0 12rpx; }
+.ap-slider-unit {
+  font-size: 22rpx;
+  color: var(--muted);
+  width: 48rpx;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.ap-stats {
+  margin: 0 12rpx 20rpx;
+  padding: 24rpx 28rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.04);
+}
+.ap-stats-title { margin-bottom: 16rpx; }
+.ap-stats-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+.ap-stat {
+  width: calc(25% - 9rpx);
+  padding: 18rpx 12rpx;
+  background: var(--paper);
+  border-radius: 14rpx;
+  text-align: center;
+}
+.ap-stat-label {
+  font-size: 20rpx;
+  color: var(--muted);
+  margin-bottom: 6rpx;
+}
+.ap-stat-value {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.ap-formula-note {
+  margin: 0 12rpx 40rpx;
+  padding: 24rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+}
+.ap-formula-item {
+  font-size: 22rpx;
+  color: var(--muted);
+  font-family: 'SF Mono', 'Menlo', monospace;
+  padding: 6rpx 0;
+  letter-spacing: .5rpx;
+}

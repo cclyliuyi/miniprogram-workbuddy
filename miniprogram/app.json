@@ -4,7 +4,8 @@
     "pages/favs/favs",
     "pages/eit/eit",
     "pages/method/method",
-    "pages/tools/index"
+    "pages/tools/index",
+    "pages/interactive/index"
   ],
   "subPackages": [
     {
@@ -71,6 +72,31 @@
       "root": "pages/tools/smith",
       "name": "tool-smith",
       "pages": ["smith"]
+    },
+    {
+      "root": "pages/interactive/friis",
+      "name": "iv-friis",
+      "pages": ["friis"]
+    },
+    {
+      "root": "pages/interactive/synthesis",
+      "name": "iv-synthesis",
+      "pages": ["synthesis"]
+    },
+    {
+      "root": "pages/interactive/smith-chart",
+      "name": "iv-smith",
+      "pages": ["smith-chart"]
+    },
+    {
+      "root": "pages/interactive/aperture",
+      "name": "iv-aperture",
+      "pages": ["aperture"]
+    },
+    {
+      "root": "pages/interactive/transmission-line",
+      "name": "iv-tline",
+      "pages": ["transmission-line"]
     }
   ],
   "preloadRule": {
@@ -89,6 +115,10 @@
     "pages/method/method": {
       "network": "wifi",
       "packages": ["method-detail"]
+    },
+    "pages/interactive/index": {
+      "network": "wifi",
+      "packages": ["iv-friis", "iv-synthesis"]
     }
   },
   "window": {
@@ -107,6 +137,7 @@
       { "pagePath": "pages/eit/eit", "text": "前沿" },
       { "pagePath": "pages/method/method", "text": "方法论" },
       { "pagePath": "pages/tools/index", "text": "工具" },
+      { "pagePath": "pages/interactive/index", "text": "交互" },
       { "pagePath": "pages/favs/favs", "text": "收藏" }
     ]
   },

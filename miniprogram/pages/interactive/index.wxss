@@ -1,0 +1,95 @@
+/* pages/interactive/index.wxss —— 交互模块入口列表 */
+.iv { padding-top: 20rpx; }
+
+/* ═══ 标题 ═══ */
+.iv-head {
+  padding: 20rpx 12rpx 24rpx;
+}
+.iv-title {
+  font-size: 48rpx;
+  margin: 8rpx 0 4rpx;
+}
+.iv-sub {
+  font-size: 24rpx;
+  color: var(--muted);
+}
+
+/* ═══ 卡片网格 ═══ */
+.iv-grid {
+  padding: 0 12rpx;
+}
+
+.iv-card {
+  display: flex;
+  align-items: center;
+  padding: 28rpx;
+  margin-bottom: 16rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.05);
+  transition: transform .15s ease;
+}
+.iv-card:active {
+  transform: scale(.97);
+}
+
+.iv-card-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.iv-icon-inner {
+  font-size: 40rpx;
+}
+.iv-icon-link    { background: rgba(176,106,79,.10); }
+.iv-icon-array   { background: rgba(122,145,129,.12); }
+.iv-icon-smith   { background: rgba(176,106,79,.10); }
+.iv-icon-aperture{ background: rgba(122,145,129,.12); }
+.iv-icon-tline   { background: rgba(176,106,79,.10); }
+
+.iv-card-body {
+  flex: 1;
+  margin-left: 24rpx;
+}
+.iv-card-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--ink);
+}
+.iv-card-desc {
+  font-size: 24rpx;
+  color: var(--muted);
+  margin-top: 6rpx;
+}
+.iv-card-arrow {
+  font-size: 36rpx;
+  color: var(--muted);
+  opacity: .4;
+  margin-left: 12rpx;
+}
+
+/* ═══ 底部 ═══ */
+.iv-foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx 0 60rpx;
+  gap: 8rpx;
+}
+.iv-foot-text {
+  font-size: 22rpx;
+  color: var(--muted);
+  opacity: .6;
+}
+.rule-dot {
+  width: 6rpx;
+  height: 6rpx;
+  border-radius: 50%;
+  background: var(--muted);
+  opacity: .4;
+}
