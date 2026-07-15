@@ -52,8 +52,10 @@
           <!-- 关键公式（渲染图优先，无图则显示文本） -->
           <view class="eit-info-section" wx:if="{{item.keyFormula}}">
             <view class="eit-info-label">关键公式</view>
-            <image wx:if="{{item.formulaImage}}" class="eit-formula-img" src="{{item.formulaImage}}" mode="widthFix" />
-            <view wx:else class="eit-info-formula">{{item.keyFormula}}</view>
+            <view class="eit-formula-box">
+              <image wx:if="{{item.formulaImage}}" class="eit-formula-img" src="{{item.formulaImage}}" mode="aspectFit" />
+              <view wx:else class="eit-info-formula">{{item.keyFormula}}</view>
+            </view>
           </view>
 
           <!-- 一句话结论 -->

@@ -172,6 +172,21 @@
   color: var(--accent);
 }
 
+/* 公式渲染图 */
+.tl2-formula-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 12rpx;
+  padding: 12rpx 16rpx;
+  background: rgba(58, 53, 48, .05);
+  border-radius: 10rpx;
+}
+.tl2-formula-img {
+  max-width: 100%;
+  max-height: 160rpx;
+}
+
 .tl2-margin-ok { color: var(--sage); }
 .tl2-margin-warn { color: var(--accent-2); }
 .tl2-margin-fail { color: var(--accent); }

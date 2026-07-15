@@ -108,14 +108,19 @@ page {
   border-left: 4rpx solid rgba(245, 217, 155, .4);
 }
 
-/* 公式渲染图 */
-.eit-formula-img {
-  width: 100%;
+/* 公式渲染图容器 */
+.eit-formula-box {
   background: rgba(245, 217, 155, .06);
   padding: 16rpx 20rpx;
   border-radius: 10rpx;
   border-left: 4rpx solid rgba(245, 217, 155, .4);
-  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.eit-formula-img {
+  max-width: 100%;
+  max-height: 200rpx;
 }
 
 /* 一句话结论（引用块） */

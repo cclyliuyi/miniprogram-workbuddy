@@ -124,6 +124,29 @@ Page({
     }
   },
 
+  // 分享给朋友（转发）
+  onShareAppMessage() {
+    const m = this.data.month;
+    const theme = MONTH_THEMES[m] || '天线与电磁波';
+    const vibe = MONTH_VIBES[m] || '';
+    return {
+      title: `天线与电磁波知识日历 · ${m}月\n${theme}`,
+      path: `/pages/calendar/calendar?month=${m}`,
+      imageUrl: this.data.monthThumb || '',
+    };
+  },
+
+  // 分享到朋友圈
+  onShareTimeline() {
+    const m = this.data.month;
+    const theme = MONTH_THEMES[m] || '天线与电磁波';
+    return {
+      title: `天线与电磁波知识日历 · ${m}月 · ${theme}`,
+      query: `month=${m}`,
+      imageUrl: this.data.monthThumb || '',
+    };
+  },
+
   // 加载当月1号照片作为磨砂背景
   async loadMonthThumb(month) {
     const token = this._reqToken;

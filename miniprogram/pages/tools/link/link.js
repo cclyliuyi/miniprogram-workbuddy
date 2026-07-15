@@ -1,5 +1,6 @@
 // pages/tools/link/link.js —— 通信链路计算
 const haptic = require('../../../utils/haptic')
+const { TOOLS_FORMULA_IDS } = require('../../../utils/cloud-images')
 
 const C = 299792458   // 光速
 const KB = 1.38e-23    // 玻尔兹曼常数 J/K
@@ -9,6 +10,10 @@ Page({
   data: {
     tabs: ['链路预算', '菲涅尔区', '视距', '噪声灵敏度'],
     activeTab: 0,
+
+    // 公式渲染图
+    formulaLOS: TOOLS_FORMULA_IDS.los,
+    formulaNoise: TOOLS_FORMULA_IDS.noise,
 
     // === 链路预算 ===
     pt: '30',

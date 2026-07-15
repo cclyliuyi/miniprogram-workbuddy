@@ -1,5 +1,6 @@
 // pages/tools/calc/calc.js —— 专用计算（RF换算合集）
 const haptic = require('../../../utils/haptic')
+const { TOOLS_FORMULA_IDS } = require('../../../utils/cloud-images')
 
 const C = 299792458          // 光速 m/s
 const MU0 = 4 * Math.PI * 1e-7 // 真空磁导率
@@ -20,6 +21,11 @@ Page({
   data: {
     tabs: ['dBm↔W', '频率↔波长', 'VSWR', '趋肤深度', '增益↔口径', '远场距离'],
     activeTab: 0,
+
+    // 公式渲染图
+    formulaSkin: TOOLS_FORMULA_IDS.skin,
+    formulaAe: TOOLS_FORMULA_IDS.ae,
+    formulaFarfield: TOOLS_FORMULA_IDS.farfield,
 
     // dBm
     dBmInput: '30',

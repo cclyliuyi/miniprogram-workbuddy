@@ -156,7 +156,9 @@
       </view>
     </view>
 
-    <view class="tc-tip">趋肤深度 δ = √(2ρ / ωμ) = 1/√(πfμσ)</view>
+    <view class="tc-formula-box">
+      <image class="tc-formula-img" src="{{formulaSkin}}" mode="aspectFit" />
+    </view>
   </view>
 
   <!-- ══════ 增益 ↔ 有效口径 ══════ -->
@@ -199,7 +201,9 @@
       </view>
     </view>
 
-    <view class="tc-tip">Ae = G·λ² / (4π) · G(线性) = 10^(G_dBi / 10)</view>
+    <view class="tc-formula-box">
+      <image class="tc-formula-img" src="{{formulaAe}}" mode="aspectFit" />
+    </view>
   </view>
 
   <!-- ══════ 远场距离 (Fraunhofer) ══════ -->
@@ -242,7 +246,9 @@
       </view>
     </view>
 
-    <view class="tc-tip">R_ff = 2D²/λ（Fraunhofer）· R_nf ≈ 0.62√(D³/λ)（感应近场）</view>
+    <view class="tc-formula-box">
+      <image class="tc-formula-img" src="{{formulaFarfield}}" mode="aspectFit" />
+    </view>
   </view>
 
 </view>
