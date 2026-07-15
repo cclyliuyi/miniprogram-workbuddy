@@ -4761,7 +4761,7 @@ function getMonthCards(month) {
 function getDayCard(month, day) {
   const cards = MONTH_MAP[month] || [];
   return cards.find(c => {
-    const m = c.date.match(/(d+)月(d+)日/);
+    const m = c.date.match(/(\d+)月(\d+)日/);
     return m && parseInt(m[2]) === day;
   }) || null;
 }

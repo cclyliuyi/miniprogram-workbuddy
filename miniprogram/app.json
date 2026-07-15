@@ -75,19 +75,19 @@
   ],
   "preloadRule": {
     "pages/calendar/calendar": {
-      "network": "all",
-      "packages": ["day-detail", "card", "year", "story", "search"]
+      "network": "wifi",
+      "packages": ["day-detail", "card"]
     },
     "pages/tools/index": {
-      "network": "all",
-      "packages": ["tool-calc", "tool-array", "tool-link", "tool-radar", "tool-match", "tool-smith"]
+      "network": "wifi",
+      "packages": ["tool-calc"]
     },
     "pages/eit/eit": {
-      "network": "all",
+      "network": "wifi",
       "packages": ["eit-detail"]
     },
     "pages/method/method": {
-      "network": "all",
+      "network": "wifi",
       "packages": ["method-detail"]
     }
   },
