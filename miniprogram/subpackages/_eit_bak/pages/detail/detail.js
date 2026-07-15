@@ -1,27 +1,25 @@
-// pages/eit-detail/detail.js —— 电磁信息论卡片详情（全屏滑动浏览）
-// 图片策略：直接使用云存储 fileID（已上传至 cloud1-d3gsxamaw26beccb8）
-const { CARDS } = require('../eit/eit-data');
-const { EIT_FILE_IDS } = require('../../utils/cloud-images');
-const haptic = require('../../utils/haptic');
+// subpackages/eit/pages/detail/detail.js —— 电磁信息论卡片详情（全屏滑动浏览）
+const { CARDS } = require('../../eit-data');
+const haptic = require('../../../../utils/haptic');
 
 Page({
   data: {
     cards: [],
     currentIndex: 0,
-    showInfo: true,
+    showInfo: true,  // 是否显示文字叠加层（点图片切换）
   },
 
   onLoad(options) {
     const index = parseInt(options.index, 10) || 0;
-
     const cards = CARDS.map(c => ({
       ...c,
-      imageSrc: EIT_FILE_IDS[c.id] || `/pages/eit/images/${c.image}`,
+      imageSrc: `../../images/${c.image}`,
     }));
     this.setData({ cards, currentIndex: index });
     this.markRead(index);
   },
 
+  // 标记已读
   markRead(index) {
     const card = this.data.cards[index];
     if (!card) return;
@@ -32,6 +30,7 @@ Page({
     }
   },
 
+  // swiper 切换
   onSwiperChange(e) {
     const index = e.detail.current;
     this.setData({ currentIndex: index });
@@ -39,18 +38,18 @@ Page({
     haptic.light();
   },
 
+  // 点击图片切换文字层
   toggleInfo() {
     this.setData({ showInfo: !this.data.showInfo });
   },
 
+  // 全屏预览图片
   previewImage() {
     const card = this.data.cards[this.data.currentIndex];
     if (!card) return;
-    try {
-      wx.previewImage({
-        current: card.imageSrc,
-        urls: this.data.cards.map(c => c.imageSrc),
-      });
-    } catch (e) { /* 忽略 */ }
+    wx.previewImage({
+      current: card.imageSrc,
+      urls: this.data.cards.map(c => c.imageSrc),
+    });
   },
 });

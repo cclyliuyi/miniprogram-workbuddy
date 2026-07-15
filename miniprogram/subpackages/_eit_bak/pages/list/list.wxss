@@ -1,0 +1,149 @@
+/* subpackages/eit/pages/list/list.wxss —— 电磁信息论卡片列表 */
+.eit {
+  min-height: 100vh;
+  padding: 20rpx 30rpx 0;
+  box-sizing: border-box;
+}
+
+/* ═══ 标题区 ═══ */
+.eit-head {
+  padding: 40rpx 8rpx 32rpx;
+  text-align: left;
+}
+.eit-head .kicker {
+  font-size: 20rpx;
+  letter-spacing: 4rpx;
+  color: var(--sage, #7a9181);
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+.eit-title {
+  font-size: 52rpx;
+  font-weight: 700;
+  color: var(--ink, #20201c);
+  line-height: 1.15;
+  margin-bottom: 16rpx;
+}
+.eit-sub {
+  font-size: 26rpx;
+  line-height: 1.7;
+  color: var(--ink-soft, #5a5650);
+}
+
+/* ═══ 卡片网格：2 列瀑布流 ═══ */
+.eit-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24rpx;
+  padding-top: 8rpx;
+}
+.eit-card {
+  width: calc((100% - 24rpx) / 2);
+  background: var(--card, #fff);
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 20rpx rgba(32,32,28,.06);
+  transition: transform .2s ease;
+}
+.eit-card:active {
+  transform: scale(.97);
+}
+
+/* 卡片图片 */
+.eit-card-img-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  background: var(--paper-2, rgba(243,239,230,.6));
+  overflow: hidden;
+}
+.eit-card-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+/* 编号 */
+.eit-card-num {
+  position: absolute;
+  top: 12rpx;
+  left: 12rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(122,145,129,.75);
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+/* 已读标记 */
+.eit-card-read {
+  position: absolute;
+  top: 14rpx;
+  right: 14rpx;
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: var(--sage, #7a9181);
+  box-shadow: 0 0 0 3rpx rgba(255,255,255,.6);
+}
+/* 占位稿标记 */
+.eit-card-badge {
+  position: absolute;
+  bottom: 12rpx;
+  left: 12rpx;
+  font-size: 18rpx;
+  color: #fff;
+  background: rgba(176,106,79,.75);
+  padding: 2rpx 10rpx;
+  border-radius: 6rpx;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.eit-card.is-draft .eit-card-img {
+  opacity: .75;
+}
+
+/* 卡片文字 */
+.eit-card-body {
+  padding: 18rpx 20rpx 22rpx;
+}
+.eit-card-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--ink, #20201c);
+  line-height: 1.4;
+  margin-bottom: 8rpx;
+  /* 最多 2 行 */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.eit-card-tags {
+  font-size: 20rpx;
+  color: var(--muted, #9b9384);
+  line-height: 1.5;
+  letter-spacing: 0.5rpx;
+}
+
+/* ═══ 底部 ═══ */
+.eit-foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  margin-top: 40rpx;
+  padding: 24rpx 0;
+}
+.rule-dot {
+  width: 6rpx;
+  height: 6rpx;
+  border-radius: 50%;
+  background: var(--line, #d5cfc3);
+}
+.eit-foot-text {
+  font-size: 22rpx;
+  color: var(--muted, #9b9384);
+  letter-spacing: 1rpx;
+}

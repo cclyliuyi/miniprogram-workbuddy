@@ -1,5 +1,7 @@
 // pages/method-detail/detail.js —— 方法论迁移卡片详情（全屏滑动浏览）
+// 图片策略：直接使用云存储 fileID（已上传至 cloud1-d3gsxamaw26beccb8）
 const { CARDS } = require('../method/method-data');
+const { METHOD_FILE_IDS } = require('../../utils/cloud-images');
 const haptic = require('../../utils/haptic');
 
 Page({
@@ -11,9 +13,10 @@ Page({
 
   onLoad(options) {
     const index = parseInt(options.index, 10) || 0;
+
     const cards = CARDS.map(c => ({
       ...c,
-      imageSrc: `/pages/method/images/${c.image}`,
+      imageSrc: METHOD_FILE_IDS[c.id] || `/pages/method/images/${c.image}`,
       mappingList: c.mapping.map(m => ({ from: m[0], to: m[1] })),
       moduleList: Object.entries(c.modules).map(([k, v]) => ({ label: k, text: v })),
     }));

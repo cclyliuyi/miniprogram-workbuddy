@@ -1,0 +1,86 @@
+<!-- subpackages/eit/pages/detail/detail.wxml —— 电磁信息论卡片详情（全屏浏览） -->
+<view class="eit-detail">
+
+  <!-- 全屏 swiper -->
+  <swiper
+    class="eit-swiper"
+    current="{{currentIndex}}"
+    bindchange="onSwiperChange"
+    previous-margin="0"
+    next-margin="0"
+    duration="300"
+    easing-function="easeInOutCubic">
+
+    <swiper-item wx:for="{{cards}}" wx:key="id">
+
+      <view class="eit-page" bindtap="toggleInfo">
+
+        <!-- 背景图（全屏） -->
+        <image class="eit-bg" src="{{item.imageSrc}}" mode="widthFix" />
+
+        <!-- 顶部渐变蒙版（让导航栏文字可读） -->
+        <view class="eit-top-mask"></view>
+
+        <!-- 卡片编号 -->
+        <view class="eit-page-num num">{{item.id < 10 ? '0' : ''}}{{item.id}} / 12</view>
+
+        <!-- 文字信息层（可切换显示/隐藏） -->
+        <view wx:if="{{showInfo}}" class="eit-info-panel rise">
+
+          <!-- 标题 -->
+          <view class="eit-info-title display">{{item.title}}</view>
+          <view class="eit-info-subtitle">{{item.subtitle}}</view>
+
+          <!-- 核心问题 -->
+          <view class="eit-info-section">
+            <view class="eit-info-label">核心问题</view>
+            <view class="eit-info-text">{{item.coreQuestion}}</view>
+          </view>
+
+          <!-- 课程桥梁 -->
+          <view class="eit-info-section">
+            <view class="eit-info-label">课程桥梁</view>
+            <view class="eit-info-text">{{item.knownConcept}}</view>
+          </view>
+
+          <!-- 前沿升级 -->
+          <view class="eit-info-section">
+            <view class="eit-info-label">前沿升级</view>
+            <view class="eit-info-text">{{item.frontierConcept}}</view>
+          </view>
+
+          <!-- 关键公式 -->
+          <view class="eit-info-section" wx:if="{{item.keyFormula}}">
+            <view class="eit-info-label">关键公式</view>
+            <view class="eit-info-formula">{{item.keyFormula}}</view>
+          </view>
+
+          <!-- 一句话结论 -->
+          <view class="eit-info-quote">
+            <view class="eit-info-quote-mark">"</view>
+            <view class="eit-info-quote-text">{{item.oneSentence}}</view>
+          </view>
+
+          <!-- 常见误区 -->
+          <view class="eit-info-warn" wx:if="{{item.misconception}}">
+            <view class="eit-info-label eit-label-warn">常见误区</view>
+            <view class="eit-info-text eit-text-warn">{{item.misconception}}</view>
+          </view>
+
+          <!-- 标签 -->
+          <view class="eit-info-tags">
+            <text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this" class="eit-tag">#{{tag}}</text>
+          </view>
+        </view>
+
+        <!-- 隐藏时的提示 -->
+        <view wx:else class="eit-tap-hint">点击屏幕显示知识详解</view>
+
+        <!-- 底部渐变蒙版 -->
+        <view class="eit-bottom-mask"></view>
+      </view>
+
+    </swiper-item>
+  </swiper>
+
+</view>

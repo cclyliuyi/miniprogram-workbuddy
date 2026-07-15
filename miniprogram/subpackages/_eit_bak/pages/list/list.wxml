@@ -1,0 +1,49 @@
+<!-- subpackages/eit/pages/list/list.wxml —— 电磁信息论 12 张卡片列表 -->
+<view class="screen eit">
+
+  <!-- 标题区 -->
+  <view class="eit-head rise">
+    <view class="kicker">ELECTROMAGNETIC INFORMATION THEORY</view>
+    <view class="eit-title display">电磁信息论</view>
+    <view class="eit-sub">从麦克斯韦方程到 Shannon 容量极限 —— 12 张卡片读懂物理与信息的深层联系</view>
+  </view>
+
+  <!-- 卡片网格 -->
+  <view class="eit-grid">
+    <view
+      wx:for="{{cards}}"
+      wx:key="id"
+      class="eit-card rise {{item.status === 'draft' ? 'is-draft' : ''}}"
+      style="animation-delay:{{index * 0.04}}s"
+      bindtap="openCard"
+      data-index="{{index}}">
+
+      <!-- 卡片图 -->
+      <view class="eit-card-img-wrap">
+        <image class="eit-card-img" src="{{item.imageSrc}}" mode="aspectFill" />
+        <!-- 编号 -->
+        <view class="eit-card-num num">{{item.id < 10 ? '0' : ''}}{{item.id}}</view>
+        <!-- 已读标记 -->
+        <view wx:if="{{readSet.indexOf(item.id) >= 0}}" class="eit-card-read"></view>
+        <!-- 占位稿标记 -->
+        <view wx:if="{{item.status === 'draft'}}" class="eit-card-badge">待重绘</view>
+      </view>
+
+      <!-- 卡片文字 -->
+      <view class="eit-card-body">
+        <view class="eit-card-title">{{item.title}}</view>
+        <view class="eit-card-tags">{{item.tagText}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部说明 -->
+  <view class="eit-foot">
+    <view class="rule-dot"></view>
+    <text class="eit-foot-text">图片解释物理直觉，公式与文字以结构化数据为准</text>
+  </view>
+
+  <!-- 底部留白 -->
+  <view style="height:140rpx"></view>
+
+</view>
