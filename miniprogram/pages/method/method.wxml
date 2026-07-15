@@ -1,0 +1,51 @@
+<!-- pages/method/method.wxml —— 方法论迁移 12 张卡片列表（tabBar 入口） -->
+<view class="screen method">
+
+  <!-- 标题区 -->
+  <view class="mth-head rise">
+    <view class="kicker">METHODOLOGY TRANSFER</view>
+    <view class="mth-title display">方法论迁移</view>
+    <view class="mth-sub">从电磁工程到软件架构，再到 AI Agent —— 12 张卡片读透系统思维的跨域迁移</view>
+  </view>
+
+  <!-- 卡片网格 -->
+  <view class="mth-grid">
+    <view
+      wx:for="{{cards}}"
+      wx:key="id"
+      class="mth-card rise {{item.status === 'draft' ? 'is-draft' : ''}}"
+      style="animation-delay:{{index * 0.04}}s"
+      bindtap="openCard"
+      data-index="{{index}}">
+
+      <!-- 卡片图 -->
+      <view class="mth-card-img-wrap">
+        <image class="mth-card-img" src="{{item.imageSrc}}" mode="aspectFill" />
+        <!-- 编号 -->
+        <view class="mth-card-num num">{{item.id < 10 ? '0' : ''}}{{item.id}}</view>
+        <!-- 阶段标签 -->
+        <view class="mth-card-stage">{{item.stage}}</view>
+        <!-- 已读标记 -->
+        <view wx:if="{{readSet.indexOf(item.id) >= 0}}" class="mth-card-read"></view>
+        <!-- 草稿标记 -->
+        <view wx:if="{{item.status === 'draft'}}" class="mth-card-badge">草稿</view>
+      </view>
+
+      <!-- 卡片文字 -->
+      <view class="mth-card-body">
+        <view class="mth-card-title">{{item.title}}</view>
+        <view class="mth-card-tags">{{item.tagText}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部说明 -->
+  <view class="mth-foot">
+    <view class="rule-dot"></view>
+    <text class="mth-foot-text">电磁工程 → 软件架构 → AI Agent，思维方式的跨域迁移</text>
+  </view>
+
+  <!-- 底部留白 -->
+  <view style="height:140rpx"></view>
+
+</view>

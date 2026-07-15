@@ -1,0 +1,90 @@
+<!-- pages/method-detail/detail.wxml —— 方法论迁移卡片详情（全屏滑动浏览） -->
+<view class="mth-detail">
+
+  <swiper
+    class="mth-swiper"
+    current="{{currentIndex}}"
+    bindchange="onSwiperChange"
+    duration="300"
+    easing-function="easeInOutCubic">
+
+    <swiper-item wx:for="{{cards}}" wx:key="id">
+      <view class="mth-page" bindtap="toggleInfo">
+
+        <!-- 背景图 -->
+        <image class="mth-bg" src="{{item.imageSrc}}" mode="widthFix" />
+
+        <!-- 顶部渐变蒙版 -->
+        <view class="mth-top-mask"></view>
+
+        <!-- 编号 + 阶段 -->
+        <view class="mth-page-num num">{{item.id < 10 ? '0' : ''}}{{item.id}} / 12</view>
+        <view class="mth-page-stage">{{item.stage}}</view>
+
+        <!-- 文字信息层 -->
+        <view wx:if="{{showInfo}}" class="mth-info-panel rise">
+
+          <!-- 标题 -->
+          <view class="mth-info-title display">{{item.title}}</view>
+          <view class="mth-info-subtitle">{{item.subtitle}}</view>
+
+          <!-- 核心命题 -->
+          <view class="mth-info-section">
+            <view class="mth-info-label">核心命题</view>
+            <view class="mth-info-text mth-info-highlight">{{item.coreProposition}}</view>
+          </view>
+
+          <!-- 三视角对比 -->
+          <view class="mth-info-section">
+            <view class="mth-info-label">电子信息视角</view>
+            <view class="mth-info-text">{{item.emView}}</view>
+          </view>
+          <view class="mth-info-section">
+            <view class="mth-info-label">软件工程视角</view>
+            <view class="mth-info-text">{{item.seView}}</view>
+          </view>
+          <view class="mth-info-section">
+            <view class="mth-info-label">AI Agent 视角</view>
+            <view class="mth-info-text">{{item.aiView}}</view>
+          </view>
+
+          <!-- 迁移映射表 -->
+          <view class="mth-info-section">
+            <view class="mth-info-label">迁移映射</view>
+            <view class="mth-map-table">
+              <view wx:for="{{item.mappingList}}" wx:for-item="map" wx:key="from" class="mth-map-row">
+                <text class="mth-map-from">{{map.from}}</text>
+                <text class="mth-map-arrow">→</text>
+                <text class="mth-map-to">{{map.to}}</text>
+              </view>
+            </view>
+          </view>
+
+          <!-- 信息模块 -->
+          <view class="mth-info-section" wx:for="{{item.moduleList}}" wx:for-item="mod" wx:key="label">
+            <view class="mth-info-label">{{mod.label}}</view>
+            <view class="mth-info-text">{{mod.text}}</view>
+          </view>
+
+          <!-- 哲思句 -->
+          <view class="mth-info-quote">
+            <view class="mth-info-quote-mark">"</view>
+            <view class="mth-info-quote-text">{{item.philosophy}}</view>
+          </view>
+
+          <!-- 关键词 -->
+          <view class="mth-info-tags">
+            <text wx:for="{{item.keywords}}" wx:for-item="kw" wx:key="*this" class="mth-tag">#{{kw}}</text>
+          </view>
+        </view>
+
+        <!-- 隐藏时提示 -->
+        <view wx:else class="mth-tap-hint">点击屏幕显示知识详解</view>
+
+        <!-- 底部渐变蒙版 -->
+        <view class="mth-bottom-mask"></view>
+      </view>
+    </swiper-item>
+  </swiper>
+
+</view>

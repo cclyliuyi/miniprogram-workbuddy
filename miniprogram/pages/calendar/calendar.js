@@ -58,6 +58,8 @@ Page({
     monthTheme: '',         // 当月电磁波知识主题
     monthVibe: '',          // 当月季节/文化描述
     showGoToday: false,     // 是否显示「回到今天」按钮
+    showMonthPicker: false,  // 月份选择器弹窗
+    pickerMonths: [1,2,3,4,5,6,7,8,9,10,11,12], // 12 宫格数据
   },
 
   onLoad(options) {
@@ -302,6 +304,39 @@ Page({
     const month = (app && app.globalData && app.globalData.currentMonth) || this.data.month;
     if (app && app.globalData) app.globalData.currentMonth = month;
     wx.navigateTo({ url: `/pages/story/story?month=${month}` });
+  },
+
+  // —— 月份选择器：点月份数字弹出 12 宫格，选月后自动切换 ——
+  toggleMonthPicker() {
+    haptic.light();
+    this.setData({ showMonthPicker: !this.data.showMonthPicker });
+  },
+
+  // 遮罩层点击关闭
+  closeMonthPicker() {
+    this.setData({ showMonthPicker: false });
+  },
+
+  // 选择某月
+  pickMonth(e) {
+    const month = parseInt(e.currentTarget.dataset.month, 10);
+    if (!month || month === this.data.month) {
+      this.setData({ showMonthPicker: false });
+      return;
+    }
+    haptic.light();
+    this.setData({ showMonthPicker: false });
+    this._reqToken = (this._reqToken || 0) + 1;
+    this.setData({
+      month, monthLabel: `${month}月`, monthThumb: '', loading: true,
+      monthTheme: MONTH_THEMES[month] || '',
+      monthVibe: MONTH_VIBES[month] || '',
+    });
+    const app = getApp();
+    if (app && app.globalData) app.globalData.currentMonth = month;
+    this.loadMonth(month);
+    this.loadMonthThumb(month);
+    this.updateGoToday();
   },
 
   onImgError(e) {

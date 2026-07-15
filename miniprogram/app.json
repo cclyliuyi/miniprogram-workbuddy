@@ -13,7 +13,11 @@
     "pages/tools/link/link",
     "pages/tools/radar/radar",
     "pages/tools/match/match",
-    "pages/tools/smith/smith"
+    "pages/tools/smith/smith",
+    "pages/eit/eit",
+    "pages/eit-detail/detail",
+    "pages/method/method",
+    "pages/method-detail/detail"
   ],
   "window": {
     "navigationBarTitleText": "天线与电磁波知识日历",
@@ -28,8 +32,10 @@
     "borderStyle": "white",
     "list": [
       { "pagePath": "pages/calendar/calendar", "text": "日历" },
-      { "pagePath": "pages/favs/favs", "text": "收藏" },
-      { "pagePath": "pages/tools/index", "text": "工具" }
+      { "pagePath": "pages/eit/eit", "text": "前沿" },
+      { "pagePath": "pages/method/method", "text": "方法论" },
+      { "pagePath": "pages/tools/index", "text": "工具" },
+      { "pagePath": "pages/favs/favs", "text": "收藏" }
     ]
   },
   "sitemapLocation": "sitemap.json",

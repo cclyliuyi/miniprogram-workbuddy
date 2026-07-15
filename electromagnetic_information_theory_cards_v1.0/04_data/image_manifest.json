@@ -1,0 +1,358 @@
+{
+  "module": "电磁信息论知识卡片",
+  "version": "1.0",
+  "canonical_text": "01_content/12_cards_canonical_copy.md",
+  "final_candidates": [
+    {
+      "id": "01",
+      "filename": "01_天线收到的到底是什么.png",
+      "source_filename": "a_clean_educational_infographic_poster_page_white.png",
+      "size": [
+        1024,
+        1536
+      ],
+      "status": "final_candidate",
+      "warning": "图中文字、公式及细小图标仍须对照canonical copy人工校对。"
+    },
+    {
+      "id": "02",
+      "filename": "02_面积越大_信息一定越多吗.png",
+      "source_filename": "a_clean_educational_infographic_poster_slide_pag.png",
+      "size": [
+        1024,
+        1536
+      ],
+      "status": "final_candidate",
+      "warning": "图中文字、公式及细小图标仍须对照canonical copy人工校对。"
+    },
+    {
+      "id": "03",
+      "filename": "03_从_Friis_到_Shannon_从功率到容量.png",
+      "source_filename": "a_clean_educational_infographic_slide_poster_layou.png",
+      "size": [
+        1024,
+        1536
+      ],
+      "status": "final_candidate",
+      "warning": "图中文字、公式及细小图标仍须对照canonical copy人工校对。"
+    },
+    {
+      "id": "04",
+      "filename": "04_天线是模式转换器_而非功率收集器.png",
+      "source_filename": "a_highly_detailed_infographic_educational_poster_p.png",
+      "size": [
+        941,
+        1672
+      ],
+      "status": "final_candidate",
+      "warning": "图中文字、公式及细小图标仍须对照canonical copy人工校对。"
+    },
+    {
+      "id": "05",
+      "filename": "05_从信道矩阵_H_到电磁算子.png",
+      "source_filename": "a_tall_educational_infographic_poster_slide_in_chi.png",
+      "size": [
+        941,
+        1672
+      ],
+      "status": "final_candidate",
+      "warning": "图中文字、公式及细小图标仍须对照canonical copy人工校对。"
+    },
+    {
+      "id": "06",
+      "filename": "06_三种自由度_阵元、信道、场.png",
+      "source_filename": "a_clean_infographic_poster_style_image_overall_sc.png",
+      "size": [
+        1180,
+        1333
+      ],
+      "status": "final_candidate",
+      "warning": "图中文字、公式及细小图标仍须对照canonical copy人工校对。"
+    },
+    {
+      "id": "07",
+      "filename": "07_PLACEHOLDER_NEEDS_REDRAW.png",
+      "source_filename": "composite crop",
+      "size": [
+        1196,
+        1756
+      ],
+      "status": "needs_redraw",
+      "warning": "占位参考图：由合图裁切放大，必须在正式上线前单独高清重绘。"
+    },
+    {
+      "id": "08",
+      "filename": "08_空间采样_天线阵列采样什么.png",
+      "source_filename": "a_clean_infographic_page_layout_with_a_white_cream.png",
+      "size": [
+        1197,
+        1314
+      ],
+      "status": "final_candidate",
+      "warning": "图中文字、公式及细小图标仍须对照canonical copy人工校对。"
+    },
+    {
+      "id": "09",
+      "filename": "09_PLACEHOLDER_NEEDS_REDRAW.png",
+      "source_filename": "composite crop",
+      "size": [
+        1196,
+        1752
+      ],
+      "status": "needs_redraw",
+      "warning": "占位参考图：由合图裁切放大，必须在正式上线前单独高清重绘。"
+    },
+    {
+      "id": "10",
+      "filename": "10_PLACEHOLDER_NEEDS_REDRAW.png",
+      "source_filename": "composite crop",
+      "size": [
+        1196,
+        1752
+      ],
+      "status": "needs_redraw",
+      "warning": "占位参考图：由合图裁切放大，必须在正式上线前单独高清重绘。"
+    },
+    {
+      "id": "11",
+      "filename": "11_全息_MIMO_连续表面作为信息入口.png",
+      "source_filename": "a_clean_infographic_poster_style_image_with_a_soft.png",
+      "size": [
+        1199,
+        1312
+      ],
+      "status": "final_candidate",
+      "warning": "图中文字、公式及细小图标仍须对照canonical copy人工校对。"
+    },
+    {
+      "id": "12",
+      "filename": "12_打开无线世界的物理黑盒.png",
+      "source_filename": "a_clean_infographic_poster_slide_style_image_li.png",
+      "size": [
+        1197,
+        1315
+      ],
+      "status": "final_candidate",
+      "warning": "图中文字、公式及细小图标仍须对照canonical copy人工校对。"
+    }
+  ],
+  "reference_crops": [
+    {
+      "id": "01",
+      "source_box": [
+        0,
+        0,
+        299,
+        438
+      ],
+      "original_crop_size": [
+        299,
+        438
+      ],
+      "upscaled_size": [
+        1196,
+        1752
+      ],
+      "note": "由12卡合图裁切并使用Lanczos放大，仅作为构图与原貌参考，不会增加真实细节。"
+    },
+    {
+      "id": "02",
+      "source_box": [
+        299,
+        0,
+        598,
+        438
+      ],
+      "original_crop_size": [
+        299,
+        438
+      ],
+      "upscaled_size": [
+        1196,
+        1752
+      ],
+      "note": "由12卡合图裁切并使用Lanczos放大，仅作为构图与原貌参考，不会增加真实细节。"
+    },
+    {
+      "id": "03",
+      "source_box": [
+        598,
+        0,
+        897,
+        438
+      ],
+      "original_crop_size": [
+        299,
+        438
+      ],
+      "upscaled_size": [
+        1196,
+        1752
+      ],
+      "note": "由12卡合图裁切并使用Lanczos放大，仅作为构图与原貌参考，不会增加真实细节。"
+    },
+    {
+      "id": "04",
+      "source_box": [
+        897,
+        0,
+        1196,
+        438
+      ],
+      "original_crop_size": [
+        299,
+        438
+      ],
+      "upscaled_size": [
+        1196,
+        1752
+      ],
+      "note": "由12卡合图裁切并使用Lanczos放大，仅作为构图与原貌参考，不会增加真实细节。"
+    },
+    {
+      "id": "05",
+      "source_box": [
+        0,
+        438,
+        299,
+        877
+      ],
+      "original_crop_size": [
+        299,
+        439
+      ],
+      "upscaled_size": [
+        1196,
+        1756
+      ],
+      "note": "由12卡合图裁切并使用Lanczos放大，仅作为构图与原貌参考，不会增加真实细节。"
+    },
+    {
+      "id": "06",
+      "source_box": [
+        299,
+        438,
+        598,
+        877
+      ],
+      "original_crop_size": [
+        299,
+        439
+      ],
+      "upscaled_size": [
+        1196,
+        1756
+      ],
+      "note": "由12卡合图裁切并使用Lanczos放大，仅作为构图与原貌参考，不会增加真实细节。"
+    },
+    {
+      "id": "07",
+      "source_box": [
+        598,
+        438,
+        897,
+        877
+      ],
+      "original_crop_size": [
+        299,
+        439
+      ],
+      "upscaled_size": [
+        1196,
+        1756
+      ],
+      "note": "由12卡合图裁切并使用Lanczos放大，仅作为构图与原貌参考，不会增加真实细节。"
+    },
+    {
+      "id": "08",
+      "source_box": [
+        897,
+        438,
+        1196,
+        877
+      ],
+      "original_crop_size": [
+        299,
+        439
+      ],
+      "upscaled_size": [
+        1196,
+        1756
+      ],
+      "note": "由12卡合图裁切并使用Lanczos放大，仅作为构图与原貌参考，不会增加真实细节。"
+    },
+    {
+      "id": "09",
+      "source_box": [
+        0,
+        877,
+        299,
+        1315
+      ],
+      "original_crop_size": [
+        299,
+        438
+      ],
+      "upscaled_size": [
+        1196,
+        1752
+      ],
+      "note": "由12卡合图裁切并使用Lanczos放大，仅作为构图与原貌参考，不会增加真实细节。"
+    },
+    {
+      "id": "10",
+      "source_box": [
+        299,
+        877,
+        598,
+        1315
+      ],
+      "original_crop_size": [
+        299,
+        438
+      ],
+      "upscaled_size": [
+        1196,
+        1752
+      ],
+      "note": "由12卡合图裁切并使用Lanczos放大，仅作为构图与原貌参考，不会增加真实细节。"
+    },
+    {
+      "id": "11",
+      "source_box": [
+        598,
+        877,
+        897,
+        1315
+      ],
+      "original_crop_size": [
+        299,
+        438
+      ],
+      "upscaled_size": [
+        1196,
+        1752
+      ],
+      "note": "由12卡合图裁切并使用Lanczos放大，仅作为构图与原貌参考，不会增加真实细节。"
+    },
+    {
+      "id": "12",
+      "source_box": [
+        897,
+        877,
+        1196,
+        1315
+      ],
+      "original_crop_size": [
+        299,
+        438
+      ],
+      "upscaled_size": [
+        1196,
+        1752
+      ],
+      "note": "由12卡合图裁切并使用Lanczos放大，仅作为构图与原貌参考，不会增加真实细节。"
+    }
+  ],
+  "critical_note": "AI图片中文字和公式不具有权威性。小程序应优先采用纯图主体+前端文字覆盖；正式发布须由电磁场与信息论专业人员校对。"
+}
