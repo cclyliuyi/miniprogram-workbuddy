@@ -391,7 +391,6 @@ const CARDS_M12 = [
     monthTheme: "地波、天波、电离层、雨衰、散射与大气传播",
     stage: "极端媒质与总收束",
   },
-],
 ];
 
 module.exports = CARDS_M12;
