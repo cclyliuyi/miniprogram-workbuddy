@@ -43,8 +43,8 @@
 
     <view
       wx:for="{{results}}"
-      wx:key="*this"
-      class="sr-card rise"
+      wx:key="date"
+      class="sr-card"
       bindtap="openResult"
       data-month="{{item.month}}"
       data-day="{{item.day}}">

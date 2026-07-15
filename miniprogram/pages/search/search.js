@@ -26,6 +26,11 @@ Page({
 
   onInput(e) {
     const kw = (e.detail.value || '').trim();
+    this._doSearch(kw);
+  },
+
+  // 核心搜索逻辑（onInput 和 onTagTap 共用）
+  _doSearch(kw) {
     if (!kw) {
       this.setData({ keyword: '', results: [], searching: false });
       return;
@@ -64,16 +69,23 @@ Page({
   // 点击热门标签快捷搜索
   onTagTap(e) {
     const tag = e.currentTarget.dataset.tag;
+    if (!tag) return;
     haptic.light();
-    // 模拟输入触发搜索
-    this.onInput({ detail: { value: tag } });
+    // 直接设置 keyword 并搜索，避免 onInput 的 DOM event 依赖
+    this._doSearch(tag);
   },
 
+  // 搜索结果点击 → 跳转日详情
   openResult(e) {
     const { month, day } = e.currentTarget.dataset;
+    if (!month || !day) return;
     haptic.light();
     wx.navigateTo({
       url: `/pages/day-detail/day-detail?month=${month}&day=${day}`,
+      fail: (err) => {
+        console.error('[search] navigateTo failed:', err);
+        wx.showToast({ title: '页面跳转失败', icon: 'none' });
+      },
     });
   },
 });
