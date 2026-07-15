@@ -1,24 +1,96 @@
 {
   "pages": [
     "pages/calendar/calendar",
-    "pages/year/year",
-    "pages/day-detail/day-detail",
-    "pages/story/story",
-    "pages/card/card",
     "pages/favs/favs",
-    "pages/search/search",
-    "pages/tools/index",
-    "pages/tools/calc/calc",
-    "pages/tools/array/array",
-    "pages/tools/link/link",
-    "pages/tools/radar/radar",
-    "pages/tools/match/match",
-    "pages/tools/smith/smith",
     "pages/eit/eit",
-    "pages/eit-detail/detail",
     "pages/method/method",
-    "pages/method-detail/detail"
+    "pages/tools/index"
   ],
+  "subPackages": [
+    {
+      "root": "pages/eit-detail",
+      "name": "eit-detail",
+      "pages": ["detail"]
+    },
+    {
+      "root": "pages/method-detail",
+      "name": "method-detail",
+      "pages": ["detail"]
+    },
+    {
+      "root": "pages/day-detail",
+      "name": "day-detail",
+      "pages": ["day-detail"]
+    },
+    {
+      "root": "pages/card",
+      "name": "card",
+      "pages": ["card"]
+    },
+    {
+      "root": "pages/year",
+      "name": "year",
+      "pages": ["year"]
+    },
+    {
+      "root": "pages/story",
+      "name": "story",
+      "pages": ["story"]
+    },
+    {
+      "root": "pages/search",
+      "name": "search",
+      "pages": ["search"]
+    },
+    {
+      "root": "pages/tools/calc",
+      "name": "tool-calc",
+      "pages": ["calc"]
+    },
+    {
+      "root": "pages/tools/array",
+      "name": "tool-array",
+      "pages": ["array"]
+    },
+    {
+      "root": "pages/tools/link",
+      "name": "tool-link",
+      "pages": ["link"]
+    },
+    {
+      "root": "pages/tools/radar",
+      "name": "tool-radar",
+      "pages": ["radar"]
+    },
+    {
+      "root": "pages/tools/match",
+      "name": "tool-match",
+      "pages": ["match"]
+    },
+    {
+      "root": "pages/tools/smith",
+      "name": "tool-smith",
+      "pages": ["smith"]
+    }
+  ],
+  "preloadRule": {
+    "pages/calendar/calendar": {
+      "network": "all",
+      "packages": ["day-detail", "card", "year", "story", "search"]
+    },
+    "pages/tools/index": {
+      "network": "all",
+      "packages": ["tool-calc", "tool-array", "tool-link", "tool-radar", "tool-match", "tool-smith"]
+    },
+    "pages/eit/eit": {
+      "network": "all",
+      "packages": ["eit-detail"]
+    },
+    "pages/method/method": {
+      "network": "all",
+      "packages": ["method-detail"]
+    }
+  },
   "window": {
     "navigationBarTitleText": "天线与电磁波知识日历",
     "navigationBarBackgroundColor": "#f3efe6",
