@@ -49,10 +49,11 @@
             <view class="eit-info-text">{{item.frontierConcept}}</view>
           </view>
 
-          <!-- 关键公式 -->
+          <!-- 关键公式（渲染图优先，无图则显示文本） -->
           <view class="eit-info-section" wx:if="{{item.keyFormula}}">
             <view class="eit-info-label">关键公式</view>
-            <view class="eit-info-formula">{{item.keyFormula}}</view>
+            <image wx:if="{{item.formulaImage}}" class="eit-formula-img" src="{{item.formulaImage}}" mode="widthFix" />
+            <view wx:else class="eit-info-formula">{{item.keyFormula}}</view>
           </view>
 
           <!-- 一句话结论 -->

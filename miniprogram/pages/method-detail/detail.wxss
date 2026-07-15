@@ -65,6 +65,17 @@ page { background: #1a1814; }
   border-left: 3rpx solid rgba(245,217,155,.3);
 }
 
+/* 公式渲染图 */
+.mth-formula-img {
+  width: 100%;
+  margin-top: 12rpx;
+  background: rgba(245, 217, 155, .06);
+  padding: 12rpx 16rpx;
+  border-radius: 10rpx;
+  border-left: 3rpx solid rgba(245, 217, 155, .3);
+  box-sizing: border-box;
+}
+
 /* 迁移映射表 */
 .mth-map-table {
   display: flex; flex-direction: column; gap: 8rpx;

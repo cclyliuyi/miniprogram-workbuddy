@@ -96,7 +96,7 @@ page {
   color: rgba(255,255,255,.88);
 }
 
-/* 公式 */
+/* 公式文本（fallback） */
 .eit-info-formula {
   font-size: 28rpx;
   line-height: 1.6;
@@ -106,6 +106,16 @@ page {
   padding: 16rpx 20rpx;
   border-radius: 10rpx;
   border-left: 4rpx solid rgba(245, 217, 155, .4);
+}
+
+/* 公式渲染图 */
+.eit-formula-img {
+  width: 100%;
+  background: rgba(245, 217, 155, .06);
+  padding: 16rpx 20rpx;
+  border-radius: 10rpx;
+  border-left: 4rpx solid rgba(245, 217, 155, .4);
+  box-sizing: border-box;
 }
 
 /* 一句话结论（引用块） */

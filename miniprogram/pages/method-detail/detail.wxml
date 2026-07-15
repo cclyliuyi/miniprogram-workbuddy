@@ -64,6 +64,7 @@
           <view class="mth-info-section" wx:for="{{item.moduleList}}" wx:for-item="mod" wx:key="label">
             <view class="mth-info-label">{{mod.label}}</view>
             <view class="mth-info-text">{{mod.text}}</view>
+            <image wx:if="{{mod.formulaImage}}" class="mth-formula-img" src="{{mod.formulaImage}}" mode="widthFix" />
           </view>
 
           <!-- 哲思句 -->
