@@ -69,6 +69,20 @@ Page({
     wx.navigateTo({ url: '/pages/interactive/broadband-matching/broadband-matching' })
   },
 
+  // ═══ 第三批交互模块 ═══
+  goMiniaturization() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/miniaturization/miniaturization' })
+  },
+  goRadiationIntegral() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/radiation-integral/radiation-integral' })
+  },
+  goSmartArray() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/smart-array/smart-array' })
+  },
+
   onShareAppMessage() {
     return {
       title: '天线与电磁波工程师工具箱 · 换算/链路/阵列/圆图',

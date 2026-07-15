@@ -203,6 +203,42 @@
       <view class="tl-card-arrow">›</view>
     </view>
 
+    <!-- 电小天线 Chu 极限 -->
+    <view class="tl-card rise" bindtap="goMiniaturization" style="animation-delay:.50s">
+      <view class="tl-card-icon tl-icon-calc">
+        <view class="tl-icon-inner">ka</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">电小天线</view>
+        <view class="tl-card-desc">Chu Q 下界 · 辐射电阻 · 效率 · 近场储能</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 辐射积分 -->
+    <view class="tl-card rise" bindtap="goRadiationIntegral" style="animation-delay:.55s">
+      <view class="tl-card-icon tl-icon-array">
+        <view class="tl-icon-inner">∫</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">辐射积分</view>
+        <view class="tl-card-desc">电流分布 → 积分路径 → 远场方向图</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 智能天线 -->
+    <view class="tl-card rise" bindtap="goSmartArray" style="animation-delay:.60s">
+      <view class="tl-card-icon tl-icon-radar">
+        <view class="tl-icon-inner">∇</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">智能天线</view>
+        <view class="tl-card-desc">MVDR 自适应零陷 · 目标增强 · 干扰抑制</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
   </view>
 
   <!-- 底部说明 -->

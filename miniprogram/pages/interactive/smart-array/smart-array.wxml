@@ -1,0 +1,84 @@
+<!-- pages/interactive/smart-array/smart-array.wxml —— 自适应零陷波束形成 -->
+<view class="screen sa">
+
+  <view class="sa-head rise">
+    <view class="kicker">ADAPTIVE BEAMFORMING</view>
+    <view class="sa-title display">智能天线</view>
+    <view class="sa-sub">MVDR 自适应零陷 · 目标增强 · 干扰抑制</view>
+  </view>
+
+  <!-- 方向图 -->
+  <view class="sa-canvas-wrap rise">
+    <view class="sa-sub-plot">阵列响应 |wᴴa(θ)| (dB)</view>
+    <canvas type="2d" id="patternCanvas" class="sa-canvas-wide"></canvas>
+  </view>
+
+  <!-- 复权值分布 -->
+  <view class="sa-canvas-wrap rise">
+    <view class="sa-sub-plot">复权值 wₙ 分布（横=幅度，纵=相位）</view>
+    <canvas type="2d" id="weightsCanvas" class="sa-canvas-sq"></canvas>
+  </view>
+
+  <!-- 阵列配置 -->
+  <view class="sa-section rise">
+    <view class="kicker">阵列配置</view>
+    <view class="sa-slider-row">
+      <text class="sa-slider-label">阵元数 N</text>
+      <slider class="sa-slider" min="6" max="24" step="1" value="{{S.N}}"
+        bindchange="onN" show-value />
+    </view>
+  </view>
+
+  <!-- 方向控制 -->
+  <view class="sa-section rise">
+    <view class="kicker">方向控制</view>
+    <view class="sa-slider-row">
+      <text class="sa-slider-label sa-teal">目标 θs</text>
+      <slider class="sa-slider" min="-60" max="60" step="1" value="{{S.sig}}"
+        bindchange="onSig" show-value />
+    </view>
+    <view class="sa-slider-row">
+      <text class="sa-slider-label sa-red">干扰1 θi₁</text>
+      <slider class="sa-slider" min="-75" max="75" step="1" value="{{S.jam1}}"
+        bindchange="onJam1" show-value />
+    </view>
+    <view class="sa-slider-row">
+      <text class="sa-slider-label sa-orange">干扰2 θi₂</text>
+      <slider class="sa-slider" min="-75" max="75" step="1" value="{{S.jam2}}"
+        bindchange="onJam2" show-value />
+    </view>
+  </view>
+
+  <!-- 读数 -->
+  <view class="sa-stats pop" wx:if="{{stats}}">
+    <view class="kicker sa-stats-title">实时读数</view>
+    <view class="sa-stats-grid">
+      <view class="sa-stat">
+        <view class="sa-stat-label">干扰1 零陷深度</view>
+        <view class="sa-stat-value num sa-red">{{stats.null1}}</view>
+      </view>
+      <view class="sa-stat">
+        <view class="sa-stat-label">干扰2 零陷深度</view>
+        <view class="sa-stat-value num sa-orange">{{stats.null2}}</view>
+      </view>
+      <view class="sa-stat">
+        <view class="sa-stat-label">主瓣指向</view>
+        <view class="sa-stat-value num sa-teal">{{stats.beam}}</view>
+      </view>
+      <view class="sa-stat">
+        <view class="sa-stat-label">权值范数</view>
+        <view class="sa-stat-value num">{{stats.norm}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 约束条件 -->
+  <view class="sa-formula-note rise">
+    <view class="kicker">MVDR 约束</view>
+    <view class="sa-formula-item">wᴴa(θs) = 1  （目标方向无失真）</view>
+    <view class="sa-formula-item">wᴴa(θi₁) = 0  wᴴa(θi₂) = 0  （干扰零陷）</view>
+    <view class="sa-formula-item">两个零陷占用两个空间自由度</view>
+    <view class="sa-formula-item">干扰靠近目标时，零陷变浅</view>
+  </view>
+
+</view>

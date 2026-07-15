@@ -1,0 +1,79 @@
+<!-- pages/interactive/miniaturization/miniaturization.wxml —— 电小天线与 Chu 极限 -->
+<view class="screen mc">
+
+  <view class="mc-head rise">
+    <view class="kicker">ELECTRICALLY SMALL ANTENNAS</view>
+    <view class="mc-title display">电小天线与 Chu 极限</view>
+    <view class="mc-sub">ka · 辐射电阻 · 效率 · 带宽</view>
+  </view>
+
+  <!-- 近场场景 -->
+  <view class="mc-canvas-wrap rise">
+    <view class="mc-sub-plot">近场储能 · 等效损耗模型</view>
+    <canvas type="2d" id="sceneCanvas" class="mc-canvas"></canvas>
+  </view>
+
+  <!-- Chu Q / Rrad / 效率 曲线 -->
+  <view class="mc-canvas-wrap rise">
+    <view class="mc-sub-plot">Chu Q 下界 · 辐射电阻 · 效率 vs ka</view>
+    <canvas type="2d" id="curveCanvas" class="mc-canvas"></canvas>
+  </view>
+
+  <!-- 天线类型 -->
+  <view class="mc-section rise">
+    <view class="kicker">天线模型</view>
+    <view class="mc-btns">
+      <view class="mc-btn {{S.mode==='dipole' ? 'active' : ''}}" bindtap="setDipole">短电偶极子</view>
+      <view class="mc-btn {{S.mode==='loop' ? 'active' : ''}}" bindtap="setLoop">电小环</view>
+    </view>
+  </view>
+
+  <!-- 参数 -->
+  <view class="mc-section rise">
+    <view class="kicker">参数</view>
+    <view class="mc-slider-row">
+      <text class="mc-slider-label">电尺寸 ka</text>
+      <slider class="mc-slider" min="0.06" max="0.80" step="0.01" value="{{S.ka}}"
+        bindchange="onKa" show-value />
+    </view>
+    <view class="mc-slider-row">
+      <text class="mc-slider-label">损耗电阻 Rloss</text>
+      <slider class="mc-slider" min="0.2" max="20" step="0.1" value="{{S.rloss}}"
+        bindchange="onLoss" show-value />
+    </view>
+  </view>
+
+  <!-- 读数 -->
+  <view class="mc-stats pop" wx:if="{{stats}}">
+    <view class="kicker mc-stats-title">物理读数</view>
+    <view class="mc-stats-grid">
+      <view class="mc-stat">
+        <view class="mc-stat-label">Chu Q 下界</view>
+        <view class="mc-stat-value num">{{stats.qmin}}</view>
+      </view>
+      <view class="mc-stat">
+        <view class="mc-stat-label">可用带宽趋势</view>
+        <view class="mc-stat-value num">{{stats.bw}}</view>
+      </view>
+      <view class="mc-stat">
+        <view class="mc-stat-label">辐射电阻 Rrad</view>
+        <view class="mc-stat-value num">{{stats.rrad}}</view>
+      </view>
+      <view class="mc-stat">
+        <view class="mc-stat-label">辐射效率 ηrad</view>
+        <view class="mc-stat-value num">{{stats.eta}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 公式 -->
+  <view class="mc-formula-note rise">
+    <view class="kicker">核心公式</view>
+    <view class="mc-formula-item">Qmin ≈ 1/(ka)³ + 1/(ka)</view>
+    <view class="mc-formula-item" wx:if="{{S.mode==='dipole'}}">Rrad(short dipole) ≈ 80(ka)² Ω</view>
+    <view class="mc-formula-item" wx:if="{{S.mode==='loop'}}">Rrad(small loop) ∝ (ka)⁴ Ω</view>
+    <view class="mc-formula-item">ηrad = Rrad / (Rrad + Rloss)</view>
+    <view class="mc-formula-item">ka 变小 → 储能激增、带宽极窄、Rrad 被损耗淹没</view>
+  </view>
+
+</view>

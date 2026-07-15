@@ -1,0 +1,86 @@
+<!-- pages/interactive/radiation-integral/radiation-integral.wxml —— 辐射积分 -->
+<view class="screen ri">
+
+  <view class="ri-head rise">
+    <view class="kicker">RADIATION INTEGRAL</view>
+    <view class="ri-title display">辐射积分</view>
+    <view class="ri-sub">源分布 I(z') → 积分路径 → 远场方向图</view>
+  </view>
+
+  <!-- 电流分布 -->
+  <view class="ri-canvas-wrap rise">
+    <view class="ri-sub-plot">电流分布 I(z')</view>
+    <canvas type="2d" id="sourceCanvas" class="ri-canvas-wide"></canvas>
+  </view>
+
+  <!-- 积分路径动画 -->
+  <view class="ri-canvas-wrap rise">
+    <view class="ri-sub-plot">积分路径 · 矢量叠加（点击暂停/继续）</view>
+    <canvas type="2d" id="integralCanvas" class="ri-canvas-sq"
+      bindtap="toggleAnim"></canvas>
+  </view>
+
+  <!-- 远场方向图 -->
+  <view class="ri-canvas-wrap rise">
+    <view class="ri-sub-plot">远场方向图 F(θ)</view>
+    <canvas type="2d" id="patternCanvas" class="ri-canvas-sq"></canvas>
+  </view>
+
+  <!-- 电流分布类型 -->
+  <view class="ri-section rise">
+    <view class="kicker">电流分布</view>
+    <view class="ri-btns">
+      <view class="ri-btn {{S.taper==='uniform' ? 'active' : ''}}" bindtap="setUniform">均匀</view>
+      <view class="ri-btn {{S.taper==='sin' ? 'active' : ''}}" bindtap="setSin">正弦</view>
+      <view class="ri-btn {{S.taper==='tri' ? 'active' : ''}}" bindtap="setTri">三角</view>
+      <view class="ri-btn {{S.taper==='cos' ? 'active' : ''}}" bindtap="setCos">余弦</view>
+    </view>
+  </view>
+
+  <!-- 参数 -->
+  <view class="ri-section rise">
+    <view class="kicker">参数</view>
+    <view class="ri-slider-row">
+      <text class="ri-slider-label">源长度 L/λ</text>
+      <slider class="ri-slider" min="0.08" max="3.0" step="0.02" value="{{S.L}}"
+        bindchange="onLen" show-value />
+    </view>
+    <view class="ri-slider-row">
+      <text class="ri-slider-label">观测角 θ</text>
+      <slider class="ri-slider" min="0" max="180" step="1" value="{{S.theta}}"
+        bindchange="onTheta" show-value />
+    </view>
+  </view>
+
+  <!-- 读数 -->
+  <view class="ri-stats pop" wx:if="{{stats}}">
+    <view class="kicker ri-stats-title">读数</view>
+    <view class="ri-stats-grid">
+      <view class="ri-stat">
+        <view class="ri-stat-label">主瓣宽度</view>
+        <view class="ri-stat-value num">{{stats.bw}}</view>
+      </view>
+      <view class="ri-stat teal">
+        <view class="ri-stat-label">最大旁瓣</view>
+        <view class="ri-stat-value num">{{stats.sll}}</view>
+      </view>
+      <view class="ri-stat orange">
+        <view class="ri-stat-label">θ 方向场强</view>
+        <view class="ri-stat-value num">{{stats.field}}</view>
+      </view>
+      <view class="ri-stat">
+        <view class="ri-stat-label">积分贡献</view>
+        <view class="ri-stat-value num">{{stats.intVal}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 公式 -->
+  <view class="ri-formula-note rise">
+    <view class="kicker">辐射积分公式</view>
+    <view class="ri-formula-item">F(θ) = ∫ I(z') e^{jkz'cosθ} dz'</view>
+    <view class="ri-formula-item">Simpson 数值积分，N=180</view>
+    <view class="ri-formula-item">方向图含 |sinθ| 元因子</view>
+  </view>
+
+</view>

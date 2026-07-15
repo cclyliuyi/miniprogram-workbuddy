@@ -1,0 +1,98 @@
+/* pages/interactive/smart-array/smart-array.wxss —— 智能天线 */
+.sa { padding-top: 20rpx; }
+
+.sa-head { padding: 20rpx 12rpx 24rpx; }
+.sa-title { font-size: 44rpx; margin: 8rpx 0 4rpx; }
+.sa-sub { font-size: 24rpx; color: var(--muted); }
+
+.sa-canvas-wrap {
+  margin: 0 12rpx 20rpx;
+  padding: 16rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.05);
+}
+.sa-canvas-wide { width: 686rpx; height: 360rpx; }
+.sa-canvas-sq { width: 500rpx; height: 300rpx; margin: 0 auto; display: block; }
+.sa-sub-plot {
+  font-size: 22rpx;
+  color: var(--muted);
+  margin-bottom: 8rpx;
+  padding-left: 8rpx;
+}
+
+.sa-section {
+  margin: 0 12rpx 20rpx;
+  padding: 24rpx 28rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.04);
+}
+.sa-section .kicker { margin-bottom: 16rpx; }
+
+.sa-slider-row {
+  display: flex;
+  align-items: center;
+  padding: 8rpx 0;
+}
+.sa-slider-label {
+  font-size: 26rpx;
+  color: var(--ink-soft);
+  width: 180rpx;
+  flex-shrink: 0;
+}
+.sa-teal { color: #1a9c7e !important; }
+.sa-red { color: #c6404e !important; }
+.sa-orange { color: #c87820 !important; }
+.sa-slider { flex: 1; margin: 0 12rpx; }
+
+.sa-stats {
+  margin: 0 12rpx 20rpx;
+  padding: 24rpx 28rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.04);
+}
+.sa-stats-title { margin-bottom: 16rpx; }
+.sa-stats-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+.sa-stat {
+  width: calc(50% - 6rpx);
+  padding: 18rpx 20rpx;
+  background: var(--paper);
+  border-radius: 14rpx;
+}
+.sa-stat-label {
+  font-size: 22rpx;
+  color: var(--muted);
+  margin-bottom: 6rpx;
+}
+.sa-stat-value {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--ink);
+}
+.sa-stat-value.sa-teal { color: #1a9c7e; }
+.sa-stat-value.sa-red { color: #c6404e; }
+.sa-stat-value.sa-orange { color: #c87820; }
+
+.sa-formula-note {
+  margin: 0 12rpx 40rpx;
+  padding: 24rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+}
+.sa-formula-item {
+  font-size: 22rpx;
+  color: var(--muted);
+  font-family: 'SF Mono', 'Menlo', monospace;
+  padding: 6rpx 0;
+  letter-spacing: .5rpx;
+}

@@ -116,6 +116,21 @@
       "root": "pages/interactive/broadband-matching",
       "name": "iv-broadband",
       "pages": ["broadband-matching"]
+    },
+    {
+      "root": "pages/interactive/miniaturization",
+      "name": "iv-mini",
+      "pages": ["miniaturization"]
+    },
+    {
+      "root": "pages/interactive/radiation-integral",
+      "name": "iv-radint",
+      "pages": ["radiation-integral"]
+    },
+    {
+      "root": "pages/interactive/smart-array",
+      "name": "iv-smart",
+      "pages": ["smart-array"]
     }
   ],
   "preloadRule": {
