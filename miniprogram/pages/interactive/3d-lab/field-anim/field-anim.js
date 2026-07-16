@@ -30,9 +30,7 @@ Page({
       if (!cssW || !cssH) { setTimeout(() => this.initThree(), 200); return; }
 
       this.canvasNode = canvas;
-      const dpr = wx.getSystemInfoSync().pixelRatio || 2;
-      canvas.width = cssW * dpr;
-      canvas.height = cssH * dpr;
+      const dpr = wx.getWindowInfo().pixelRatio || 2;
 
       const THREE = createScopedThreejs(canvas);
       this.THREE = THREE;

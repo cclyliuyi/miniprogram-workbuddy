@@ -65,17 +65,15 @@ Page({
       if (!cssW || !cssH) { setTimeout(() => this.initThree(), 200); return; }
 
       this.canvasNode = canvas;
-      this.dpr = wx.getSystemInfoSync().pixelRatio || 2;
-
-      canvas.width = cssW * this.dpr;
-      canvas.height = cssH * this.dpr;
+      const dpr = wx.getWindowInfo().pixelRatio || 2;
+      this.dpr = dpr;
 
       const THREE = createScopedThreejs(canvas);
       this.THREE = THREE;
       registerOrbitControls(THREE);
 
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-      renderer.setPixelRatio(this.dpr);
+      renderer.setPixelRatio(Math.min(this.dpr, 2));
       renderer.setSize(cssW, cssH, false);
       renderer.setClearColor(0x0d0f1a, 1);
       this.renderer = renderer;
