@@ -54,11 +54,11 @@ Page({
   // ═══ 第二批交互模块 ═══
   goPhasedArray() {
     haptic.light()
-    wx.navigateTo({ url: '/pages/interactive/phased-array/phased-array' })
+    wx.navigateTo({ url: '/pages/interactive/3d-lab/phased-array/phased-array' })
   },
   goPolarization() {
     haptic.light()
-    wx.navigateTo({ url: '/pages/interactive/polarization/polarization' })
+    wx.navigateTo({ url: '/pages/interactive/3d-lab/polarization/polarization' })
   },
   goMomentMethod() {
     haptic.light()

@@ -1,0 +1,50 @@
+/* pages/interactive/3d-lab/polarization/polarization.wxss —— 极化椭圆 3D */
+@import "../loop/loop.wxss";
+
+/* 椭圆 canvas 改为正方形 */
+.pol3d .lab3d-2d {
+  width: 400rpx;
+  height: 400rpx;
+  margin: 0 auto;
+}
+
+.pol3d-preset-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+.pol3d-preset {
+  flex: 1;
+  min-width: calc(25% - 9rpx);
+  text-align: center;
+  padding: 16rpx 0;
+  font-size: 26rpx;
+  color: var(--muted);
+  background: var(--paper);
+  border: 1rpx solid var(--line-soft);
+  border-radius: 14rpx;
+  transition: all .2s;
+}
+.pol3d-preset.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(176,106,79,.06);
+  font-weight: 600;
+}
+
+.pol3d-slider-row {
+  display: flex;
+  align-items: center;
+  padding: 10rpx 0;
+}
+.pol3d-slider {
+  flex: 1;
+  margin: 0 12rpx;
+}
+.pol3d-unit {
+  font-size: 22rpx;
+  color: var(--muted);
+  width: 48rpx;
+  text-align: right;
+  flex-shrink: 0;
+}

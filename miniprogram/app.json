@@ -98,16 +98,6 @@
       "pages": ["transmission-line"]
     },
     {
-      "root": "pages/interactive/phased-array",
-      "name": "iv-phased",
-      "pages": ["phased-array"]
-    },
-    {
-      "root": "pages/interactive/polarization",
-      "name": "iv-polar",
-      "pages": ["polarization"]
-    },
-    {
       "root": "pages/interactive/moment-method",
       "name": "iv-moment",
       "pages": ["moment-method"]
@@ -173,7 +163,9 @@
         "microstrip/microstrip",
         "anechoic/anechoic",
         "field-anim/field-anim",
-        "array-synthesis/array-synthesis"
+        "array-synthesis/array-synthesis",
+        "phased-array/phased-array",
+        "polarization/polarization"
       ]
     }
   ],
@@ -184,7 +176,7 @@
     },
     "pages/tools/index": {
       "network": "wifi",
-      "packages": ["tool-calc", "iv-friis", "iv-synthesis", "iv-phased"]
+      "packages": ["tool-calc", "iv-friis", "iv-synthesis", "iv-3dlab"]
     },
     "pages/eit/eit": {
       "network": "wifi",
