@@ -1,8 +1,0 @@
-{
-  "name": "antenna-miniprogram",
-  "version": "1.0.0",
-  "description": "天线与电磁波知识日历 - 微信小程序",
-  "dependencies": {
-    "threejs-miniprogram": "^0.0.8"
-  }
-}

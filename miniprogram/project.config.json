@@ -17,8 +17,8 @@
     "packNpmManually": true,
     "packNpmRelationList": [
       {
-        "packageJsonPath": "./package.json",
-        "miniprogramNpmDistDir": "./"
+        "packageJsonPath": "./pages/interactive/radiation-3d/package.json",
+        "miniprogramNpmDistDir": "./pages/interactive/radiation-3d/"
       }
     ],
     "minifyWXSS": true,

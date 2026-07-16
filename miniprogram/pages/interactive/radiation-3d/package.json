@@ -1,0 +1,8 @@
+{
+  "name": "radiation-3d-npm",
+  "version": "1.0.0",
+  "description": "3D modules npm dependencies",
+  "dependencies": {
+    "threejs-miniprogram": "^0.0.8"
+  }
+}
