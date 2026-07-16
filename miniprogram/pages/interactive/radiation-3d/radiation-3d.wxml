@@ -7,10 +7,10 @@
     <view class="r3d-sub">三维可视化 · 天线类型切换 · 方向性 / HPBW / 辐射电阻</view>
   </view>
 
-  <!-- 3D Canvas -->
+  <!-- 3D Canvas — catchtouch 阻止事件冒泡，防止页面跟着滚动 -->
   <view class="r3d-canvas-wrap rise">
     <canvas type="webgl" id="three-canvas" class="r3d-canvas"
-      bindtouchstart="onTouchStart" bindtouchmove="onTouchMove" bindtouchend="onTouchEnd"></canvas>
+      catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
     <view class="r3d-hint">单指拖动旋转 · 双指缩放</view>
   </view>
 
