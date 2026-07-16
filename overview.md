@@ -6,11 +6,15 @@
 
 加上之前已完成的辐射方向图 3D，**全部 9 个 Three.js 3D 模块已 100% 迁移完成**。
 
+随后又恢复了 **2 个从 3D 降维成 2D Canvas 的模块**（phased-array 和 polarization）回到完整 3D。
+
+**总计 11 个 3D 模块**（1 独立 + 10 在 3d-lab 分包）。
+
 ## 架构方案
 
-新建统一分包 `pages/interactive/3d-lab/`（分包名 `iv-3dlab`），包含全部 8 个新 3D 模块，**共享一套 `miniprogram_npm/threejs-miniprogram`（597KB）和 `orbit-controls.js`**。
+统一分包 `pages/interactive/3d-lab/`（分包名 `iv-3dlab`），包含 10 个 3D 模块，**共享一套 `miniprogram_npm/threejs-miniprogram`（597KB）和 `orbit-controls.js`**。
 
-## 8 个模块
+## 10 个 3d-lab 模块
 
 | # | 模块 | 核心功能 | 文件 |
 |---|------|----------|------|
@@ -22,6 +26,10 @@
 | 6 | **微波暗室** | 暗室场景 · 转台扫描 · 3种 AUT | `anechoic/anechoic.js` |
 | 7 | **电偶极子辐射** | Shader 场分布 · 近远场过渡 | `field-anim/field-anim.js` |
 | 8 | **方向图综合** | Chebyshev/Taylor · 3D 方向图 | `array-synthesis/array-synthesis.js` |
+| 9 | **相控阵扫描** ⬆️3D | 3D 方向图 Mesh · 栅瓣锥环 · 自动扫描 | `phased-array/phased-array.js` |
+| 10 | **极化椭圆** ⬆️3D | 3D 行进波 · 矢量箭头动画 · 极化参数 | `polarization/polarization.js` |
+
+⬆️ = 从 2D 恢复为 3D
 
 ## 关键迁移技术
 
@@ -33,10 +41,20 @@
 
 ## 文件统计
 
+### 第一批（8 模块迁移）
 - 新建：39 文件（8 模块 × 4 文件 + 共享 npm/orbit-controls/package.json）
 - 修改：4 文件（app.json + project.config.json + tools/index.wxml + tools/index.js）
 - 代码量：+3853 行
 - Git commit: `af095ef`
+
+### npm node_modules 修复
+- Git commit: `2f9c5bd`
+
+### 第二批（2 模块 3D 恢复）
+- 新建：8 文件（2 模块 × 4 文件）
+- 修改：2 文件（app.json + tools/index.js）
+- 代码量：+1305 行
+- Git commit: `1ecfd76`
 
 ## 下一步
 
