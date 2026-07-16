@@ -47,7 +47,9 @@ Page({
   //  Lifecycle
   // ═══════════════════════════════════════════════════════════════
 
-  onLoad() {
+  onReady() {
+    // 必须在 onReady 中初始化，此时 WXML 已完成布局
+    // onLoad 时 canvas 尺寸为 0，会导致 renderer.setSize(0,0) → 黑屏
     this.initThree();
   },
 
@@ -70,24 +72,48 @@ Page({
   initThree() {
     const sel = this.createSelectorQuery();
     sel.select('#three-canvas').fields({ node: true, size: true }).exec((res) => {
-      if (!res || !res[0] || !res[0].node) {
-        console.error('[r3d] canvas node not found');
+      if (!res || !res[0]) {
+        console.error('[r3d] SelectorQuery returned empty');
         return;
       }
-      const canvas = res[0].node;
+      const r = res[0];
+      const canvas = r.node;
+      if (!canvas) {
+        console.error('[r3d] canvas node is null — did you forget "构建 npm"?');
+        return;
+      }
+
+      // 尺寸校验：onReady 时可能仍为 0（极端情况），延迟重试
+      const cssW = r.width;
+      const cssH = r.height;
+      console.log('[r3d] canvas size:', cssW, 'x', cssH);
+      if (!cssW || !cssH) {
+        console.warn('[r3d] canvas size is 0, retrying in 200ms...');
+        setTimeout(() => this.initThree(), 200);
+        return;
+      }
+
       this.canvasNode = canvas;
 
       // 创建作用域内的 THREE
-      const THREE = createScopedThreejs(canvas);
+      let THREE;
+      try {
+        THREE = createScopedThreejs(canvas);
+      } catch (err) {
+        console.error('[r3d] createScopedThreejs failed:', err);
+        return;
+      }
       this.THREE = THREE;
+      console.log('[r3d] THREE scope created, REVISION:', THREE.REVISION);
 
       // 注册 OrbitControls
       registerOrbitControls(THREE);
 
-      this.setupScene(THREE, canvas, res[0].width, res[0].height);
+      this.setupScene(THREE, canvas, cssW, cssH);
       this.buildPattern();
       this.refreshStats();
       this.startAnim();
+      console.log('[r3d] init complete, rendering started');
     });
   },
 
@@ -96,7 +122,7 @@ Page({
 
     // Renderer
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    renderer.setPixelRatio(Math.min(dpr, 1.5));
+    renderer.setPixelRatio(Math.min(dpr, 2));
     renderer.setClearColor(0x0d0f1a, 1);
     this.renderer = renderer;
 
@@ -105,8 +131,8 @@ Page({
     this.scene = scene;
 
     // Camera
-    const w = cssW || 686;
-    const h = cssH || 600;
+    const w = cssW;
+    const h = cssH;
     const camera = new THREE.PerspectiveCamera(40, w / h, 0.01, 100);
     camera.position.set(2.4, 1.4, 2.4);
     this.camera = camera;
@@ -121,27 +147,45 @@ Page({
     controls.maxDistance = 6;
     this.controls = controls;
 
-    // 调整尺寸
+    // 设置渲染尺寸 — updateStyle=false 因为小程序 canvas 没有浏览器 style
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
 
-    // Lighting
-    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
-    const sun = new THREE.DirectionalLight(0xffffff, 0.7);
+    // Lighting — 先加光源，确保 MeshPhongMaterial 能被照亮
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const sun = new THREE.DirectionalLight(0xffffff, 0.8);
     sun.position.set(4, 8, 5);
     scene.add(sun);
+    console.log('[r3d] lights added');
 
-    // Grid
-    const grid = new THREE.GridHelper(6, 24, 0x1e2235, 0x171a28);
-    grid.position.y = -1.4;
-    scene.add(grid);
+    // Grid — 使用 LineSegments 手动构建，兼容性最好
+    this.setupGrid(THREE, scene);
 
     // Axes group
     this.setupAxes(THREE, scene);
 
     // Antenna element
     this.setupAntenna(THREE, scene);
+  },
+
+  setupGrid(THREE, scene) {
+    // 手动构建网格线，避免 GridHelper 版本兼容问题
+    const size = 6, divs = 12;
+    const step = size / divs;
+    const half = size / 2;
+    const pts = [];
+    for (let i = 0; i <= divs; i++) {
+      const v = -half + i * step;
+      pts.push(-half, 0, v, half, 0, v); // 平行 Z
+      pts.push(v, 0, -half, v, 0, half); // 平行 X
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    const mat = new THREE.LineBasicMaterial({ color: 0x1e2235 });
+    const grid = new THREE.LineSegments(geo, mat);
+    grid.position.y = -1.4;
+    scene.add(grid);
   },
 
   setupAxes(THREE, scene) {
@@ -154,10 +198,14 @@ Page({
         AL, color, 0.12, 0.06
       );
     };
-    group.add(mkArrow([1, 0, 0], 0xff4455)); // X
-    group.add(mkArrow([0, 1, 0], 0x44ff66)); // Y (dipole axis)
-    group.add(mkArrow([0, 0, 1], 0x4488ff)); // Z
-    scene.add(group);
+    try {
+      group.add(mkArrow([1, 0, 0], 0xff4455)); // X
+      group.add(mkArrow([0, 1, 0], 0x44ff66)); // Y (dipole axis)
+      group.add(mkArrow([0, 0, 1], 0x4488ff)); // Z
+      scene.add(group);
+    } catch (e) {
+      console.warn('[r3d] ArrowHelper failed, skipping axes:', e);
+    }
     this.axesGroup = group;
   },
 
@@ -238,62 +286,67 @@ Page({
       this.cutsGroup = null;
     }
 
-    const fm = this.Fmax(type, hl);
-    const NTH = 128;
-    const NPH = 192;
-    const pos = [];
-    const col = [];
-    const idx = [];
+    try {
+      const fm = this.Fmax(type, hl);
+      const NTH = 96;
+      const NPH = 144;
+      const pos = [];
+      const col = [];
+      const idx = [];
 
-    for (let j = 0; j <= NPH; j++) {
-      const phi = (j / NPH) * 2 * Math.PI;
-      for (let i = 0; i <= NTH; i++) {
-        const theta = (i / NTH) * Math.PI;
-        let r = this.F(theta, type, hl) / fm;
-        if (ptype === 'power') r = r * r;
-        pos.push(
-          r * Math.sin(theta) * Math.cos(phi),
-          r * Math.cos(theta),
-          r * Math.sin(theta) * Math.sin(phi)
-        );
-        const c = this.heatRGB(r);
-        col.push(c[0], c[1], c[2]);
+      for (let j = 0; j <= NPH; j++) {
+        const phi = (j / NPH) * 2 * Math.PI;
+        for (let i = 0; i <= NTH; i++) {
+          const theta = (i / NTH) * Math.PI;
+          let r = this.F(theta, type, hl) / fm;
+          if (ptype === 'power') r = r * r;
+          pos.push(
+            r * Math.sin(theta) * Math.cos(phi),
+            r * Math.cos(theta),
+            r * Math.sin(theta) * Math.sin(phi)
+          );
+          const c = this.heatRGB(r);
+          col.push(c[0], c[1], c[2]);
+        }
       }
-    }
 
-    for (let j = 0; j < NPH; j++) {
-      for (let i = 0; i < NTH; i++) {
-        const a = j * (NTH + 1) + i;
-        const b = a + NTH + 1;
-        idx.push(a, b, a + 1, b, b + 1, a + 1);
+      for (let j = 0; j < NPH; j++) {
+        for (let i = 0; i < NTH; i++) {
+          const a = j * (NTH + 1) + i;
+          const b = a + NTH + 1;
+          idx.push(a, b, a + 1, b, b + 1, a + 1);
+        }
       }
-    }
 
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-    geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-    geo.setIndex(idx);
-    geo.computeVertexNormals();
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+      geo.setIndex(idx);
+      geo.computeVertexNormals();
 
-    const mat = new THREE.MeshPhongMaterial({
-      vertexColors: true,
-      side: THREE.DoubleSide,
-      transparent: true,
-      opacity: opacity,
-      shininess: 25,
-      depthWrite: false,
-    });
+      const mat = new THREE.MeshPhongMaterial({
+        vertexColors: true,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: opacity,
+        shininess: 25,
+        depthWrite: false,
+      });
 
-    this.patMesh = new THREE.Mesh(geo, mat);
-    this.scene.add(this.patMesh);
+      this.patMesh = new THREE.Mesh(geo, mat);
+      this.scene.add(this.patMesh);
+      console.log('[r3d] pattern mesh built:', pos.length / 3, 'vertices');
 
-    // ── 切线 ──
-    this.buildCuts(THREE, type, hl, ptype, fm);
+      // ── 切线 ──
+      this.buildCuts(THREE, type, hl, ptype, fm);
 
-    // ── 天线元件尺寸 ──
-    if (this.antTop) {
-      const hlVis = type === 'custom' ? hl : 0.25;
-      this.antTop.scale.y = Math.max(0.05, hlVis * 2);
+      // ── 天线元件尺寸 ──
+      if (this.antTop) {
+        const hlVis = type === 'custom' ? hl : 0.25;
+        this.antTop.scale.y = Math.max(0.05, hlVis * 2);
+      }
+    } catch (err) {
+      console.error('[r3d] buildPattern error:', err);
     }
   },
 
