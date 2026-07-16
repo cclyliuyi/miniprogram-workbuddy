@@ -1,0 +1,58 @@
+<!-- pages/interactive/phase-coherence-lab/phase-coherence-lab.wxml —— 相位相干 -->
+<view class="screen pc">
+
+  <view class="pc-head rise">
+    <view class="kicker">PHASE COHERENCE LAB</view>
+    <view class="pc-title display">相位相干</view>
+    <view class="pc-sub">相量叠加 · 阵列扫描 · 等光程聚焦</view>
+  </view>
+
+  <!-- 主画布 -->
+  <view class="pc-canvas-wrap rise">
+    <view class="pc-sub-plot">{{modeLabel}}</view>
+    <canvas type="2d" id="mainCanvas" class="pc-canvas"></canvas>
+  </view>
+
+  <!-- 方向图画布 -->
+  <view class="pc-canvas-wrap rise">
+    <view class="pc-sub-plot">方向图：相位把能量推向某个角度</view>
+    <canvas type="2d" id="patternCanvas" class="pc-canvas-wide"></canvas>
+  </view>
+
+  <!-- 模式切换 -->
+  <view class="pc-section rise">
+    <view class="kicker">实验模式</view>
+    <view class="pc-btns">
+      <view class="pc-btn {{S.mode==='phasor' ? 'active' : ''}}" bindtap="setPhasor">相量叠加</view>
+      <view class="pc-btn {{S.mode==='array' ? 'active' : ''}}" bindtap="setArray">阵列扫描</view>
+      <view class="pc-btn {{S.mode==='focus' ? 'active' : ''}}" bindtap="setFocus">等光程聚焦</view>
+    </view>
+  </view>
+
+  <!-- 参数 -->
+  <view class="pc-section rise">
+    <view class="kicker">参数</view>
+    <view class="pc-slider-row">
+      <text class="pc-slider-label">相位差 β</text>
+      <slider class="pc-slider" min="-180" max="180" step="1" value="{{S.phase}}"
+        bindchange="onPhase" show-value />
+    </view>
+    <view class="pc-slider-row">
+      <text class="pc-slider-label">源间距 d/λ</text>
+      <slider class="pc-slider" min="20" max="120" step="1" value="{{S.spacing}}"
+        bindchange="onSpacing" show-value />
+    </view>
+    <view class="pc-slider-row">
+      <text class="pc-slider-label">源数量 N</text>
+      <slider class="pc-slider" min="2" max="12" step="1" value="{{S.count}}"
+        bindchange="onCount" show-value />
+    </view>
+  </view>
+
+  <!-- 说明 -->
+  <view class="pc-note rise">
+    <view class="kicker">核心概念</view>
+    <view class="pc-note-text">{{noteText}}</view>
+  </view>
+
+</view>

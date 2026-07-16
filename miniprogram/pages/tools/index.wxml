@@ -241,6 +241,78 @@
 
   </view>
 
+  <!-- ═══ 综合实验室分区 ═══ -->
+  <view class="tl-section-title">
+    <view class="rule-dot"></view>
+    <text class="tl-section-name">综合实验室</text>
+    <text class="tl-section-en">UNIFIED LABS</text>
+    <view class="rule-dot"></view>
+  </view>
+
+  <view class="tl-grid">
+
+    <!-- 电磁能流账本 -->
+    <view class="tl-card rise" bindtap="goEnergyFlow" style="animation-delay:.05s">
+      <view class="tl-card-icon tl-icon-calc">
+        <view class="tl-icon-inner">∇·S</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">能流账本</view>
+        <view class="tl-card-desc">端口分账 · Poynting 矢量 · Chu Q 极限</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 傅里叶空间 -->
+    <view class="tl-card rise" bindtap="goFourierSpace" style="animation-delay:.10s">
+      <view class="tl-card-icon tl-icon-array">
+        <view class="tl-icon-inner">F{·}</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">傅里叶空间</view>
+        <view class="tl-card-desc">时频 · 口径 · 阵列 · 不确定性对偶</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 相位相干 -->
+    <view class="tl-card rise" bindtap="goPhaseCoherence" style="animation-delay:.15s">
+      <view class="tl-card-icon tl-icon-link">
+        <view class="tl-icon-inner">∠</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">相位相干</view>
+        <view class="tl-card-desc">相量叠加 · 阵列扫描 · 等光程聚焦</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 边界模式 -->
+    <view class="tl-card rise" bindtap="goBoundaryMode" style="animation-delay:.20s">
+      <view class="tl-card-icon tl-icon-smith">
+        <view class="tl-icon-inner">∂n</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">边界模式</view>
+        <view class="tl-card-desc">边界条件 · 本征模式 · 格林函数 · 对称性</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 极化互易 -->
+    <view class="tl-card rise" bindtap="goPolarReciprocity" style="animation-delay:.25s">
+      <view class="tl-card-icon tl-icon-radar">
+        <view class="tl-icon-inner">⇄</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">极化互易</view>
+        <view class="tl-card-desc">极化椭圆 · 接收投影 · 收发互易</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+  </view>
+
   <!-- 底部说明 -->
   <view class="tl-foot">
     <view class="rule-dot"></view>

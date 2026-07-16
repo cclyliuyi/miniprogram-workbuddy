@@ -1,0 +1,53 @@
+<!-- pages/interactive/boundary-mode-lab/boundary-mode-lab.wxml —— 边界模式 -->
+<view class="screen bm">
+
+  <view class="bm-head rise">
+    <view class="kicker">BOUNDARY &amp; MODES LAB</view>
+    <view class="bm-title display">边界模式</view>
+    <view class="bm-sub">边界条件 · 本征模式 · 格林函数 · 对称性</view>
+  </view>
+
+  <!-- 场分布画布 -->
+  <view class="bm-canvas-wrap rise">
+    <view class="bm-sub-plot">{{modeLabel}}</view>
+    <canvas type="2d" id="fieldCanvas" class="bm-canvas-sq"></canvas>
+  </view>
+
+  <!-- 模式切换 -->
+  <view class="bm-section rise">
+    <view class="kicker">实验模式</view>
+    <view class="bm-btns">
+      <view class="bm-btn {{S.mode==='boundary' ? 'active' : ''}}" bindtap="setBoundary">边界条件</view>
+      <view class="bm-btn {{S.mode==='mode' ? 'active' : ''}}" bindtap="setMode">模式筛选</view>
+      <view class="bm-btn {{S.mode==='green' ? 'active' : ''}}" bindtap="setGreen">格林函数</view>
+      <view class="bm-btn {{S.mode==='symmetry' ? 'active' : ''}}" bindtap="setSymmetry">对称性约束</view>
+    </view>
+  </view>
+
+  <!-- 参数 -->
+  <view class="bm-section rise">
+    <view class="kicker">参数</view>
+    <view class="bm-slider-row">
+      <text class="bm-slider-label">模式 m</text>
+      <slider class="bm-slider" min="1" max="5" step="1" value="{{S.m}}"
+        bindchange="onM" show-value />
+    </view>
+    <view class="bm-slider-row">
+      <text class="bm-slider-label">模式 n</text>
+      <slider class="bm-slider" min="1" max="5" step="1" value="{{S.n}}"
+        bindchange="onN" show-value />
+    </view>
+    <view class="bm-slider-row">
+      <text class="bm-slider-label">点源位置</text>
+      <slider class="bm-slider" min="10" max="90" step="1" value="{{S.source}}"
+        bindchange="onSource" show-value />
+    </view>
+  </view>
+
+  <!-- 说明 -->
+  <view class="bm-note rise">
+    <view class="kicker">核心概念</view>
+    <view class="bm-note-text">{{noteText}}</view>
+  </view>
+
+</view>

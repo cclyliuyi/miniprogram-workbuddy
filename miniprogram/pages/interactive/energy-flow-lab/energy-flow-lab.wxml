@@ -1,0 +1,75 @@
+<!-- pages/interactive/energy-flow-lab/energy-flow-lab.wxml —— 电磁能流账本 -->
+<view class="screen ef">
+
+  <view class="ef-head rise">
+    <view class="kicker">UNIFIED LAB · ENERGY</view>
+    <view class="ef-title display">电磁能流账本</view>
+    <view class="ef-sub">端口匹配 · 近场储能 · 远场辐射 · 损耗</view>
+  </view>
+
+  <!-- 主画布 -->
+  <view class="ef-canvas-wrap rise">
+    <view class="ef-sub-plot">{{modeLabel}}</view>
+    <canvas type="2d" id="mainCanvas" class="ef-canvas"></canvas>
+  </view>
+
+  <!-- 模式切换 -->
+  <view class="ef-section rise">
+    <view class="kicker">实验模式</view>
+    <view class="ef-btns">
+      <view class="ef-btn {{S.mode==='budget' ? 'active' : ''}}" bindtap="setBudget">端口功率分账</view>
+      <view class="ef-btn {{S.mode==='field' ? 'active' : ''}}" bindtap="setField">近场/远场能流</view>
+      <view class="ef-btn {{S.mode==='small' ? 'active' : ''}}" bindtap="setSmall">小天线 Q 极限</view>
+    </view>
+  </view>
+
+  <!-- 参数 -->
+  <view class="ef-section rise">
+    <view class="kicker">参数</view>
+    <view class="ef-slider-row">
+      <text class="ef-slider-label">匹配程度</text>
+      <slider class="ef-slider" min="0" max="100" step="1" value="{{S.match}}"
+        bindchange="onMatch" show-value />
+    </view>
+    <view class="ef-slider-row">
+      <text class="ef-slider-label">材料损耗</text>
+      <slider class="ef-slider" min="0" max="80" step="1" value="{{S.loss}}"
+        bindchange="onLoss" show-value />
+    </view>
+    <view class="ef-slider-row">
+      <text class="ef-slider-label">电尺寸 ka</text>
+      <slider class="ef-slider" min="8" max="120" step="1" value="{{S.ka}}"
+        bindchange="onKa" show-value />
+    </view>
+  </view>
+
+  <!-- 读数 -->
+  <view class="ef-stats pop" wx:if="{{stats}}">
+    <view class="kicker ef-stats-title">能流账本</view>
+    <view class="ef-stats-grid">
+      <view class="ef-stat">
+        <view class="ef-stat-label">反射</view>
+        <view class="ef-stat-value ef-red">{{stats.reflected}}</view>
+      </view>
+      <view class="ef-stat">
+        <view class="ef-stat-label">热损耗</view>
+        <view class="ef-stat-value ef-gold">{{stats.heat}}</view>
+      </view>
+      <view class="ef-stat">
+        <view class="ef-stat-label">近场储能</view>
+        <view class="ef-stat-value ef-blue">{{stats.stored}}</view>
+      </view>
+      <view class="ef-stat">
+        <view class="ef-stat-label">远场辐射</view>
+        <view class="ef-stat-value ef-green">{{stats.radiated}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 说明 -->
+  <view class="ef-note rise">
+    <view class="kicker">统一解释</view>
+    <view class="ef-note-text">{{noteText}}</view>
+  </view>
+
+</view>

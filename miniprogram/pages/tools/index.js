@@ -83,6 +83,28 @@ Page({
     wx.navigateTo({ url: '/pages/interactive/smart-array/smart-array' })
   },
 
+  // ═══ 第四批：综合实验室 ═══
+  goEnergyFlow() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/energy-flow-lab/energy-flow-lab' })
+  },
+  goFourierSpace() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/fourier-space-lab/fourier-space-lab' })
+  },
+  goPhaseCoherence() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/phase-coherence-lab/phase-coherence-lab' })
+  },
+  goBoundaryMode() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/boundary-mode-lab/boundary-mode-lab' })
+  },
+  goPolarReciprocity() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/polarization-reciprocity-lab/polarization-reciprocity-lab' })
+  },
+
   onShareAppMessage() {
     return {
       title: '天线与电磁波工程师工具箱 · 换算/链路/阵列/圆图',

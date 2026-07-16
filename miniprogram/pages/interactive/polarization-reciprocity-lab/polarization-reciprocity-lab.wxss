@@ -1,0 +1,110 @@
+/* pages/interactive/polarization-reciprocity-lab/polarization-reciprocity-lab.wxss —— 极化互易 */
+.pr { padding-top: 20rpx; }
+
+.pr-head { padding: 20rpx 12rpx 24rpx; }
+.pr-title { font-size: 40rpx; margin: 8rpx 0 4rpx; }
+.pr-sub { font-size: 24rpx; color: var(--muted); }
+
+.pr-canvas-wrap {
+  margin: 0 12rpx 20rpx;
+  padding: 16rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.05);
+}
+.pr-canvas-sq { width: 500rpx; height: 400rpx; margin: 0 auto; display: block; }
+.pr-sub-plot {
+  font-size: 22rpx;
+  color: var(--muted);
+  margin-bottom: 8rpx;
+  padding-left: 8rpx;
+}
+
+.pr-section {
+  margin: 0 12rpx 20rpx;
+  padding: 24rpx 28rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.04);
+}
+.pr-section .kicker { margin-bottom: 16rpx; }
+
+.pr-btns {
+  display: flex;
+  gap: 10rpx;
+}
+.pr-btn {
+  flex: 1;
+  text-align: center;
+  padding: 14rpx 0;
+  font-size: 24rpx;
+  color: var(--muted);
+  background: var(--paper);
+  border: 1rpx solid var(--line-soft);
+  border-radius: 14rpx;
+  transition: all .2s;
+}
+.pr-btn.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(176,106,79,.06);
+  font-weight: 600;
+}
+
+.pr-slider-row {
+  display: flex;
+  align-items: center;
+  padding: 8rpx 0;
+}
+.pr-slider-label {
+  font-size: 26rpx;
+  color: var(--ink-soft);
+  width: 180rpx;
+  flex-shrink: 0;
+}
+.pr-slider { flex: 1; margin: 0 12rpx; }
+
+.pr-stats {
+  margin: 0 12rpx 20rpx;
+  padding: 24rpx 28rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.04);
+}
+.pr-stats-title { margin-bottom: 16rpx; }
+.pr-stats-grid {
+  display: flex;
+  gap: 12rpx;
+}
+.pr-stat {
+  flex: 1;
+  padding: 18rpx 20rpx;
+  background: var(--paper);
+  border-radius: 14rpx;
+}
+.pr-stat-label {
+  font-size: 22rpx;
+  color: var(--muted);
+  margin-bottom: 6rpx;
+}
+.pr-stat-value {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.pr-note {
+  margin: 0 12rpx 40rpx;
+  padding: 24rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+}
+.pr-note-text {
+  font-size: 24rpx;
+  color: var(--muted);
+  line-height: 1.7;
+}

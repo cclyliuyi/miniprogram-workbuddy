@@ -1,0 +1,81 @@
+/* pages/interactive/phase-coherence-lab/phase-coherence-lab.wxss —— 相位相干 */
+.pc { padding-top: 20rpx; }
+
+.pc-head { padding: 20rpx 12rpx 24rpx; }
+.pc-title { font-size: 40rpx; margin: 8rpx 0 4rpx; }
+.pc-sub { font-size: 24rpx; color: var(--muted); }
+
+.pc-canvas-wrap {
+  margin: 0 12rpx 20rpx;
+  padding: 16rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.05);
+}
+.pc-canvas { width: 500rpx; height: 400rpx; margin: 0 auto; display: block; }
+.pc-canvas-wide { width: 686rpx; height: 220rpx; }
+.pc-sub-plot {
+  font-size: 22rpx;
+  color: var(--muted);
+  margin-bottom: 8rpx;
+  padding-left: 8rpx;
+}
+
+.pc-section {
+  margin: 0 12rpx 20rpx;
+  padding: 24rpx 28rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.04);
+}
+.pc-section .kicker { margin-bottom: 16rpx; }
+
+.pc-btns {
+  display: flex;
+  gap: 10rpx;
+}
+.pc-btn {
+  flex: 1;
+  text-align: center;
+  padding: 14rpx 0;
+  font-size: 24rpx;
+  color: var(--muted);
+  background: var(--paper);
+  border: 1rpx solid var(--line-soft);
+  border-radius: 14rpx;
+  transition: all .2s;
+}
+.pc-btn.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(176,106,79,.06);
+  font-weight: 600;
+}
+
+.pc-slider-row {
+  display: flex;
+  align-items: center;
+  padding: 8rpx 0;
+}
+.pc-slider-label {
+  font-size: 26rpx;
+  color: var(--ink-soft);
+  width: 180rpx;
+  flex-shrink: 0;
+}
+.pc-slider { flex: 1; margin: 0 12rpx; }
+
+.pc-note {
+  margin: 0 12rpx 40rpx;
+  padding: 24rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+}
+.pc-note-text {
+  font-size: 24rpx;
+  color: var(--muted);
+  line-height: 1.7;
+}

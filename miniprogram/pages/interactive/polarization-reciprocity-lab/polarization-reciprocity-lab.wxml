@@ -1,0 +1,67 @@
+<!-- pages/interactive/polarization-reciprocity-lab/polarization-reciprocity-lab.wxml —— 极化互易 -->
+<view class="screen pr">
+
+  <view class="pr-head rise">
+    <view class="kicker">POLARIZATION &amp; RECIPROCITY</view>
+    <view class="pr-title display">极化与互易</view>
+    <view class="pr-sub">极化椭圆 · 接收投影 · 收发互易</view>
+  </view>
+
+  <!-- 主画布 -->
+  <view class="pr-canvas-wrap rise">
+    <view class="pr-sub-plot">{{modeLabel}}</view>
+    <canvas type="2d" id="mainCanvas" class="pr-canvas-sq"></canvas>
+  </view>
+
+  <!-- 模式切换 -->
+  <view class="pr-section rise">
+    <view class="kicker">实验模式</view>
+    <view class="pr-btns">
+      <view class="pr-btn {{S.mode==='ellipse' ? 'active' : ''}}" bindtap="setEllipse">极化椭圆</view>
+      <view class="pr-btn {{S.mode==='match' ? 'active' : ''}}" bindtap="setMatch">接收投影</view>
+      <view class="pr-btn {{S.mode==='reciprocity' ? 'active' : ''}}" bindtap="setReciprocity">收发互易</view>
+    </view>
+  </view>
+
+  <!-- 参数 -->
+  <view class="pr-section rise">
+    <view class="kicker">参数</view>
+    <view class="pr-slider-row">
+      <text class="pr-slider-label">Ey / Ex</text>
+      <slider class="pr-slider" min="0" max="140" step="1" value="{{S.ratio}}"
+        bindchange="onRatio" show-value />
+    </view>
+    <view class="pr-slider-row">
+      <text class="pr-slider-label">相位差 δ</text>
+      <slider class="pr-slider" min="-180" max="180" step="1" value="{{S.phase}}"
+        bindchange="onPhase" show-value />
+    </view>
+    <view class="pr-slider-row">
+      <text class="pr-slider-label">接收角度</text>
+      <slider class="pr-slider" min="-90" max="90" step="1" value="{{S.angle}}"
+        bindchange="onAngle" show-value />
+    </view>
+  </view>
+
+  <!-- 读数 -->
+  <view class="pr-stats pop" wx:if="{{stats}}">
+    <view class="kicker pr-stats-title">读数</view>
+    <view class="pr-stats-grid">
+      <view class="pr-stat">
+        <view class="pr-stat-label">极化状态</view>
+        <view class="pr-stat-value">{{stats.type}}</view>
+      </view>
+      <view class="pr-stat">
+        <view class="pr-stat-label">投影比例</view>
+        <view class="pr-stat-value">{{stats.proj}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 说明 -->
+  <view class="pr-note rise">
+    <view class="kicker">核心概念</view>
+    <view class="pr-note-text">{{noteText}}</view>
+  </view>
+
+</view>

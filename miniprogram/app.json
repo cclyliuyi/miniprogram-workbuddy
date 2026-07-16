@@ -131,6 +131,31 @@
       "root": "pages/interactive/smart-array",
       "name": "iv-smart",
       "pages": ["smart-array"]
+    },
+    {
+      "root": "pages/interactive/energy-flow-lab",
+      "name": "iv-energy",
+      "pages": ["energy-flow-lab"]
+    },
+    {
+      "root": "pages/interactive/fourier-space-lab",
+      "name": "iv-fourier",
+      "pages": ["fourier-space-lab"]
+    },
+    {
+      "root": "pages/interactive/phase-coherence-lab",
+      "name": "iv-phase",
+      "pages": ["phase-coherence-lab"]
+    },
+    {
+      "root": "pages/interactive/boundary-mode-lab",
+      "name": "iv-boundary",
+      "pages": ["boundary-mode-lab"]
+    },
+    {
+      "root": "pages/interactive/polarization-reciprocity-lab",
+      "name": "iv-polar-rec",
+      "pages": ["polarization-reciprocity-lab"]
     }
   ],
   "preloadRule": {
