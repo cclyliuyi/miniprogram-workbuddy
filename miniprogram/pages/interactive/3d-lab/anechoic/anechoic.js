@@ -81,15 +81,21 @@ Page({
       this.sampleGroup = new THREE.Group();
       root.add(this.autGroup, this.sampleGroup);
 
-      // 构建暗室
-      this.buildChamber();
-      this.buildTxHorn();
+      // 先渲染一帧，预热 WebGL 管线
+      renderer.render(scene, camera);
 
-      this.camera.position.set(2.8, 2.35, 3.1);
-      this.controls.target.set(0, 0.75, 0);
-      this.controls.update();
+      // 正式场景延迟构建，不阻塞首帧
+      setTimeout(() => {
+        this.buildChamber();
+        this.buildTxHorn();
 
-      this.renderAll();
+        this.camera.position.set(2.8, 2.35, 3.1);
+        this.controls.target.set(0, 0.75, 0);
+        this.controls.update();
+
+        this.renderAll();
+      }, 100);
+
       this.startAnim();
     });
   },
@@ -121,12 +127,12 @@ Page({
     addBox(6, 2.4, 0.08, 0, 1.16, -2, matWall);
     addBox(6, 0.08, 4, 0, 2.36, 0, matWall);
 
-    // 吸波锥
-    const coneGeo = new THREE.ConeGeometry(0.09, 0.34, 4);
+    // 吸波锥（减少数量以降低 GPU 压力）
+    const coneGeo = new THREE.ConeGeometry(0.12, 0.38, 4);
     coneGeo.rotateX(Math.PI / 2);
     for (const side of [-1, 1]) {
-      for (let z = -1.8; z <= 1.8; z += 0.34) {
-        for (let y = 0.18; y <= 2.15; y += 0.34) {
+      for (let z = -1.7; z <= 1.7; z += 0.5) {
+        for (let y = 0.2; y <= 2.0; y += 0.5) {
           const p = new THREE.Mesh(coneGeo, matAbs);
           p.position.set(side * 2.94, y, z);
           p.rotation.z = side > 0 ? Math.PI / 2 : -Math.PI / 2;
@@ -134,8 +140,8 @@ Page({
         }
       }
     }
-    for (let x = -2.7; x <= 2.7; x += 0.34) {
-      for (let y = 0.18; y <= 2.15; y += 0.34) {
+    for (let x = -2.5; x <= 2.5; x += 0.5) {
+      for (let y = 0.2; y <= 2.0; y += 0.5) {
         const p = new THREE.Mesh(coneGeo, matAbs);
         p.position.set(x, y, -1.94);
         root.add(p);
@@ -360,9 +366,10 @@ Page({
 
   startAnim() {
     if (this.animId || !this.canvasNode) return;
-    const tick = (now) => {
+    const tick = () => {
       this.animId = this.canvasNode.requestAnimationFrame(tick);
       this.state.phase += 0.02;
+      const now = Date.now();
       if (this.state.scan && now - this.state.lastScanAt > 90) {
         this.state.lastScanAt = now;
         this.state.ang = (this.state.ang + this.state.step) % 360;
@@ -374,7 +381,7 @@ Page({
       this.controls.update();
       this.renderer.render(this.scene, this.camera);
     };
-    tick(0);
+    tick();
   },
 
   stopAnim() {
