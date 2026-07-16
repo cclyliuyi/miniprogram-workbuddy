@@ -81,20 +81,14 @@ Page({
       this.sampleGroup = new THREE.Group();
       root.add(this.autGroup, this.sampleGroup);
 
-      // 先渲染一帧，预热 WebGL 管线
-      renderer.render(scene, camera);
-
-      // 正式场景延迟构建，不阻塞首帧
-      setTimeout(() => {
+      // 同步构建场景（与 horn/loop 模块一致的成功模式）
+      try {
         this.buildChamber();
         this.buildTxHorn();
-
-        this.camera.position.set(2.8, 2.35, 3.1);
-        this.controls.target.set(0, 0.75, 0);
-        this.controls.update();
-
         this.renderAll();
-      }, 100);
+      } catch (err) {
+        console.error('[anechoic] buildScene error:', err);
+      }
 
       this.startAnim();
     });
@@ -111,9 +105,9 @@ Page({
   buildChamber() {
     const THREE = this.THREE;
     const root = this.root;
-    const matFloor = new THREE.MeshStandardMaterial({ color: 0x101522, roughness: 0.86 });
-    const matWall = new THREE.MeshStandardMaterial({ color: 0x151827, roughness: 0.88 });
-    const matAbs = new THREE.MeshStandardMaterial({ color: 0x1b2237, roughness: 0.92 });
+    const matFloor = new THREE.MeshStandardMaterial({ color: 0x2a3550, roughness: 0.86 });
+    const matWall = new THREE.MeshStandardMaterial({ color: 0x252d40, roughness: 0.88 });
+    const matAbs = new THREE.MeshStandardMaterial({ color: 0x4a5478, roughness: 0.92 });
 
     const addBox = (w, h, d, x, y, z, mat) => {
       const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
@@ -127,12 +121,12 @@ Page({
     addBox(6, 2.4, 0.08, 0, 1.16, -2, matWall);
     addBox(6, 0.08, 4, 0, 2.36, 0, matWall);
 
-    // 吸波锥（减少数量以降低 GPU 压力）
+    // 吸波锥（大幅减少数量：间距 0.8，总数 ~48）
     const coneGeo = new THREE.ConeGeometry(0.12, 0.38, 4);
     coneGeo.rotateX(Math.PI / 2);
     for (const side of [-1, 1]) {
-      for (let z = -1.7; z <= 1.7; z += 0.5) {
-        for (let y = 0.2; y <= 2.0; y += 0.5) {
+      for (let z = -1.6; z <= 1.6; z += 0.8) {
+        for (let y = 0.3; y <= 1.9; y += 0.8) {
           const p = new THREE.Mesh(coneGeo, matAbs);
           p.position.set(side * 2.94, y, z);
           p.rotation.z = side > 0 ? Math.PI / 2 : -Math.PI / 2;
@@ -140,8 +134,8 @@ Page({
         }
       }
     }
-    for (let x = -2.5; x <= 2.5; x += 0.5) {
-      for (let y = 0.2; y <= 2.0; y += 0.5) {
+    for (let x = -2.4; x <= 2.4; x += 0.8) {
+      for (let y = 0.3; y <= 1.9; y += 0.8) {
         const p = new THREE.Mesh(coneGeo, matAbs);
         p.position.set(x, y, -1.94);
         root.add(p);
@@ -478,7 +472,7 @@ Page({
       const r = res[0];
       const canvas = r.node;
       const ctx = canvas.getContext('2d');
-      const dpr = wx.getSystemInfoSync().pixelRatio || 2;
+      const dpr = wx.getWindowInfo().pixelRatio || 2;
       canvas.width = r.width * dpr;
       canvas.height = r.height * dpr;
       ctx.scale(dpr, dpr);
