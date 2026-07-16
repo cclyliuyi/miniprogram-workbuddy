@@ -84,6 +84,10 @@ Page({
   },
 
   // ═══ 第四批：综合实验室 ═══
+  goRadiation3D() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/radiation-3d/radiation-3d' })
+  },
   goEnergyFlow() {
     haptic.light()
     wx.navigateTo({ url: '/pages/interactive/energy-flow-lab/energy-flow-lab' })

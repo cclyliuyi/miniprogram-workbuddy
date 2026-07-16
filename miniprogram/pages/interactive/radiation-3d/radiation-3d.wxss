@@ -1,0 +1,216 @@
+/* pages/interactive/radiation-3d/radiation-3d.wxss —— 三维辐射方向图 */
+.r3d { padding-top: 20rpx; }
+
+.r3d-head { padding: 20rpx 12rpx 24rpx; }
+.r3d-title { font-size: 44rpx; margin: 8rpx 0 4rpx; }
+.r3d-sub { font-size: 24rpx; color: var(--muted); }
+
+/* ── Canvas ── */
+.r3d-canvas-wrap {
+  margin: 0 12rpx 20rpx;
+  padding: 0;
+  background: #0d0f1a;
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.05);
+  position: relative;
+  overflow: hidden;
+}
+.r3d-canvas {
+  width: 686rpx;
+  height: 600rpx;
+  display: block;
+}
+.r3d-hint {
+  position: absolute;
+  bottom: 16rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 20rpx;
+  color: rgba(255,255,255,.35);
+  white-space: nowrap;
+}
+
+/* ── 通用 section ── */
+.r3d-section {
+  margin: 0 12rpx 20rpx;
+  padding: 24rpx 28rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.04);
+}
+.r3d-section .kicker { margin-bottom: 16rpx; }
+
+/* ── 天线类型按钮 ── */
+.r3d-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+.r3d-btn {
+  padding: 12rpx 28rpx;
+  border: 1rpx solid var(--line);
+  background: var(--bg-soft);
+  color: var(--muted);
+  font-size: 26rpx;
+  border-radius: 12rpx;
+  transition: all .2s;
+}
+.r3d-btn.on {
+  background: rgba(79,140,255,.15);
+  color: #4f8cff;
+  border-color: #4f8cff;
+}
+
+/* ── 方向图类型分段控制 ── */
+.r3d-seg {
+  display: flex;
+  gap: 16rpx;
+}
+.r3d-seg-btn {
+  flex: 1;
+  text-align: center;
+  padding: 14rpx 0;
+  border: 1rpx solid var(--line);
+  background: var(--bg-soft);
+  color: var(--muted);
+  font-size: 26rpx;
+  border-radius: 12rpx;
+}
+.r3d-seg-btn.on {
+  background: rgba(79,140,255,.15);
+  color: #4f8cff;
+  border-color: #4f8cff;
+}
+
+/* ── 滑块行 ── */
+.r3d-slider-row {
+  display: flex;
+  align-items: center;
+  padding: 4rpx 0;
+}
+.r3d-slider-label {
+  font-size: 26rpx;
+  color: var(--muted);
+}
+.r3d-slider {
+  margin: 8rpx 0 4rpx;
+}
+
+/* ── 开关组 ── */
+.r3d-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+  margin-top: 16rpx;
+}
+.r3d-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+.r3d-toggle-dot {
+  width: 28rpx;
+  height: 28rpx;
+  border-radius: 50%;
+  border: 2rpx solid var(--line);
+  background: var(--bg-soft);
+  display: inline-block;
+  position: relative;
+  transition: all .2s;
+}
+.r3d-toggle.on .r3d-toggle-dot {
+  background: #4f8cff;
+  border-color: #4f8cff;
+}
+.r3d-toggle.on .r3d-toggle-dot::after {
+  content: '';
+  position: absolute;
+  left: 8rpx;
+  top: 4rpx;
+  width: 8rpx;
+  height: 14rpx;
+  border: solid #fff;
+  border-width: 0 3rpx 3rpx 0;
+  transform: rotate(45deg);
+}
+.r3d-toggle-text {
+  font-size: 26rpx;
+  color: var(--muted);
+}
+.r3d-toggle.on .r3d-toggle-text {
+  color: var(--ink);
+}
+
+/* ── 统计参数 ── */
+.r3d-stats {
+  margin: 0 12rpx 20rpx;
+  padding: 24rpx 28rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.04);
+}
+.r3d-stats-title { margin-bottom: 16rpx; }
+.r3d-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+}
+.r3d-stat {
+  background: var(--bg-soft);
+  padding: 16rpx 20rpx;
+  border-radius: 12rpx;
+  border: 1rpx solid var(--line);
+}
+.r3d-stat-value {
+  font-size: 40rpx;
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.r3d-stat-name {
+  font-size: 22rpx;
+  color: var(--muted);
+  margin-top: 4rpx;
+}
+
+/* ── 色标 ── */
+.r3d-legend {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+.r3d-legend-lo, .r3d-legend-hi {
+  font-size: 20rpx;
+  color: var(--faint);
+}
+.r3d-legend-grad {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(to right, #0000ff, #00ffff, #00ff00, #ffff00, #ff0000);
+}
+.r3d-legend-cap {
+  text-align: center;
+  font-size: 20rpx;
+  color: var(--faint);
+  margin-top: 4rpx;
+}
+
+/* ── 提示 ── */
+.r3d-note {
+  margin: 0 12rpx 40rpx;
+  padding: 24rpx 28rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+}
+.r3d-note .kicker { margin-bottom: 12rpx; }
+.r3d-note-item {
+  font-size: 24rpx;
+  color: var(--muted);
+  line-height: 1.8;
+}

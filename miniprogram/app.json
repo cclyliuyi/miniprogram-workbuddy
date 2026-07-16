@@ -156,6 +156,11 @@
       "root": "pages/interactive/polarization-reciprocity-lab",
       "name": "iv-polar-rec",
       "pages": ["polarization-reciprocity-lab"]
+    },
+    {
+      "root": "pages/interactive/radiation-3d",
+      "name": "iv-r3d",
+      "pages": ["radiation-3d"]
     }
   ],
   "preloadRule": {

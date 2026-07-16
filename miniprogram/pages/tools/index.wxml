@@ -251,6 +251,18 @@
 
   <view class="tl-grid">
 
+    <!-- 三维辐射方向图 -->
+    <view class="tl-card rise" bindtap="goRadiation3D" style="animation-delay:.00s">
+      <view class="tl-card-icon tl-icon-radar">
+        <view class="tl-icon-inner">◈</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">辐射方向图 3D</view>
+        <view class="tl-card-desc">三维方向图 · 天线类型 · 方向性 / HPBW</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
     <!-- 电磁能流账本 -->
     <view class="tl-card rise" bindtap="goEnergyFlow" style="animation-delay:.05s">
       <view class="tl-card-icon tl-icon-calc">
