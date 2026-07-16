@@ -1,0 +1,2 @@
+/* 微波暗室 — 复用通用样式 + toggle */
+@import "../parabolic/parabolic.wxss";

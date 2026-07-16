@@ -1,0 +1,18 @@
+/* 抛物面反射器 — 复用通用样式 + toggle */
+@import "../loop/loop.wxss";
+
+.lab3d-toggles { display:flex; flex-wrap:wrap; gap:20rpx; margin-top:8rpx; }
+.lab3d-toggle { display:flex; align-items:center; gap:10rpx; }
+.lab3d-toggle-dot {
+  width: 28rpx; height: 28rpx; border-radius: 50%;
+  border: 2rpx solid var(--line); background: var(--bg-soft);
+  display: inline-block; position: relative; transition: all .2s;
+}
+.lab3d-toggle.on .lab3d-toggle-dot { background: #4f8cff; border-color: #4f8cff; }
+.lab3d-toggle.on .lab3d-toggle-dot::after {
+  content: ''; position: absolute; left: 8rpx; top: 4rpx;
+  width: 8rpx; height: 14rpx; border: solid #fff; border-width: 0 3rpx 3rpx 0;
+  transform: rotate(45deg);
+}
+.lab3d-toggle-text { font-size: 26rpx; color: var(--muted); }
+.lab3d-toggle.on .lab3d-toggle-text { color: var(--ink); }

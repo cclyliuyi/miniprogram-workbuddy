@@ -19,6 +19,10 @@
       {
         "packageJsonPath": "./pages/interactive/radiation-3d/package.json",
         "miniprogramNpmDistDir": "./pages/interactive/radiation-3d/"
+      },
+      {
+        "packageJsonPath": "./pages/interactive/3d-lab/package.json",
+        "miniprogramNpmDistDir": "./pages/interactive/3d-lab/"
       }
     ],
     "minifyWXSS": true,

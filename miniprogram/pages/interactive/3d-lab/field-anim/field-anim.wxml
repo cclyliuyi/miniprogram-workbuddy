@@ -1,0 +1,86 @@
+<!-- pages/interactive/3d-lab/field-anim/field-anim.wxml —— 电偶极子辐射动画 -->
+<view class="screen lab3d">
+
+  <view class="lab3d-head rise">
+    <view class="kicker">OSCILLATING DIPOLE · NEAR/FAR FIELD</view>
+    <view class="lab3d-title display">电偶极子辐射</view>
+    <view class="lab3d-sub">近场 → 远场过渡 · E 面截面 · 推迟时间</view>
+  </view>
+
+  <view class="lab3d-canvas-wrap rise">
+    <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
+      catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
+    <view class="lab3d-hint">单指拖动旋转视角</view>
+  </view>
+
+  <!-- 播放控制 -->
+  <view class="lab3d-section rise">
+    <view class="kicker">播放控制</view>
+    <view class="lab3d-btns">
+      <view class="lab3d-btn {{playing?'on':''}}" bindtap="onPlay">{{playText}}</view>
+    </view>
+    <view class="lab3d-row" style="margin-top:12rpx">
+      <text class="lab3d-label">播放速度</text>
+      <text class="lab3d-val">{{spdVal}}</text>
+    </view>
+    <slider min="1" max="30" step="1" value="{{spdSlider}}" bindchange="onSpd" block-size="18" />
+    <view class="lab3d-row">
+      <text class="lab3d-label">视野范围</text>
+      <text class="lab3d-val">{{sclVal}}</text>
+    </view>
+    <slider min="10" max="80" step="5" value="{{sclSlider}}" bindchange="onScl" block-size="18" />
+  </view>
+
+  <!-- 显示控制 -->
+  <view class="lab3d-section rise">
+    <view class="kicker">显示控制</view>
+    <view class="lab3d-toggles">
+      <view class="lab3d-toggle {{normalize?'on':''}}" bindtap="onNorm">
+        <text class="lab3d-toggle-dot"></text><text class="lab3d-toggle-text">振幅补偿（×r）</text>
+      </view>
+      <view class="lab3d-toggle {{showZones?'on':''}}" bindtap="onZones">
+        <text class="lab3d-toggle-dot"></text><text class="lab3d-toggle-text">场区边界</text>
+      </view>
+    </view>
+    <view class="lab3d-btns" style="margin-top:12rpx">
+      <view class="lab3d-btn {{fieldMode==='near'?'on':''}}" data-m="near" bindtap="onMode">仅近场</view>
+      <view class="lab3d-btn {{fieldMode==='far'?'on':''}}" data-m="far" bindtap="onMode">仅远场</view>
+      <view class="lab3d-btn {{fieldMode==='both'?'on':''}}" data-m="both" bindtap="onMode">近+远</view>
+    </view>
+  </view>
+
+  <!-- 场区说明 -->
+  <view class="lab3d-stats pop">
+    <view class="kicker lab3d-stats-title">场区</view>
+    <view class="fa-zone">
+      <view class="fa-dot fa-red"></view>
+      <view>
+        <view class="fa-zone-text">近场（反应场）</view>
+        <view class="fa-zone-val">r &lt; λ/2π ≈ 0.16λ</view>
+      </view>
+    </view>
+    <view class="fa-zone">
+      <view class="fa-dot fa-yellow"></view>
+      <view>
+        <view class="fa-zone-text">感应场区</view>
+        <view class="fa-zone-val">0.16λ &lt; r &lt; 2λ</view>
+      </view>
+    </view>
+    <view class="fa-zone">
+      <view class="fa-dot fa-blue"></view>
+      <view>
+        <view class="fa-zone-text">辐射场（远场）</view>
+        <view class="fa-zone-val">r &gt; 2λ</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="lab3d-note rise">
+    <view class="kicker">场的公式</view>
+    <view class="lab3d-note-item">Eθ = sinθ × [k²cos(τ)/r ←辐射</view>
+    <view class="lab3d-note-item">−k·sin(τ)/r² ←感应</view>
+    <view class="lab3d-note-item">−cos(τ)/r³ ←静态]</view>
+    <view class="lab3d-note-item">τ = ωt − kr（推迟时间）</view>
+  </view>
+
+</view>

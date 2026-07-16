@@ -109,6 +109,40 @@ Page({
     wx.navigateTo({ url: '/pages/interactive/polarization-reciprocity-lab/polarization-reciprocity-lab' })
   },
 
+  // ═══ 第五批：3D 天线结构实验室 ═══
+  goLoop3D() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/3d-lab/loop/loop' })
+  },
+  goTravelingWave3D() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/3d-lab/traveling-wave/traveling-wave' })
+  },
+  goHorn3D() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/3d-lab/horn/horn' })
+  },
+  goParabolic3D() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/3d-lab/parabolic/parabolic' })
+  },
+  goMicrostrip3D() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/3d-lab/microstrip/microstrip' })
+  },
+  goAnechoic3D() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/3d-lab/anechoic/anechoic' })
+  },
+  goFieldAnim3D() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/3d-lab/field-anim/field-anim' })
+  },
+  goArraySynth3D() {
+    haptic.light()
+    wx.navigateTo({ url: '/pages/interactive/3d-lab/array-synthesis/array-synthesis' })
+  },
+
   onShareAppMessage() {
     return {
       title: '天线与电磁波工程师工具箱 · 换算/链路/阵列/圆图',

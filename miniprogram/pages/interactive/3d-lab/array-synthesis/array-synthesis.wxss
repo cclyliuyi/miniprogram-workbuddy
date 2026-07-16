@@ -1,0 +1,2 @@
+/* 方向图综合 — 复用通用样式 + toggle */
+@import "../parabolic/parabolic.wxss";

@@ -1,0 +1,59 @@
+<!-- pages/interactive/3d-lab/anechoic/anechoic.wxml —— 微波暗室 -->
+<view class="screen lab3d">
+
+  <view class="lab3d-head rise">
+    <view class="kicker">ANECHOIC CHAMBER · AUT AZIMUTH SCAN</view>
+    <view class="lab3d-title display">虚拟天线暗室</view>
+    <view class="lab3d-sub">标准喇叭 · AUT 转台 · 方向图采集 · R ≥ 2D²/λ</view>
+  </view>
+
+  <view class="lab3d-canvas-wrap rise">
+    <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
+      catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
+    <view class="lab3d-hint">单指拖动旋转 · 双指缩放</view>
+  </view>
+
+  <view class="lab3d-section rise">
+    <view class="kicker">被测天线 AUT</view>
+    <view class="lab3d-btns">
+      <view class="lab3d-btn {{aut==='horn'?'on':''}}" data-a="horn" bindtap="onAut">标准喇叭</view>
+      <view class="lab3d-btn {{aut==='dipole'?'on':''}}" data-a="dipole" bindtap="onAut">偶极子</view>
+      <view class="lab3d-btn {{aut==='array'?'on':''}}" data-a="array" bindtap="onAut">小阵列</view>
+    </view>
+  </view>
+
+  <view class="lab3d-section rise">
+    <view class="kicker">转台控制</view>
+    <view class="lab3d-row"><text class="lab3d-label">方位角 φ</text><text class="lab3d-val">{{angVal}}</text></view>
+    <slider min="0" max="359" step="1" value="{{angSlider}}" bindchange="onAng" block-size="18" />
+    <view class="lab3d-row"><text class="lab3d-label">采样步进</text><text class="lab3d-val">{{stepVal}}</text></view>
+    <slider min="1" max="15" step="1" value="{{stepSlider}}" bindchange="onStep" block-size="18" />
+    <view class="lab3d-btns" style="margin-top:12rpx">
+      <view class="lab3d-btn {{scanning?'on':''}}" bindtap="onScan">{{scanText}}</view>
+      <view class="lab3d-btn" bindtap="onClear">清空</view>
+    </view>
+  </view>
+
+  <view class="lab3d-stats pop">
+    <view class="kicker lab3d-stats-title">测量读数</view>
+    <view class="lab3d-stats-grid">
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{pwr}}</view><view class="lab3d-stat-name">当前相对电平</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{samples}}</view><view class="lab3d-stat-name">采样点数</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{hpbw}}</view><view class="lab3d-stat-name">估计 HPBW</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{sll}}</view><view class="lab3d-stat-name">最大旁瓣</view></view>
+    </view>
+  </view>
+
+  <view class="lab3d-section rise">
+    <view class="kicker">实测方向图</view>
+    <canvas type="2d" id="polar" class="lab3d-2d"></canvas>
+  </view>
+
+  <view class="lab3d-note rise">
+    <view class="kicker">原理</view>
+    <view class="lab3d-note-item">暗室测量要保证足够远场距离 R ≥ 2D²/λ</view>
+    <view class="lab3d-note-item">标准增益法通常先用两只喇叭天线完成链路定标</view>
+    <view class="lab3d-note-item">左侧 = 发射标准喇叭 · 右侧 = AUT 转台 · 蓝点 = 已采样方位角</view>
+  </view>
+
+</view>

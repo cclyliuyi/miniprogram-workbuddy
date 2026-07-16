@@ -1,0 +1,77 @@
+<!-- pages/interactive/3d-lab/traveling-wave/traveling-wave.wxml —— 行波天线 3D -->
+<view class="screen lab3d">
+
+  <view class="lab3d-head rise">
+    <view class="kicker">TRAVELING WAVE · COHERENT RADIATION</view>
+    <view class="lab3d-title display">行波天线</view>
+    <view class="lab3d-sub">传播电流 · 反射 · 端射波束 · 相干叠加</view>
+  </view>
+
+  <view class="lab3d-canvas-wrap rise">
+    <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
+      catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
+    <view class="lab3d-hint">单指拖动旋转 · 双指缩放</view>
+  </view>
+
+  <view class="lab3d-section rise">
+    <view class="kicker">结构</view>
+    <view class="lab3d-btns">
+      <view class="lab3d-btn {{geo==='line'?'on':''}}" data-g="line" bindtap="onGeo">长线</view>
+      <view class="lab3d-btn {{geo==='v'?'on':''}}" data-g="v" bindtap="onGeo">V 形行波</view>
+    </view>
+  </view>
+
+  <view class="lab3d-section rise">
+    <view class="kicker">参数</view>
+    <view class="lab3d-row">
+      <text class="lab3d-label">长度 L/λ</text>
+      <text class="lab3d-val">{{lVal}}</text>
+    </view>
+    <slider min="5" max="80" step="1" value="{{lSlider}}" bindchange="onL" block-size="18" />
+    <view class="lab3d-row">
+      <text class="lab3d-label">终端反射 |Γ|</text>
+      <text class="lab3d-val">{{gVal}}</text>
+    </view>
+    <slider min="0" max="85" step="1" value="{{gSlider}}" bindchange="onRef" block-size="18" />
+    <view class="lab3d-row">
+      <text class="lab3d-label">V 形半角</text>
+      <text class="lab3d-val">{{angVal}}</text>
+    </view>
+    <slider min="10" max="75" step="1" value="{{angSlider}}" bindchange="onAng" block-size="18" />
+  </view>
+
+  <view class="lab3d-stats pop">
+    <view class="kicker lab3d-stats-title">读数</view>
+    <view class="lab3d-stats-grid">
+      <view class="lab3d-stat">
+        <view class="lab3d-stat-value num">{{mainAng}}</view>
+        <view class="lab3d-stat-name">主瓣方向</view>
+      </view>
+      <view class="lab3d-stat">
+        <view class="lab3d-stat-value num">{{fb}}</view>
+        <view class="lab3d-stat-name">前后比</view>
+      </view>
+      <view class="lab3d-stat">
+        <view class="lab3d-stat-value num">{{ripple}}</view>
+        <view class="lab3d-stat-name">电流驻波起伏</view>
+      </view>
+      <view class="lab3d-stat">
+        <view class="lab3d-stat-value num">{{mode}}</view>
+        <view class="lab3d-stat-name">辐射特征</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="lab3d-section rise">
+    <view class="kicker">远场主截面</view>
+    <canvas type="2d" id="plot" class="lab3d-2d"></canvas>
+  </view>
+
+  <view class="lab3d-note rise">
+    <view class="kicker">原理</view>
+    <view class="lab3d-note-item">匹配终端时电流单向传播，端射方向更容易相干叠加</view>
+    <view class="lab3d-note-item">反射越大，驻波成分越强，方向图起伏越多</view>
+    <view class="lab3d-note-item">橙点 = 行波电流相位 · 蓝点 = 反射分量 · 白色曲线 = 远场方向图</view>
+  </view>
+
+</view>

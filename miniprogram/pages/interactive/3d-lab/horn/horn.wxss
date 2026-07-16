@@ -1,0 +1,2 @@
+/* 喇叭天线 — 复用通用样式 */
+@import "../loop/loop.wxss";

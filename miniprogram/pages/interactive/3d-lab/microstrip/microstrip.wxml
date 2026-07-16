@@ -1,0 +1,52 @@
+<!-- pages/interactive/3d-lab/microstrip/microstrip.wxml —— 微带贴片天线 -->
+<view class="screen lab3d">
+
+  <view class="lab3d-head rise">
+    <view class="kicker">3D PATCH LAYOUT · TM10 EDGE FIELDS</view>
+    <view class="lab3d-title display">微带贴片天线</view>
+    <view class="lab3d-sub">一阶尺寸设计 · 馈点匹配 · S11 参数</view>
+  </view>
+
+  <view class="lab3d-canvas-wrap rise">
+    <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
+      catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
+    <view class="lab3d-hint">单指拖动旋转 · 双指缩放</view>
+  </view>
+
+  <view class="lab3d-section rise">
+    <view class="kicker">设计参数</view>
+    <view class="lab3d-row"><text class="lab3d-label">工作频率 f₀</text><text class="lab3d-val">{{fVal}}</text></view>
+    <slider min="80" max="1200" step="5" value="{{fSlider}}" bindchange="onF" block-size="18" />
+    <view class="lab3d-row"><text class="lab3d-label">介电常数 εᵣ</text><text class="lab3d-val">{{erVal}}</text></view>
+    <slider min="20" max="120" step="1" value="{{erSlider}}" bindchange="onEr" block-size="18" />
+    <view class="lab3d-row"><text class="lab3d-label">基板厚度 h</text><text class="lab3d-val">{{hVal}}</text></view>
+    <slider min="20" max="400" step="5" value="{{hSlider}}" bindchange="onH" block-size="18" />
+    <view class="lab3d-row"><text class="lab3d-label">馈点内凹 y₀/L</text><text class="lab3d-val">{{insetVal}}</text></view>
+    <slider min="0" max="48" step="1" value="{{insetSlider}}" bindchange="onInset" block-size="18" />
+  </view>
+
+  <view class="lab3d-stats pop">
+    <view class="kicker lab3d-stats-title">尺寸与端口读数</view>
+    <view class="lab3d-stats-grid">
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{W}}</view><view class="lab3d-stat-name">贴片宽 W</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{L}}</view><view class="lab3d-stat-name">贴片长 L</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{ee}}</view><view class="lab3d-stat-name">有效 εeff</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{rin}}</view><view class="lab3d-stat-name">馈点电阻 Rin</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{smin}}</view><view class="lab3d-stat-name">最小 |S11|</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{bw}}</view><view class="lab3d-stat-name">-10 dB 带宽</view></view>
+    </view>
+  </view>
+
+  <view class="lab3d-section rise">
+    <view class="kicker">S 参数</view>
+    <canvas type="2d" id="s11" class="lab3d-2d"></canvas>
+  </view>
+
+  <view class="lab3d-note rise">
+    <view class="kicker">原理</view>
+    <view class="lab3d-note-item">一阶尺寸：W≈c/(2f₀)√(2/(εᵣ+1))，L≈c/(2f₀√εeff)-2ΔL</view>
+    <view class="lab3d-note-item">S11 为教学用单谐振近似，真实设计仍需全波仿真</view>
+    <view class="lab3d-note-item">铜色 = 贴片/馈线/地板 · 蓝绿弧线 = 缝隙场 · 橙色线 = 表面电流</view>
+  </view>
+
+</view>

@@ -1,0 +1,2 @@
+/* 微带贴片天线 — 复用通用样式 */
+@import "../loop/loop.wxss";

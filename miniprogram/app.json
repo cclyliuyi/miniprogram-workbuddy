@@ -161,6 +161,20 @@
       "root": "pages/interactive/radiation-3d",
       "name": "iv-r3d",
       "pages": ["radiation-3d"]
+    },
+    {
+      "root": "pages/interactive/3d-lab",
+      "name": "iv-3dlab",
+      "pages": [
+        "loop/loop",
+        "traveling-wave/traveling-wave",
+        "horn/horn",
+        "parabolic/parabolic",
+        "microstrip/microstrip",
+        "anechoic/anechoic",
+        "field-anim/field-anim",
+        "array-synthesis/array-synthesis"
+      ]
     }
   ],
   "preloadRule": {

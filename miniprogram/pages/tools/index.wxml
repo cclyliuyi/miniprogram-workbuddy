@@ -323,6 +323,104 @@
       <view class="tl-card-arrow">›</view>
     </view>
 
+    <!-- ── 3D 天线结构实验室 ── -->
+
+    <!-- 小环天线 -->
+    <view class="tl-card rise" bindtap="goLoop3D" style="animation-delay:.30s">
+      <view class="tl-card-icon tl-icon-radar">
+        <view class="tl-icon-inner">◯</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">小环天线 3D</view>
+        <view class="tl-card-desc">磁偶极子 · sin²θ 方向图 · 辐射电阻</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 行波天线 -->
+    <view class="tl-card rise" bindtap="goTravelingWave3D" style="animation-delay:.35s">
+      <view class="tl-card-icon tl-icon-radar">
+        <view class="tl-icon-inner">→</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">行波天线 3D</view>
+        <view class="tl-card-desc">传播电流 · 反射 · 端射波束</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 喇叭天线 -->
+    <view class="tl-card rise" bindtap="goHorn3D" style="animation-delay:.40s">
+      <view class="tl-card-icon tl-icon-radar">
+        <view class="tl-icon-inner">◁</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">喇叭天线 3D</view>
+        <view class="tl-card-desc">口径相位 · E/H 面方向图 · 增益估计</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 抛物面反射器 -->
+    <view class="tl-card rise" bindtap="goParabolic3D" style="animation-delay:.45s">
+      <view class="tl-card-icon tl-icon-radar">
+        <view class="tl-icon-inner">⌒</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">抛物面反射器 3D</view>
+        <view class="tl-card-desc">射线追踪 · 离焦 · 口面相位</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 微带贴片天线 -->
+    <view class="tl-card rise" bindtap="goMicrostrip3D" style="animation-delay:.50s">
+      <view class="tl-card-icon tl-icon-radar">
+        <view class="tl-icon-inner">▤</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">微带贴片 3D</view>
+        <view class="tl-card-desc">一阶尺寸 · 馈点匹配 · S11 参数</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 微波暗室 -->
+    <view class="tl-card rise" bindtap="goAnechoic3D" style="animation-delay:.55s">
+      <view class="tl-card-icon tl-icon-radar">
+        <view class="tl-icon-inner">⊟</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">微波暗室 3D</view>
+        <view class="tl-card-desc">标准增益法 · 转台扫描 · 方向图采集</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 电偶极子辐射 -->
+    <view class="tl-card rise" bindtap="goFieldAnim3D" style="animation-delay:.60s">
+      <view class="tl-card-icon tl-icon-radar">
+        <view class="tl-icon-inner">≈</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">偶极子辐射</view>
+        <view class="tl-card-desc">近场 → 远场过渡 · E 面截面 · 推迟时间</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
+    <!-- 方向图综合 -->
+    <view class="tl-card rise" bindtap="goArraySynth3D" style="animation-delay:.65s">
+      <view class="tl-card-icon tl-icon-array">
+        <view class="tl-icon-inner">Σ</view>
+      </view>
+      <view class="tl-card-body">
+        <view class="tl-card-name">方向图综合 3D</view>
+        <view class="tl-card-desc">Dolph-Chebyshev · Taylor · 均匀加权</view>
+      </view>
+      <view class="tl-card-arrow">›</view>
+    </view>
+
   </view>
 
   <!-- 底部说明 -->

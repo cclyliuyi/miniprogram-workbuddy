@@ -1,0 +1,61 @@
+<!-- pages/interactive/3d-lab/array-synthesis/array-synthesis.wxml —— 方向图综合 -->
+<view class="screen lab3d">
+
+  <view class="lab3d-head rise">
+    <view class="kicker">DOLPH-CHEBYSHEV ARRAY SYNTHESIS</view>
+    <view class="lab3d-title display">方向图综合</view>
+    <view class="lab3d-sub">Dolph-Chebyshev · Taylor · 均匀加权</view>
+  </view>
+
+  <view class="lab3d-canvas-wrap rise">
+    <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
+      catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
+    <view class="lab3d-hint">单指拖动旋转 · 双指缩放</view>
+  </view>
+
+  <view class="lab3d-section rise">
+    <view class="kicker">阵列配置</view>
+    <view class="lab3d-row"><text class="lab3d-label">阵元数 N</text><text class="lab3d-val">{{nVal}}</text></view>
+    <slider min="4" max="20" step="1" value="{{nSlider}}" bindchange="onN" block-size="18" />
+    <view class="lab3d-row"><text class="lab3d-label">阵元间距 d/λ</text><text class="lab3d-val">{{dVal}}</text></view>
+    <slider min="30" max="100" step="1" value="{{dSlider}}" bindchange="onD" block-size="18" />
+  </view>
+
+  <view class="lab3d-section rise">
+    <view class="kicker">综合方法</view>
+    <view class="lab3d-btns">
+      <view class="lab3d-btn {{method==='chebyshev'?'on':''}}" data-m="chebyshev" bindtap="onMethod">Chebyshev</view>
+      <view class="lab3d-btn {{method==='taylor'?'on':''}}" data-m="taylor" bindtap="onMethod">Taylor</view>
+      <view class="lab3d-btn {{method==='uniform'?'on':''}}" data-m="uniform" bindtap="onMethod">均匀</view>
+    </view>
+  </view>
+
+  <view class="lab3d-section rise">
+    <view class="kicker">副瓣控制</view>
+    <view class="lab3d-row"><text class="lab3d-label">副瓣电平 SLL</text><text class="lab3d-val">{{sllVal}}</text></view>
+    <slider min="-40" max="-10" step="1" value="{{sllSlider}}" bindchange="onSll" block-size="18" />
+  </view>
+
+  <view class="lab3d-stats pop">
+    <view class="kicker lab3d-stats-title">阵列参数</view>
+    <view class="lab3d-stats-grid">
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{dbi}}</view><view class="lab3d-stat-name">方向性 dBi</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{hpbw}}</view><view class="lab3d-stat-name">HPBW</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{actualSll}}</view><view class="lab3d-stat-name">实际副瓣</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{nulCount}}</view><view class="lab3d-stat-name">零点数</view></view>
+    </view>
+  </view>
+
+  <view class="lab3d-section rise">
+    <view class="kicker">方向图</view>
+    <canvas type="2d" id="plot" class="lab3d-2d"></canvas>
+  </view>
+
+  <view class="lab3d-note rise">
+    <view class="kicker">原理</view>
+    <view class="lab3d-note-item">Dolph-Chebyshev：等副瓣最优化综合</view>
+    <view class="lab3d-note-item">Taylor：旁瓣渐减方向图</view>
+    <view class="lab3d-note-item">蓝 = Chebyshev 加权 · 橙 = 均匀加权 · 绿 = 理想方向图</view>
+  </view>
+
+</view>
