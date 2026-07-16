@@ -19,7 +19,6 @@ Page({
     stats: null,
   },
 
-  // ── 内部状态（不经过 setData）──
   THREE: null,
   canvasNode: null,
   renderer: null,
@@ -43,146 +42,161 @@ Page({
     showAnt: true,
   },
 
-  // ═══════════════════════════════════════════════════════════════
-  //  Lifecycle
-  // ═══════════════════════════════════════════════════════════════
-
   onReady() {
-    // 必须在 onReady 中初始化，此时 WXML 已完成布局
-    // onLoad 时 canvas 尺寸为 0，会导致 renderer.setSize(0,0) → 黑屏
     this.initThree();
   },
 
-  onUnload() {
-    this.dispose();
-  },
-
-  onHide() {
-    this.stopAnim();
-  },
-
+  onUnload() { this.dispose(); },
+  onHide() { this.stopAnim(); },
   onShow() {
     if (this.renderer && this.state.rotate) this.startAnim();
   },
 
   // ═══════════════════════════════════════════════════════════════
-  //  Three.js 初始化
+  //  Three.js 初始化 — 逐步验证
   // ═══════════════════════════════════════════════════════════════
 
   initThree() {
     const sel = this.createSelectorQuery();
     sel.select('#three-canvas').fields({ node: true, size: true }).exec((res) => {
       if (!res || !res[0]) {
-        console.error('[r3d] SelectorQuery returned empty');
+        console.error('[r3d] ❌ SelectorQuery returned empty');
         return;
       }
       const r = res[0];
       const canvas = r.node;
       if (!canvas) {
-        console.error('[r3d] canvas node is null — did you forget "构建 npm"?');
+        console.error('[r3d] ❌ canvas node is null');
         return;
       }
 
-      // 尺寸校验：onReady 时可能仍为 0（极端情况），延迟重试
       const cssW = r.width;
       const cssH = r.height;
       console.log('[r3d] canvas size:', cssW, 'x', cssH);
+
       if (!cssW || !cssH) {
-        console.warn('[r3d] canvas size is 0, retrying in 200ms...');
+        console.warn('[r3d] canvas size is 0, retrying...');
         setTimeout(() => this.initThree(), 200);
         return;
       }
 
       this.canvasNode = canvas;
 
-      // 创建作用域内的 THREE
       let THREE;
       try {
         THREE = createScopedThreejs(canvas);
+        console.log('[r3d] ✅ THREE created, REVISION:', THREE.REVISION);
       } catch (err) {
-        console.error('[r3d] createScopedThreejs failed:', err);
+        console.error('[r3d] ❌ createScopedThreejs failed:', err);
         return;
       }
       this.THREE = THREE;
-      console.log('[r3d] THREE scope created, REVISION:', THREE.REVISION);
 
-      // 注册 OrbitControls
       registerOrbitControls(THREE);
 
-      this.setupScene(THREE, canvas, cssW, cssH);
-      this.buildPattern();
-      this.refreshStats();
+      // ── Step 1: 渲染器 ──
+      let renderer;
+      try {
+        renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        const dpr = wx.getWindowInfo().pixelRatio;
+        renderer.setPixelRatio(Math.min(dpr, 2));
+        renderer.setSize(cssW, cssH, false);
+        renderer.setClearColor(0x0d0f1a, 1);
+        console.log('[r3d] ✅ renderer created, drawingBuffer:', renderer.domElement.width, 'x', renderer.domElement.height);
+      } catch (err) {
+        console.error('[r3d] ❌ renderer failed:', err);
+        return;
+      }
+      this.renderer = renderer;
+
+      // ── Step 2: 场景 + 相机 ──
+      const scene = new THREE.Scene();
+      this.scene = scene;
+
+      const camera = new THREE.PerspectiveCamera(45, cssW / cssH, 0.01, 100);
+      camera.position.set(3, 2, 3);
+      camera.lookAt(0, 0, 0);
+      this.camera = camera;
+
+      // ── Step 3: 光源 ──
+      scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+      const dl = new THREE.DirectionalLight(0xffffff, 0.6);
+      dl.position.set(5, 10, 5);
+      scene.add(dl);
+
+      // ── Step 4: 诊断球 — 先放一个最简单的亮球，确认渲染管线通畅 ──
+      const ball = new THREE.Mesh(
+        new THREE.SphereGeometry(0.3, 16, 16),
+        new THREE.MeshBasicMaterial({ color: 0x44aaff })
+      );
+      scene.add(ball);
+      console.log('[r3d] ✅ diagnostic ball added');
+
+      // 先渲染一帧看看球是否出现
+      renderer.render(scene, camera);
+      console.log('[r3d] ✅ first frame rendered');
+
+      // ── Step 5: OrbitControls ──
+      try {
+        const controls = new THREE.OrbitControls(camera, canvas);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.08;
+        controls.autoRotateSpeed = 1.2;
+        controls.minDistance = 1.2;
+        controls.maxDistance = 8;
+        this.controls = controls;
+        console.log('[r3d] ✅ controls created');
+      } catch (e) {
+        console.error('[r3d] ❌ controls failed:', e);
+      }
+
+      // ── Step 6: 正式内容（延迟加入，不阻塞首帧） ──
+      setTimeout(() => {
+        // 移除诊断球
+        scene.remove(ball);
+        ball.geometry.dispose();
+        ball.material.dispose();
+
+        this.setupGrid(THREE, scene);
+        this.setupAxes(THREE, scene);
+        this.setupAntenna(THREE, scene);
+        this.buildPattern();
+        this.refreshStats();
+        console.log('[r3d] ✅ full scene loaded');
+      }, 100);
+
+      // 启动动画循环
       this.startAnim();
-      console.log('[r3d] init complete, rendering started');
     });
   },
 
-  setupScene(THREE, canvas, cssW, cssH) {
-    const dpr = wx.getWindowInfo().pixelRatio;
-
-    // Renderer
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    renderer.setPixelRatio(Math.min(dpr, 2));
-    renderer.setClearColor(0x0d0f1a, 1);
-    this.renderer = renderer;
-
-    // Scene
-    const scene = new THREE.Scene();
-    this.scene = scene;
-
-    // Camera
-    const w = cssW;
-    const h = cssH;
-    const camera = new THREE.PerspectiveCamera(40, w / h, 0.01, 100);
-    camera.position.set(2.4, 1.4, 2.4);
-    this.camera = camera;
-
-    // OrbitControls（使用注册后的适配版本）
-    const controls = new THREE.OrbitControls(camera, canvas);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.08;
-    controls.autoRotateSpeed = 1.2;
-    controls.enablePan = false;
-    controls.minDistance = 1.2;
-    controls.maxDistance = 6;
-    this.controls = controls;
-
-    // 设置渲染尺寸 — updateStyle=false 因为小程序 canvas 没有浏览器 style
-    renderer.setSize(w, h, false);
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-
-    // Lighting — 先加光源，确保 MeshPhongMaterial 能被照亮
-    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-    const sun = new THREE.DirectionalLight(0xffffff, 0.8);
-    sun.position.set(4, 8, 5);
-    scene.add(sun);
-    console.log('[r3d] lights added');
-
-    // Grid — 使用 LineSegments 手动构建，兼容性最好
-    this.setupGrid(THREE, scene);
-
-    // Axes group
-    this.setupAxes(THREE, scene);
-
-    // Antenna element
-    this.setupAntenna(THREE, scene);
+  // ── 获取实际可用宽高（兼容可能的小数边界） ──
+  _getSize() {
+    return new Promise((resolve) => {
+      const sel = this.createSelectorQuery();
+      sel.select('#three-canvas').boundingClientRect((rect) => {
+        resolve(rect || { width: 300, height: 300 });
+      }).exec();
+    });
   },
 
+  // ═══════════════════════════════════════════════════════════════
+  //  场景元素
+  // ═══════════════════════════════════════════════════════════════
+
   setupGrid(THREE, scene) {
-    // 手动构建网格线，避免 GridHelper 版本兼容问题
     const size = 6, divs = 12;
     const step = size / divs;
     const half = size / 2;
     const pts = [];
     for (let i = 0; i <= divs; i++) {
       const v = -half + i * step;
-      pts.push(-half, 0, v, half, 0, v); // 平行 Z
-      pts.push(v, 0, -half, v, 0, half); // 平行 X
+      pts.push(-half, 0, v, half, 0, v);
+      pts.push(v, 0, -half, v, 0, half);
     }
     const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-    const mat = new THREE.LineBasicMaterial({ color: 0x1e2235 });
+    geo.addAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    const mat = new THREE.LineBasicMaterial({ color: 0x2a3050 });
     const grid = new THREE.LineSegments(geo, mat);
     grid.position.y = -1.4;
     scene.add(grid);
@@ -199,12 +213,12 @@ Page({
       );
     };
     try {
-      group.add(mkArrow([1, 0, 0], 0xff4455)); // X
-      group.add(mkArrow([0, 1, 0], 0x44ff66)); // Y (dipole axis)
-      group.add(mkArrow([0, 0, 1], 0x4488ff)); // Z
+      group.add(mkArrow([1, 0, 0], 0xff4455));
+      group.add(mkArrow([0, 1, 0], 0x44ff66));
+      group.add(mkArrow([0, 0, 1], 0x4488ff));
       scene.add(group);
     } catch (e) {
-      console.warn('[r3d] ArrowHelper failed, skipping axes:', e);
+      console.warn('[r3d] ArrowHelper failed:', e);
     }
     this.axesGroup = group;
   },
@@ -219,7 +233,7 @@ Page({
     scene.add(group);
     this.antGroup = group;
     this.antTop = top;
-    top.scale.y = 0.5; // half-wave default
+    top.scale.y = 0.5;
   },
 
   // ═══════════════════════════════════════════════════════════════
@@ -246,7 +260,8 @@ Page({
     return 0;
   },
 
-  Fmax(type, hl, N = 2000) {
+  Fmax(type, hl, N) {
+    N = N || 2000;
     let m = 0;
     for (let i = 0; i <= N; i++) {
       const v = this.F((i / N) * Math.PI, type, hl);
@@ -274,7 +289,6 @@ Page({
     const THREE = this.THREE;
     const { type, hl, ptype, opacity } = this.state;
 
-    // 清除旧网格
     if (this.patMesh) {
       this.scene.remove(this.patMesh);
       this.patMesh.geometry.dispose();
@@ -288,8 +302,8 @@ Page({
 
     try {
       const fm = this.Fmax(type, hl);
-      const NTH = 96;
-      const NPH = 144;
+      const NTH = 80;
+      const NPH = 120;
       const pos = [];
       const col = [];
       const idx = [];
@@ -319,8 +333,8 @@ Page({
       }
 
       const geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-      geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+      geo.addAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      geo.addAttribute('color', new THREE.Float32BufferAttribute(col, 3));
       geo.setIndex(idx);
       geo.computeVertexNormals();
 
@@ -330,17 +344,14 @@ Page({
         transparent: true,
         opacity: opacity,
         shininess: 25,
-        depthWrite: false,
       });
 
       this.patMesh = new THREE.Mesh(geo, mat);
       this.scene.add(this.patMesh);
-      console.log('[r3d] pattern mesh built:', pos.length / 3, 'vertices');
+      console.log('[r3d] pattern mesh built:', pos.length / 3, 'verts');
 
-      // ── 切线 ──
       this.buildCuts(THREE, type, hl, ptype, fm);
 
-      // ── 天线元件尺寸 ──
       if (this.antTop) {
         const hlVis = type === 'custom' ? hl : 0.25;
         this.antTop.scale.y = Math.max(0.05, hlVis * 2);
@@ -354,9 +365,8 @@ Page({
     const group = new THREE.Group();
     group.visible = this.state.showCuts;
 
-    // E-plane (phi=0 and pi)
     const ePts = [];
-    const Ncut = 400;
+    const Ncut = 200;
     for (let i = 0; i <= Ncut; i++) {
       const theta = (i / Ncut) * Math.PI;
       let r = this.F(theta, type, hl) / fm;
@@ -370,20 +380,19 @@ Page({
       ePts.push(-r * Math.sin(theta), r * Math.cos(theta), 0);
     }
     const eGeo = new THREE.BufferGeometry();
-    eGeo.setAttribute('position', new THREE.Float32BufferAttribute(ePts, 3));
+    eGeo.addAttribute('position', new THREE.Float32BufferAttribute(ePts, 3));
     group.add(new THREE.LineLoop(eGeo,
       new THREE.LineBasicMaterial({ color: 0xffffff })));
 
-    // H-plane (theta=pi/2)
     const hPts = [];
-    for (let j = 0; j <= 360; j++) {
-      const phi = (j / 360) * 2 * Math.PI;
+    for (let j = 0; j <= 180; j++) {
+      const phi = (j / 180) * 2 * Math.PI;
       let r = this.F(Math.PI / 2, type, hl) / fm;
       if (ptype === 'power') r = r * r;
       hPts.push(r * Math.cos(phi), 0, r * Math.sin(phi));
     }
     const hGeo = new THREE.BufferGeometry();
-    hGeo.setAttribute('position', new THREE.Float32BufferAttribute(hPts, 3));
+    hGeo.addAttribute('position', new THREE.Float32BufferAttribute(hPts, 3));
     group.add(new THREE.LineLoop(hGeo,
       new THREE.LineBasicMaterial({ color: 0xffcc00 })));
 
@@ -392,15 +401,13 @@ Page({
   },
 
   // ═══════════════════════════════════════════════════════════════
-  //  统计计算
+  //  统计
   // ═══════════════════════════════════════════════════════════════
 
   refreshStats() {
     const { type, hl } = this.state;
     const N = 3000;
     const fm = this.Fmax(type, hl, N);
-
-    // 方向性 — 梯形积分
     const dt = Math.PI / N;
     let integral = 0;
     for (let i = 0; i <= N; i++) {
@@ -412,7 +419,6 @@ Page({
     const D = 2 / Math.max(integral, 1e-12);
     const dbi = 10 * Math.log10(D);
 
-    // HPBW — 从赤道向极搜索
     const halfPow = 0.5 * fm * fm;
     let hpTheta = 0;
     for (let i = 0; i < N / 2; i++) {
@@ -422,7 +428,6 @@ Page({
     }
     const HPBW = Math.round(2 * (Math.PI / 2 - hpTheta) * 180 / Math.PI);
 
-    // 辐射电阻
     let Rr;
     if (type === 'isotropic') Rr = '—';
     else if (type === 'short') Rr = '~80(h/λ)²';
@@ -436,17 +441,12 @@ Page({
     }
 
     this.setData({
-      stats: {
-        D: D.toFixed(2),
-        dbi: dbi.toFixed(2),
-        HPBW: HPBW + '°',
-        Rr: Rr,
-      }
+      stats: { D: D.toFixed(2), dbi: dbi.toFixed(2), HPBW: HPBW + '°', Rr }
     });
   },
 
   // ═══════════════════════════════════════════════════════════════
-  //  动画循环
+  //  动画
   // ═══════════════════════════════════════════════════════════════
 
   startAnim() {
@@ -463,6 +463,7 @@ Page({
       this.animId = canvas.requestAnimationFrame(tick);
     };
     this.animId = canvas.requestAnimationFrame(tick);
+    console.log('[r3d] ✅ animation loop started');
   },
 
   stopAnim() {
@@ -471,10 +472,6 @@ Page({
       this.animId = null;
     }
   },
-
-  // ═══════════════════════════════════════════════════════════════
-  //  销毁
-  // ═══════════════════════════════════════════════════════════════
 
   dispose() {
     this.stopAnim();
@@ -503,26 +500,23 @@ Page({
   // ═══════════════════════════════════════════════════════════════
 
   onType(e) {
-    const t = e.currentTarget.dataset.t;
-    this.state.type = t;
-    this.setData({ 'S.type': t });
+    this.state.type = e.currentTarget.dataset.t;
+    this.setData({ 'S.type': this.state.type });
     this.buildPattern();
     this.refreshStats();
   },
 
   onHl(e) {
     const v = e.detail.value;
-    const hl = v / 100;
-    this.state.hl = hl;
-    this.setData({ hlSlider: v, hlText: hl.toFixed(2) + 'λ' });
+    this.state.hl = v / 100;
+    this.setData({ hlSlider: v, hlText: this.state.hl.toFixed(2) + 'λ' });
     this.buildPattern();
     this.refreshStats();
   },
 
   onPtype(e) {
-    const p = e.currentTarget.dataset.p;
-    this.state.ptype = p;
-    this.setData({ 'S.ptype': p });
+    this.state.ptype = e.currentTarget.dataset.p;
+    this.setData({ 'S.ptype': this.state.ptype });
     this.buildPattern();
   },
 
@@ -557,22 +551,13 @@ Page({
     if (this.antGroup) this.antGroup.visible = this.state.showAnt;
   },
 
-  // ── Touch 事件传递给 OrbitControls ──
   onTouchStart(e) {
-    if (this.controls && this.controls.onTouchStart) {
-      this.controls.onTouchStart(e);
-    }
+    if (this.controls && this.controls.onTouchStart) this.controls.onTouchStart(e);
   },
-
   onTouchMove(e) {
-    if (this.controls && this.controls.onTouchMove) {
-      this.controls.onTouchMove(e);
-    }
+    if (this.controls && this.controls.onTouchMove) this.controls.onTouchMove(e);
   },
-
   onTouchEnd(e) {
-    if (this.controls && this.controls.onTouchEnd) {
-      this.controls.onTouchEnd(e);
-    }
+    if (this.controls && this.controls.onTouchEnd) this.controls.onTouchEnd(e);
   },
 });
