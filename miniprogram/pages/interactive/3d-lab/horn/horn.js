@@ -28,30 +28,33 @@ Page({
   initThree() {
     const sel = this.createSelectorQuery();
     sel.select('#three-canvas').fields({ node: true, size: true }).exec((res) => {
-      if (!res || !res[0]) return;
+      if (!res || !res[0]) { console.error('[horn] SelectorQuery empty'); return; }
       const r = res[0];
       const canvas = r.node;
-      if (!canvas) return;
+      if (!canvas) { console.error('[horn] canvas null'); return; }
       const cssW = r.width, cssH = r.height;
+      console.log('[horn] canvas size:', cssW, 'x', cssH);
       if (!cssW || !cssH) { setTimeout(() => this.initThree(), 200); return; }
 
-      this.canvasNode = canvas;
-      const dpr = wx.getWindowInfo().pixelRatio || 2;
+      try {
+        this.canvasNode = canvas;
+        const dpr = wx.getWindowInfo().pixelRatio || 2;
 
-      const THREE = createScopedThreejs(canvas);
-      this.THREE = THREE;
-      registerOrbitControls(THREE);
+        const THREE = createScopedThreejs(canvas);
+        this.THREE = THREE;
+        registerOrbitControls(THREE);
+        console.log('[horn] THREE OK, REVISION:', THREE.REVISION);
 
-      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-      renderer.setPixelRatio(Math.min(dpr, 2));
-      renderer.setSize(cssW, cssH, false);
-      renderer.setClearColor(0x090b14, 1);
-      this.renderer = renderer;
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        renderer.setPixelRatio(Math.min(dpr, 2));
+        renderer.setSize(cssW, cssH, false);
+        renderer.setClearColor(0x090b14, 1);
+        this.renderer = renderer;
 
-      const scene = new THREE.Scene();
-      this.scene = scene;
-      const camera = new THREE.PerspectiveCamera(42, cssW / cssH, 0.01, 100);
-      this.camera = camera;
+        const scene = new THREE.Scene();
+        this.scene = scene;
+        const camera = new THREE.PerspectiveCamera(42, cssW / cssH, 0.01, 100);
+        this.camera = camera;
 
       const controls = new THREE.OrbitControls(camera, canvas);
       controls.enableDamping = true;
@@ -74,6 +77,9 @@ Page({
 
       this.renderAll();
       this.startAnim();
+      } catch (err) {
+        console.error('[horn] initThree error:', err);
+      }
     });
   },
 
@@ -267,7 +273,7 @@ Page({
       const r = res[0];
       const canvas = r.node;
       const ctx = canvas.getContext('2d');
-      const dpr = wx.getSystemInfoSync().pixelRatio || 2;
+      const dpr = wx.getWindowInfo().pixelRatio || 2;
       canvas.width = r.width * dpr;
       canvas.height = r.height * dpr;
       ctx.scale(dpr, dpr);

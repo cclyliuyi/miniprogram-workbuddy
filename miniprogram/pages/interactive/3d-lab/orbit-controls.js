@@ -29,8 +29,10 @@ function registerOrbitControls(THREE) {
       this._offset = new Vector3();
       this._offset.copy(camera.position);
 
-      this._target = new Vector3(0, 0, 0);
-      this._offset.sub(this._target);
+      // 公开属性 target（兼容 Three.js OrbitControls API）
+      // 页面代码用 controls.target.set(x, y, z) 设置观察中心
+      this.target = new Vector3(0, 0, 0);
+      this._offset.sub(this.target);
 
       this._spherical.setFromVector3(this._offset);
       this._targetSpherical.copy(this._spherical);
@@ -145,8 +147,8 @@ function registerOrbitControls(THREE) {
 
       // 将球面坐标转回相机位置
       this._offset.setFromSpherical(this._spherical);
-      this.camera.position.copy(this._target).add(this._offset);
-      this.camera.lookAt(this._target);
+      this.camera.position.copy(this.target).add(this._offset);
+      this.camera.lookAt(this.target);
     }
 
     /**
