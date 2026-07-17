@@ -53,10 +53,6 @@
       {
         "type": "folder",
         "value": "tools/node_modules"
-      },
-      {
-        "type": "folder",
-        "value": "_trash"
       }
     ],
     "include": []
