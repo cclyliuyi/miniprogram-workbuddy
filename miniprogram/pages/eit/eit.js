@@ -14,7 +14,7 @@ Page({
   onLoad() {
     const cards = CARDS.map(c => ({
       ...c,
-      imageSrc: EIT_FILE_IDS[c.id] || `/pages/eit/images/${c.image}`,
+      imageSrc: EIT_FILE_IDS[c.id],
       tagText: c.tags.join(' / '),
     }));
     const readSet = wx.getStorageSync('eit_read') || [];

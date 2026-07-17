@@ -17,7 +17,7 @@ Page({
 
     const cards = CARDS.map(c => ({
       ...c,
-      imageSrc: EIT_FILE_IDS[c.id] || `/pages/eit/images/${c.image}`,
+      imageSrc: EIT_FILE_IDS[c.id],
       // 公式图：card 1~11 有渲染图，card 12 用文本
       formulaImage: EIT_FORMULA_IDS[c.id] || '',
     }));

@@ -23,7 +23,7 @@ Page({
 
     const cards = CARDS.map(c => ({
       ...c,
-      imageSrc: METHOD_FILE_IDS[c.id] || `/pages/method/images/${c.image}`,
+      imageSrc: METHOD_FILE_IDS[c.id],
       mappingList: c.mapping.map(m => ({ from: m[0], to: m[1] })),
       moduleList: Object.entries(c.modules).map(([k, v]) => ({
         label: k,

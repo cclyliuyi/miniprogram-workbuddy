@@ -14,7 +14,7 @@ Page({
   onLoad() {
     const cards = CARDS.map(c => ({
       ...c,
-      imageSrc: METHOD_FILE_IDS[c.id] || `/pages/method/images/${c.image}`,
+      imageSrc: METHOD_FILE_IDS[c.id],
       tagText: c.keywords.slice(0, 3).join(' / '),
     }));
     const readSet = wx.getStorageSync('method_read') || [];
