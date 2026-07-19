@@ -32,7 +32,7 @@
   border-radius: 20rpx;
   border: 1rpx solid var(--line-soft);
   box-shadow: 0 2rpx 16rpx rgba(32,32,28,.05);
-  transition: transform .18s, box-shadow .18s;
+  transition: transform var(--dur-fast) var(--ease-spring), box-shadow var(--dur-fast) var(--ease-spring);
 }
 .tl-card:active {
   transform: scale(.97);

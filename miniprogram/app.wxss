@@ -15,6 +15,14 @@ page {
   --shadow: 0 4rpx 20rpx rgba(32, 32, 28, 0.08);
   --shadow-lg: 0 16rpx 50rpx rgba(32, 32, 28, 0.14);
 
+  /* 动画系统 — Apple Fluid Interfaces 标准 */
+  --ease-spring: cubic-bezier(0.2, 0.8, 0.2, 1);          /* 临界阻尼，默认 UI */
+  --ease-spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1); /* 轻微过冲，收藏/翻卡 */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);               /* 快速入场 */
+  --dur-fast: 180ms;   /* 按压反馈 */
+  --dur-base: 300ms;   /* 标准 UI 过渡 */
+  --dur-slow: 450ms;   /* 大元素位移 */
+
   /* 字体 */
   --serif: 'Songti SC', 'STSong', 'Source Han Serif SC', 'Noto Serif SC', 'SimSun', serif;
   --sans: -apple-system, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
@@ -107,12 +115,12 @@ view, text, image { box-sizing: border-box; }
 /* —— 页面留白 —— */
 .screen { padding: 0 40rpx; }
 
-/* 轻量进场动画 —— 弹性曲线，更年轻 */
+/* 轻量进场动画 — 弹性曲线，更年轻 */
 @keyframes rise {
   from { opacity: 0; transform: translateY(18rpx) scale(.98); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
-.rise { animation: rise 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.rise { animation: rise var(--dur-slow) var(--ease-spring) both; }
 
 /* 弹性弹出（按钮/卡片用） */
 @keyframes pop {
@@ -120,7 +128,7 @@ view, text, image { box-sizing: border-box; }
   60%  { transform: scale(1.03); }
   100% { opacity: 1; transform: scale(1); }
 }
-.pop { animation: pop 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.pop { animation: pop var(--dur-base) var(--ease-spring-bounce) both; }
 
 /* 骨架屏 shimmer */
 @keyframes shimmer {
