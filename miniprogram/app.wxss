@@ -32,16 +32,18 @@ page {
   font-family: var(--sans);
   font-size: 28rpx;
   line-height: 1.6;
+  letter-spacing: 0;          /* 正文归零（Apple 标准） */
   -webkit-font-smoothing: antialiased;
 }
 
 view, text, image { box-sizing: border-box; }
 
 /* —— 排版工具类 —— */
+/* Apple 原则：大字号收紧，小字号放松，正文归零 */
 .kicker {
   font-family: var(--sans);
   font-size: 22rpx;
-  letter-spacing: 6rpx;
+  letter-spacing: 4rpx;       /* 小标签放松（原 6rpx 过松，4rpx 更均衡） */
   text-transform: uppercase;
   color: var(--muted);
   font-weight: 500;
@@ -49,13 +51,15 @@ view, text, image { box-sizing: border-box; }
 .display {
   font-family: var(--serif);
   font-weight: 600;
-  letter-spacing: 2rpx;
+  letter-spacing: -0.5rpx;    /* 大标题收紧（原 2rpx 是正间距，大字会松散） */
   color: var(--ink);
+  line-height: 1.1;           /* 大标题紧凑行高 */
 }
 .num {
   font-family: var(--serif);
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum';
+  letter-spacing: 0;          /* 数字等宽，零字距 */
 }
 
 /* —— 照片框：细边 + 柔影 + 圆角，编辑风装裱 —— */

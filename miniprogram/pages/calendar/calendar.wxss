@@ -76,8 +76,8 @@
   border-radius: 2rpx;
   transform: rotate(45deg);
 }
-.ft-month { font-size: 44rpx; line-height: 1; }
-.ft-year { font-size: 26rpx; color: var(--muted); }
+.ft-month { font-size: 44rpx; line-height: 1; letter-spacing: -0.5rpx; }
+.ft-year { font-size: 26rpx; color: var(--muted); letter-spacing: 1rpx; }
 .ft-nav { display: flex; gap: 14rpx; }
 .ft-btn {
   width: 64rpx; height: 64rpx; border-radius: 50%;

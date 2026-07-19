@@ -8,11 +8,13 @@
 .tl-title {
   font-size: 52rpx;
   margin: 8rpx 0 6rpx;
+  letter-spacing: -1rpx;   /* 52rpx 大标题收紧 */
+  line-height: 1.05;
 }
 .tl-sub {
   font-size: 24rpx;
   color: var(--muted);
-  letter-spacing: 1rpx;
+  letter-spacing: 0.5rpx;
 }
 
 /* ═══ 卡片网格 ═══ */
