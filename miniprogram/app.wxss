@@ -183,8 +183,10 @@ view, text, image { box-sizing: border-box; }
 
 /* 减弱动画：前庭敏感用户，消除无限循环/3D 变换/弹簧 */
 @media (prefers-reduced-motion: reduce) {
-  /* 全局：所有动画/过渡降到 0.01ms，内容直接到位 */
-  * {
+  /* 全局：常用元素动画/过渡降到 0.01ms（WXSS 不支持 * 通配符，枚举常见元素） */
+  view, text, image, canvas, input, textarea, button, scroll-view, swiper, swiper-item,
+  .rise, .pop, .skeleton, .flip-inner, .flip-face, .cell-card, .today-dot,
+  .btn, .tl-card, .ft-btn, .mp-cell, .mp-panel, .mp-mask, .tab-item, .fav-heart-sm {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
