@@ -1,0 +1,16 @@
+<!-- custom-tab-bar/index.wxml —— 毛玻璃底栏（Apple 材质系统） -->
+<view class="tab-bar">
+  <view
+    wx:for="{{list}}"
+    wx:key="pagePath"
+    class="tab-item {{selected === index ? 'tab-on' : ''}}"
+    bindtap="onTap"
+    data-index="{{index}}"
+    data-path="{{item.pagePath}}">
+    <view class="tab-icon-wrap">
+      <view class="tab-icon tab-icon-{{item.icon}}"></view>
+      <view wx:if="{{selected === index}}" class="tab-dot"></view>
+    </view>
+    <text class="tab-text">{{item.text}}</text>
+  </view>
+</view>

@@ -1,0 +1,170 @@
+/* custom-tab-bar/index.wxss —— 毛玻璃材质（Apple vibrancy） */
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  height: calc(100rpx + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: rgba(251, 249, 244, 0.78);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-top: 0.5rpx solid rgba(32, 32, 28, 0.08);
+  z-index: 999;
+}
+
+/* 暗色模式 */
+@media (prefers-color-scheme: dark) {
+  .tab-bar {
+    background: rgba(26, 24, 20, 0.82);
+    border-top-color: rgba(240, 235, 226, 0.08);
+  }
+}
+
+/* 减弱透明度降级 */
+@media (prefers-reduced-transparency: reduce) {
+  .tab-bar {
+    background: var(--paper, #fbf9f4);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  @media (prefers-color-scheme: dark) {
+    .tab-bar { background: var(--paper, #1a1814); }
+  }
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  padding-top: 12rpx;
+  transition: transform var(--dur-fast) var(--ease-spring);
+}
+.tab-item:active { transform: scale(0.92); }
+
+.tab-icon-wrap {
+  position: relative;
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 图标用纯 CSS 绘制（避免图标字体依赖） */
+.tab-icon {
+  width: 36rpx;
+  height: 36rpx;
+  transition: all var(--dur-base) var(--ease-spring);
+  opacity: 0.45;
+}
+
+/* 日历图标：网格 */
+.tab-icon-cal {
+  border: 3rpx solid var(--ink);
+  border-radius: 6rpx;
+  position: relative;
+}
+.tab-icon-cal::before {
+  content: '';
+  position: absolute;
+  top: -6rpx; left: 4rpx; right: 4rpx;
+  height: 3rpx;
+  background: var(--ink);
+}
+.tab-icon-cal::after {
+  content: '';
+  position: absolute;
+  top: 4rpx; bottom: 4rpx;
+  left: 50%;
+  width: 3rpx;
+  background: var(--ink);
+  opacity: 0.4;
+}
+
+/* 前沿图标：闪电 */
+.tab-icon-eit {
+  background: var(--ink);
+  clip-path: polygon(60% 0, 0 60%, 40% 60%, 30% 100%, 100% 35%, 55% 35%);
+}
+
+/* 方法论图标：书本 */
+.tab-icon-mtd {
+  border: 3rpx solid var(--ink);
+  border-radius: 4rpx;
+  position: relative;
+}
+.tab-icon-mtd::before {
+  content: '';
+  position: absolute;
+  top: 25%; bottom: 25%;
+  left: 50%;
+  width: 2rpx;
+  background: var(--ink);
+  opacity: 0.4;
+}
+
+/* 工具图标：扳手/齿轮简化 */
+.tab-icon-tool {
+  border: 3rpx solid var(--ink);
+  border-radius: 50%;
+  position: relative;
+}
+.tab-icon-tool::after {
+  content: '';
+  position: absolute;
+  inset: 8rpx;
+  border: 2rpx solid var(--ink);
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+/* 收藏图标：心形（用两个圆 + 旋转方块组合） */
+.tab-icon-fav {
+  width: 32rpx;
+  height: 28rpx;
+  position: relative;
+  opacity: 0.45;
+}
+.tab-icon-fav::before,
+.tab-icon-fav::after {
+  content: '';
+  position: absolute;
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: var(--ink);
+  top: 0;
+}
+.tab-icon-fav::before { left: 0; }
+.tab-icon-fav::after { right: 0; }
+
+/* 选中态：图标提亮 + 上方小圆点 */
+.tab-item.tab-on .tab-icon {
+  opacity: 1;
+}
+.tab-dot {
+  position: absolute;
+  top: -4rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: var(--accent, #b06a4f);
+}
+
+.tab-text {
+  font-size: 20rpx;
+  color: var(--muted, #9b9384);
+  letter-spacing: 1rpx;
+  transition: color var(--dur-fast) var(--ease-spring);
+}
+.tab-item.tab-on .tab-text {
+  color: var(--ink, #20201c);
+  font-weight: 500;
+}

@@ -19,6 +19,9 @@ Page({
   },
 
   onShow() {
+    if (this.getTabBar && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 4 });
+    }
     // 每次进入都刷新（收藏/取消后回来能看到最新状态）
     this.loadFavs();
   },

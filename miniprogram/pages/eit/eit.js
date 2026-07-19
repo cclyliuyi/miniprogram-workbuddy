@@ -22,6 +22,9 @@ Page({
   },
 
   onShow() {
+    if (this.getTabBar && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 1 });
+    }
     const readSet = wx.getStorageSync('eit_read') || [];
     this.setData({ readSet });
   },

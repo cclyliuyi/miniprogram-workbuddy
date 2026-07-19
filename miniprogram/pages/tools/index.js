@@ -4,6 +4,12 @@ const haptic = require('../../utils/haptic')
 Page({
   data: {},
 
+  onShow() {
+    if (this.getTabBar && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 3 });
+    }
+  },
+
   goCalc() {
     haptic.light()
     wx.navigateTo({ url: '/pages/tools/calc/calc' })
