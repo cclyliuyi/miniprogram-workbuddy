@@ -256,7 +256,7 @@ Page({
   },
 
   toggleFlip() {
-    haptic.light()
+    haptic.medium()
     this.setData({ flipped: !this.data.flipped })
   },
   onStageTap() {

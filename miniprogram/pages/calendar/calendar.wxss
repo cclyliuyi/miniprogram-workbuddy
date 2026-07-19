@@ -281,7 +281,11 @@
   background: rgba(255,255,255,.72);
   border: 1rpx solid var(--line-soft);
   box-shadow: 0 2rpx 12rpx rgba(32,32,28,.05);
-  transition: transform var(--dur-fast) var(--ease-spring);
+  transition: transform 0.01s var(--ease-spring); /* 按下时近乎瞬时响应 */
+}
+/* 按下时立即缩放，释放后回弹用 bounce 曲线 */
+.cell-card:active {
+  transition: transform var(--dur-fast) var(--ease-spring-bounce);
 }
 @media (prefers-color-scheme: dark) {
   .cell-card { background: rgba(42, 39, 36, .72); }
@@ -516,7 +520,7 @@
   border-radius: 32rpx 32rpx 0 0;
   padding: 40rpx 40rpx calc(40rpx + env(safe-area-inset-bottom));
   transform: translateY(100%);
-  transition: transform var(--dur-base) var(--ease-spring);
+  transition: transform var(--dur-slow) var(--ease-spring);
   box-shadow: 0 -8rpx 40rpx rgba(0,0,0,.12);
 }
 .mp-mask.mp-show .mp-panel {
