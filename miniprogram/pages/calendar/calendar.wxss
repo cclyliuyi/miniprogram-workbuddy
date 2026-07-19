@@ -291,9 +291,12 @@
   border: 1rpx dashed var(--line);
   border-radius: 14rpx;
 }
-/* 今日高亮 — 鼠尾草绿环 + 右上角圆点标记 */
+/* 今日高亮 — 鼠尾草绿强调环 + 内嵌高光（静态，不做无限脉冲） */
 .cell-card.is-today {
-  box-shadow: 0 0 0 3rpx var(--sage), 0 2rpx 12rpx rgba(122,145,129,.20);
+  box-shadow:
+    0 0 0 2rpx var(--sage),
+    inset 0 0 0 1rpx rgba(255,255,255,0.15),
+    0 4rpx 16rpx rgba(122,145,129,0.22);
 }
 /* 今日日期数字用鼠尾草绿强调 */
 .cell-card.is-today .date-solar {
@@ -302,7 +305,7 @@
 .cell-card.is-today.is-today-noimg .date-solar {
   color: var(--sage);
 }
-/* 右上角「今」圆点 */
+/* 左上角「今」圆点 — 进场一次性弹出，不做无限脉冲（避免前庭疲劳） */
 .today-dot {
   position: absolute;
   top: 6rpx;
@@ -313,11 +316,12 @@
   background: var(--sage);
   z-index: 3;
   box-shadow: 0 0 0 3rpx rgba(122,145,129,.2);
-  animation: today-pulse 2s ease-in-out infinite;
+  animation: today-pop var(--dur-base) var(--ease-spring-bounce) 1;
 }
-@keyframes today-pulse {
-  0%, 100% { box-shadow: 0 0 0 3rpx rgba(122,145,129,.2); }
-  50% { box-shadow: 0 0 0 5rpx rgba(122,145,129,.12); }
+@keyframes today-pop {
+  0%   { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.25); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
 }
 .cell:active .cell-card { transform: scale(.96); }
 
