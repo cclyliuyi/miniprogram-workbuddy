@@ -1,5 +1,5 @@
 <!-- custom-tab-bar/index.wxml —— 毛玻璃底栏（Apple 材质系统） -->
-<view class="tab-bar">
+<view class="tab-bar {{ready ? 'tab-bar-ready' : ''}}">
   <view
     wx:for="{{list}}"
     wx:key="pagePath"
