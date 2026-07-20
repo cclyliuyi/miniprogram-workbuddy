@@ -51,7 +51,8 @@ Page({
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
       renderer.setPixelRatio(Math.min(dpr, 2));
       renderer.setSize(cssW, cssH, false);
-      renderer.setClearColor(0x090b14, 1);
+      // 暖色调浅灰背景，呼应外部纸感主题，模拟实验室天花板漫反射光
+      renderer.setClearColor(0x3a3d48, 1);
       this.renderer = renderer;
 
       const scene = new THREE.Scene();
@@ -65,13 +66,21 @@ Page({
       controls.target.set(0, 0.75, 0);
       this.controls = controls;
 
-      scene.add(new THREE.AmbientLight(0xffffff, 0.46));
-      const key = new THREE.DirectionalLight(0xffffff, 0.95);
-      key.position.set(-2, 4, 3);
+      // ── 三点布光（模拟实验室天花板灯阵 + 侧窗补光） ──
+      // 1) 暖白环境光 — 提亮整体，避免阴影区死黑
+      scene.add(new THREE.AmbientLight(0xfff4e6, 0.75));
+      // 2) 主光（顶光）— 暖色调，模拟天花板 LED 面板
+      const key = new THREE.DirectionalLight(0xfff0d8, 1.3);
+      key.position.set(-2, 5, 3);
       scene.add(key);
-      const fill = new THREE.PointLight(0x5f8bff, 0.82, 5);
+      // 3) 辅光（冷色侧补）— 平衡阴影，增加体积感
+      const fill = new THREE.PointLight(0xb8d4ff, 1.2, 8);
       fill.position.set(1.2, 1.4, 1.2);
       scene.add(fill);
+      // 4) 轮廓光（背后低角度）— 勾勒喇叭和吸波锥边缘
+      const rim = new THREE.DirectionalLight(0xffd9a8, 0.6);
+      rim.position.set(2.5, 1.2, -2);
+      scene.add(rim);
 
       const root = new THREE.Group();
       scene.add(root);
@@ -105,9 +114,12 @@ Page({
   buildChamber() {
     const THREE = this.THREE;
     const root = this.root;
-    const matFloor = new THREE.MeshStandardMaterial({ color: 0x2a3550, roughness: 0.86 });
-    const matWall = new THREE.MeshStandardMaterial({ color: 0x252d40, roughness: 0.88 });
-    const matAbs = new THREE.MeshStandardMaterial({ color: 0x4a5478, roughness: 0.92 });
+    // 地面：浅灰水泥色，粗糙但反光，模拟实验室地坪
+    const matFloor = new THREE.MeshStandardMaterial({ color: 0x6b6f7d, roughness: 0.72, metalness: 0.08 });
+    // 墙壁：蓝灰底色（比原来亮一档），模拟金属屏蔽墙
+    const matWall = new THREE.MeshStandardMaterial({ color: 0x5a6175, roughness: 0.68, metalness: 0.22 });
+    // 吸波锥：经典暗室深蓝灰泡沫色，但比原来亮很多
+    const matAbs = new THREE.MeshStandardMaterial({ color: 0x4a5575, roughness: 0.95, metalness: 0.0 });
 
     const addBox = (w, h, d, x, y, z, mat) => {
       const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
@@ -121,7 +133,7 @@ Page({
     addBox(6, 2.4, 0.08, 0, 1.16, -2, matWall);
     addBox(6, 0.08, 4, 0, 2.36, 0, matWall);
 
-    // 吸波锥（大幅减少数量：间距 0.8，总数 ~48）
+    // 吸波锥（间距 0.8，总数 ~48）
     const coneGeo = new THREE.ConeGeometry(0.12, 0.38, 4);
     coneGeo.rotateX(Math.PI / 2);
     for (const side of [-1, 1]) {
@@ -155,11 +167,14 @@ Page({
     const THREE = this.THREE;
     opts = opts || {};
     const g = new THREE.Group();
+    // 喇叭主体：暖金色铝合金，高金属度，偏亮
     const matHorn = new THREE.MeshStandardMaterial({
-      color: 0xc7892d, metalness: 0.82, roughness: 0.28, side: THREE.DoubleSide
+      color: 0xd49858, metalness: 0.85, roughness: 0.22, side: THREE.DoubleSide
     });
-    const matHornDark = new THREE.MeshStandardMaterial({ color: 0x2a1705, metalness: 0.45, roughness: 0.52 });
-    const matBase = new THREE.MeshStandardMaterial({ color: 0x252d40, roughness: 0.74 });
+    // 喇叭暗部：深棕铜色
+    const matHornDark = new THREE.MeshStandardMaterial({ color: 0x6b4520, metalness: 0.5, roughness: 0.42 });
+    // 底座：深石板灰
+    const matBase = new THREE.MeshStandardMaterial({ color: 0x4a5060, roughness: 0.6, metalness: 0.3 });
 
     const addBox = (w, h, d, x, y, z, mat) => {
       const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
@@ -225,8 +240,8 @@ Page({
 
   addTurntable(parent) {
     const THREE = this.THREE;
-    const matBase = new THREE.MeshStandardMaterial({ color: 0x252d40, roughness: 0.74 });
-    const matTop = new THREE.MeshStandardMaterial({ color: 0x394255, roughness: 0.54 });
+    const matBase = new THREE.MeshStandardMaterial({ color: 0x4a5060, roughness: 0.6, metalness: 0.3 });
+    const matTop = new THREE.MeshStandardMaterial({ color: 0x6a7388, roughness: 0.4, metalness: 0.45 });
     const addCyl = (r, h, x, y, z, mat, seg = 64) => {
       const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, seg), mat);
       m.position.set(x, y, z); parent.add(m);
@@ -239,16 +254,16 @@ Page({
   addAutHorn(parent) {
     const THREE = this.THREE;
     this.addHornModel(parent, { x: 0.05, y: 0.88, z: 0, rotationY: Math.PI, scale: 0.72, stand: false });
-    const matBase = new THREE.MeshStandardMaterial({ color: 0x252d40, roughness: 0.74 });
+    const matBase = new THREE.MeshStandardMaterial({ color: 0x4a5060, roughness: 0.6, metalness: 0.3 });
     const m = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.16, 0.18), matBase);
     m.position.set(0.18, 0.56, 0); parent.add(m);
   },
 
   addDipole(parent) {
     const THREE = this.THREE;
-    const matBase = new THREE.MeshStandardMaterial({ color: 0x252d40, roughness: 0.74 });
-    const matCopper = new THREE.MeshStandardMaterial({ color: 0xc98a2b, metalness: 0.7, roughness: 0.3 });
-    const matDark = new THREE.MeshStandardMaterial({ color: 0x2a1705, metalness: 0.45, roughness: 0.52 });
+    const matBase = new THREE.MeshStandardMaterial({ color: 0x4a5060, roughness: 0.6, metalness: 0.3 });
+    const matCopper = new THREE.MeshStandardMaterial({ color: 0xe0a040, metalness: 0.75, roughness: 0.25 });
+    const matDark = new THREE.MeshStandardMaterial({ color: 0x6b4520, metalness: 0.5, roughness: 0.42 });
 
     const addBox = (w, h, d, x, y, z, mat) => {
       const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
@@ -271,11 +286,11 @@ Page({
 
   addPatchPanel(parent, withArray) {
     const THREE = this.THREE;
-    const matBoard = new THREE.MeshStandardMaterial({ color: 0x2ca66f, emissive: 0x03180f, roughness: 0.5 });
-    const matSubstrate = new THREE.MeshStandardMaterial({ color: 0x1f6f56, roughness: 0.58 });
-    const matCopper = new THREE.MeshStandardMaterial({ color: 0xc98a2b, metalness: 0.7, roughness: 0.3 });
-    const matFeed = new THREE.MeshStandardMaterial({ color: 0x172233, roughness: 0.7 });
-    const matBase = new THREE.MeshStandardMaterial({ color: 0x252d40, roughness: 0.74 });
+    const matBoard = new THREE.MeshStandardMaterial({ color: 0x3cb87a, emissive: 0x062418, roughness: 0.45, metalness: 0.15 });
+    const matSubstrate = new THREE.MeshStandardMaterial({ color: 0x2a8a68, roughness: 0.52 });
+    const matCopper = new THREE.MeshStandardMaterial({ color: 0xe0a040, metalness: 0.75, roughness: 0.25 });
+    const matFeed = new THREE.MeshStandardMaterial({ color: 0x2a3040, roughness: 0.6, metalness: 0.3 });
+    const matBase = new THREE.MeshStandardMaterial({ color: 0x4a5060, roughness: 0.6, metalness: 0.3 });
 
     const addBox = (w, h, d, x, y, z, mat) => {
       const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
@@ -345,11 +360,11 @@ Page({
     }
     this.sampleGroup.add(new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(pts),
-      new THREE.LineBasicMaterial({ color: 0x53607f, transparent: true, opacity: 0.42 })
+      new THREE.LineBasicMaterial({ color: 0x88aaff, transparent: true, opacity: 0.6 })
     ));
 
-    // 已采样点
-    const matBlue = new THREE.MeshStandardMaterial({ color: 0x6f91ff, emissive: 0x07143f, roughness: 0.38 });
+    // 已采样点：亮青蓝发光球，更醒目
+    const matBlue = new THREE.MeshStandardMaterial({ color: 0x4fa0ff, emissive: 0x1a4a8a, emissiveIntensity: 0.6, roughness: 0.3, metalness: 0.2 });
     for (const deg of this.state.samples) {
       const a = deg * Math.PI / 180;
       const m = new THREE.Mesh(new THREE.SphereGeometry(0.022, 12, 12), matBlue);
@@ -489,10 +504,11 @@ Page({
     const w = this.plotW, h = this.plotH;
     const cx = w / 2, cy = h / 2;
     const R = Math.min(w, h) * 0.38;
-    pg.fillStyle = '#0a0c16';
+    // 浅色背景，与整体暖色调一致
+    pg.fillStyle = '#fbf9f4';
     pg.fillRect(0, 0, w, h);
 
-    pg.strokeStyle = '#252b46';
+    pg.strokeStyle = '#d8d2c4';
     for (const r of [0.25, 0.5, 0.75, 1]) {
       pg.beginPath(); pg.arc(cx, cy, R * r, 0, Math.PI * 2); pg.stroke();
     }
@@ -501,7 +517,8 @@ Page({
     pg.moveTo(cx, cy - R - 8); pg.lineTo(cx, cy + R + 8);
     pg.stroke();
 
-    pg.strokeStyle = '#f4f4f8';
+    // 方向图曲线：赤陶色
+    pg.strokeStyle = '#b06a4f';
     pg.lineWidth = 2;
     pg.beginPath();
     let first = true, firstPoint = null;
@@ -521,9 +538,9 @@ Page({
     }
     pg.stroke();
 
-    // 当前指针
+    // 当前指针：鼠尾草绿
     const a = (this.state.ang - 90) * Math.PI / 180;
-    pg.strokeStyle = '#64d79f';
+    pg.strokeStyle = '#7a9181';
     pg.beginPath(); pg.moveTo(cx, cy);
     pg.lineTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R);
     pg.stroke();

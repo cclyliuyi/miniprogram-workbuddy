@@ -8,7 +8,7 @@
 /* ── Canvas ── */
 .lab3d-canvas-wrap {
   margin: 0 12rpx 20rpx;
-  background: #090b14;
+  background: #3a3d48;
   border-radius: 20rpx;
   border: 1rpx solid var(--line-soft);
   box-shadow: 0 2rpx 16rpx rgba(32,32,28,.05);
@@ -26,7 +26,7 @@
   left: 50%;
   transform: translateX(-50%);
   font-size: 20rpx;
-  color: rgba(255,255,255,.35);
+  color: rgba(255,255,255,.5);
   white-space: nowrap;
 }
 
