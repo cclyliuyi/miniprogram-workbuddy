@@ -12,17 +12,9 @@
   -webkit-backdrop-filter: saturate(180%) blur(12px);
   border-top: 0.5rpx solid rgba(32, 32, 28, 0.08);
   z-index: 999;
-  /* GPU 合成层：首次实例化时避免全屏重绘闪烁 */
+  /* GPU 合成层提升：提前建立合成层，减少首帧重绘 */
   transform: translateZ(0);
-  will-change: opacity;
-  /* 初始隐藏：等 JS attached → ready 后再淡入，掩盖 backdrop-filter 首帧合成开销 */
-  opacity: 0;
-  transition: opacity var(--dur-slow, 450ms) var(--ease-spring, ease-out);
-}
-
-/* JS 标记 ready 后淡入 */
-.tab-bar-ready {
-  opacity: 1;
+  will-change: transform;
 }
 
 /* 暗色模式 */
@@ -42,14 +34,6 @@
   }
   @media (prefers-color-scheme: dark) {
     .tab-bar { background: var(--paper, #1a1814); }
-  }
-}
-
-/* 减弱动画降级：禁用淡入过渡 */
-@media (prefers-reduced-motion: reduce) {
-  .tab-bar {
-    opacity: 1;
-    transition: none;
   }
 }
 
