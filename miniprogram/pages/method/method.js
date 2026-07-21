@@ -22,9 +22,6 @@ Page({
   },
 
   onShow() {
-    if (this.getTabBar && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 2 });
-    }
     const readSet = wx.getStorageSync('method_read') || [];
     this.setData({ readSet });
   },

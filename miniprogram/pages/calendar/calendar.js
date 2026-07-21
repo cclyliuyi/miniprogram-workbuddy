@@ -102,10 +102,6 @@ Page({
   },
 
   onShow() {
-    // 同步自定义 tabBar 选中态
-    if (this.getTabBar && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 0 });
-    }
     // 刷新打卡进度（从 day-detail 回来时需要更新）
     this.refreshProgress();
     // 从年视图切回时，若带了目标月份则定位过去

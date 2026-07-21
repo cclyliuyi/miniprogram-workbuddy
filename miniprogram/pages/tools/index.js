@@ -4,11 +4,7 @@ const haptic = require('../../utils/haptic')
 Page({
   data: {},
 
-  onShow() {
-    if (this.getTabBar && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 3 });
-    }
-  },
+  onShow() {},
 
   goCalc() {
     haptic.light()
