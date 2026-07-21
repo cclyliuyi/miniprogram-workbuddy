@@ -42,7 +42,7 @@ Page({
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
       renderer.setPixelRatio(Math.min(dpr, 2));
       renderer.setSize(cssW, cssH, false);
-      renderer.setClearColor(0x0a0c16, 1);
+      renderer.setClearColor(0x2a2e3a, 1);
       this.renderer = renderer;
 
       const scene = new THREE.Scene();
@@ -55,13 +55,17 @@ Page({
       controls.enableDamping = true;
       this.controls = controls;
 
-      scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-      const sun = new THREE.DirectionalLight(0xffffff, 0.8);
+      // 三点布光（暖色调）
+      scene.add(new THREE.AmbientLight(0xfff4e6, 0.75));
+      const sun = new THREE.DirectionalLight(0xfff0d8, 1.2);
       sun.position.set(4, 8, 5);
       scene.add(sun);
+      const rim = new THREE.DirectionalLight(0xffd9a8, 0.5);
+      rim.position.set(-3, 2, -4);
+      scene.add(rim);
 
       // 地面网格
-      const grid = new THREE.GridHelper(8, 32, 0x1e2235, 0x171a28);
+      const grid = new THREE.GridHelper(8, 32, 0x5a607a, 0x4a5068);
       grid.position.y = -2;
       scene.add(grid);
 

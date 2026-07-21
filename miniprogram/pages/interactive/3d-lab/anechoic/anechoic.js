@@ -51,8 +51,8 @@ Page({
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
       renderer.setPixelRatio(Math.min(dpr, 2));
       renderer.setSize(cssW, cssH, false);
-      // 暖色调浅灰背景，呼应外部纸感主题，模拟实验室天花板漫反射光
-      renderer.setClearColor(0x3a3d48, 1);
+      // 暖色调浅灰背景，呼应外部纸感主题
+      renderer.setClearColor(0x2a2e3a, 1);
       this.renderer = renderer;
 
       const scene = new THREE.Scene();

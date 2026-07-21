@@ -101,7 +101,7 @@ Page({
         const dpr = wx.getWindowInfo().pixelRatio;
         renderer.setPixelRatio(Math.min(dpr, 2));
         renderer.setSize(cssW, cssH, false);
-        renderer.setClearColor(0x0d0f1a, 1);
+        renderer.setClearColor(0x2a2e3a, 1);
         console.log('[r3d] ✅ renderer created, drawingBuffer:', renderer.domElement.width, 'x', renderer.domElement.height);
       } catch (err) {
         console.error('[r3d] ❌ renderer failed:', err);
@@ -118,11 +118,14 @@ Page({
       camera.lookAt(0, 0, 0);
       this.camera = camera;
 
-      // ── Step 3: 光源 ──
-      scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-      const dl = new THREE.DirectionalLight(0xffffff, 0.6);
+      // ── Step 3: 光源（暖色调三点布光） ──
+      scene.add(new THREE.AmbientLight(0xfff4e6, 0.85));
+      const dl = new THREE.DirectionalLight(0xfff0d8, 1.0);
       dl.position.set(5, 10, 5);
       scene.add(dl);
+      const rim = new THREE.DirectionalLight(0xffd9a8, 0.5);
+      rim.position.set(-5, 2, -5);
+      scene.add(rim);
 
       // ── Step 4: 诊断球 — 先放一个最简单的亮球，确认渲染管线通畅 ──
       const ball = new THREE.Mesh(

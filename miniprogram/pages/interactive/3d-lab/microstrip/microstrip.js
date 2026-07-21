@@ -48,7 +48,7 @@ Page({
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
       renderer.setPixelRatio(Math.min(dpr, 2));
       renderer.setSize(cssW, cssH, false);
-      renderer.setClearColor(0x090b14, 1);
+      renderer.setClearColor(0x2a2e3a, 1);
       this.renderer = renderer;
 
       const scene = new THREE.Scene();
@@ -62,11 +62,12 @@ Page({
       controls.target.set(0, 0.08, 0);
       this.controls = controls;
 
-      scene.add(new THREE.AmbientLight(0xffffff, 0.58));
-      const key = new THREE.DirectionalLight(0xffffff, 0.82);
+      // 三点布光（暖色调）
+      scene.add(new THREE.AmbientLight(0xfff4e6, 0.75));
+      const key = new THREE.DirectionalLight(0xfff0d8, 1.2);
       key.position.set(3, 4, 5);
       scene.add(key);
-      const rim = new THREE.DirectionalLight(0x6f91ff, 0.42);
+      const rim = new THREE.DirectionalLight(0xffd9a8, 0.5);
       rim.position.set(-3, 2, -4);
       scene.add(rim);
 
@@ -81,12 +82,12 @@ Page({
 
       // 初始化持久化 mesh（BoxGeometry 单位 1，后续 setBox 更新）
       const matSub = new THREE.MeshPhysicalMaterial({
-        color: 0x24556e, transparent: true, opacity: 0.48,
-        roughness: 0.65, metalness: 0, side: THREE.DoubleSide
+        color: 0x3a7090, transparent: true, opacity: 0.52,
+        roughness: 0.55, metalness: 0, side: THREE.DoubleSide
       });
-      const matGround = new THREE.MeshStandardMaterial({ color: 0xb26a24, metalness: 0.76, roughness: 0.34 });
-      const matCopper = new THREE.MeshStandardMaterial({ color: 0xd99a32, emissive: 0x241205, metalness: 0.78, roughness: 0.28 });
-      const matCut = new THREE.MeshBasicMaterial({ color: 0x0a0c16 });
+      const matGround = new THREE.MeshStandardMaterial({ color: 0xd08040, metalness: 0.78, roughness: 0.28 });
+      const matCopper = new THREE.MeshStandardMaterial({ color: 0xe0a040, emissive: 0x2a1810, metalness: 0.8, roughness: 0.22 });
+      const matCut = new THREE.MeshBasicMaterial({ color: 0x1a1e2a });
 
       this.substrate = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), matSub);
       this.ground = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), matGround);

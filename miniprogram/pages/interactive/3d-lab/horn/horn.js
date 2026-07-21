@@ -48,7 +48,7 @@ Page({
         const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
         renderer.setPixelRatio(Math.min(dpr, 2));
         renderer.setSize(cssW, cssH, false);
-        renderer.setClearColor(0x090b14, 1);
+        renderer.setClearColor(0x2a2e3a, 1);
         this.renderer = renderer;
 
         const scene = new THREE.Scene();
@@ -61,10 +61,14 @@ Page({
       controls.target.set(0, 0, 0);
       this.controls = controls;
 
-      scene.add(new THREE.AmbientLight(0xffffff, 0.54));
-      const sun = new THREE.DirectionalLight(0xffffff, 0.82);
+      // 三点布光（暖色调）
+      scene.add(new THREE.AmbientLight(0xfff4e6, 0.75));
+      const sun = new THREE.DirectionalLight(0xfff0d8, 1.2);
       sun.position.set(4, 3, 5);
       scene.add(sun);
+      const rim = new THREE.DirectionalLight(0xffd9a8, 0.5);
+      rim.position.set(-3, 1, -3);
+      scene.add(rim);
 
       const root = new THREE.Group();
       scene.add(root);
@@ -149,14 +153,14 @@ Page({
     geo.addAttribute('position', new THREE.Float32BufferAttribute(posArr, 3));
     geo.computeVertexNormals();
     const metal = new THREE.MeshStandardMaterial({
-      color: 0xc78a2e, metalness: 0.74, roughness: 0.32, side: THREE.DoubleSide
+      color: 0xd49858, metalness: 0.78, roughness: 0.24, side: THREE.DoubleSide
     });
     this.hornGroup.add(new THREE.Mesh(geo, metal));
 
     // 喉部
     const throat = new THREE.Mesh(
       new THREE.BoxGeometry(thr * 0.82, thr * 0.82, th),
-      new THREE.MeshStandardMaterial({ color: 0x5f6f8a, metalness: 0.55, roughness: 0.42 })
+      new THREE.MeshStandardMaterial({ color: 0x7a8aa0, metalness: 0.6, roughness: 0.38 })
     );
     throat.position.z = z0 - th * 0.55;
     this.hornGroup.add(throat);

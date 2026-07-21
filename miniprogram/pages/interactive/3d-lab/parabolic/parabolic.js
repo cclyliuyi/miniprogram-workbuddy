@@ -45,7 +45,7 @@ Page({
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
       renderer.setPixelRatio(Math.min(dpr, 2));
       renderer.setSize(cssW, cssH, false);
-      renderer.setClearColor(0x090b14, 1);
+      renderer.setClearColor(0x2a2e3a, 1);
       this.renderer = renderer;
 
       const scene = new THREE.Scene();
@@ -57,10 +57,14 @@ Page({
       controls.enableDamping = true;
       this.controls = controls;
 
-      scene.add(new THREE.AmbientLight(0xffffff, 0.55));
-      const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+      // 三点布光（暖色调）
+      scene.add(new THREE.AmbientLight(0xfff4e6, 0.75));
+      const sun = new THREE.DirectionalLight(0xfff0d8, 1.2);
       sun.position.set(3, 4, 5);
       scene.add(sun);
+      const rim = new THREE.DirectionalLight(0xffd9a8, 0.5);
+      rim.position.set(-3, 1, -3);
+      scene.add(rim);
 
       const root = new THREE.Group();
       scene.add(root);
@@ -186,7 +190,7 @@ Page({
     const feed = new THREE.Vector3(0, 0, m.F + m.dz);
     const feedMesh = new THREE.Mesh(
       new THREE.SphereGeometry(0.075, 18, 18),
-      new THREE.MeshStandardMaterial({ color: 0x5f8bff, emissive: 0x07143f, metalness: 0.35, roughness: 0.38 })
+      new THREE.MeshStandardMaterial({ color: 0x7fa0ff, emissive: 0x1a3870, emissiveIntensity: 0.5, metalness: 0.35, roughness: 0.38 })
     );
     feedMesh.position.copy(feed);
     this.dishGroup.add(feedMesh);
