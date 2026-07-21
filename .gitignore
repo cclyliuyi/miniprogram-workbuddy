@@ -11,6 +11,9 @@
 *.psd
 *.ai
 
+# 例外：tabBar 图标（小程序运行时必需，由 tools/gen_tabbar_icons.py 生成）
+!miniprogram/assets/tabbar/*.png
+
 # 允许小程序内引用的压缩 webp（tools/output 中的处理产物另排）
 # !miniprogram/assets/**/*.webp
 

@@ -199,11 +199,11 @@
     "backgroundColor": "#fbf9f4",
     "borderStyle": "white",
     "list": [
-      { "pagePath": "pages/calendar/calendar", "text": "日历" },
-      { "pagePath": "pages/eit/eit", "text": "前沿" },
-      { "pagePath": "pages/method/method", "text": "方法论" },
-      { "pagePath": "pages/tools/index", "text": "工具" },
-      { "pagePath": "pages/favs/favs", "text": "收藏" }
+      { "pagePath": "pages/calendar/calendar", "text": "日历", "iconPath": "assets/tabbar/calendar_default.png", "selectedIconPath": "assets/tabbar/calendar_active.png" },
+      { "pagePath": "pages/eit/eit", "text": "前沿", "iconPath": "assets/tabbar/frontier_default.png", "selectedIconPath": "assets/tabbar/frontier_active.png" },
+      { "pagePath": "pages/method/method", "text": "方法论", "iconPath": "assets/tabbar/method_default.png", "selectedIconPath": "assets/tabbar/method_active.png" },
+      { "pagePath": "pages/tools/index", "text": "工具", "iconPath": "assets/tabbar/tools_default.png", "selectedIconPath": "assets/tabbar/tools_active.png" },
+      { "pagePath": "pages/favs/favs", "text": "收藏", "iconPath": "assets/tabbar/favs_default.png", "selectedIconPath": "assets/tabbar/favs_active.png" }
     ]
   },
   "sitemapLocation": "sitemap.json",
