@@ -206,6 +206,7 @@
       { "pagePath": "pages/favs/favs", "text": "收藏", "iconPath": "assets/tabbar/favs_default.png", "selectedIconPath": "assets/tabbar/favs_active.png" }
     ]
   },
+  "lazyCodeLoading": "requiredComponents",
   "sitemapLocation": "sitemap.json",
   "style": "v2"
 }
