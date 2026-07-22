@@ -1,6 +1,7 @@
-// pages/interactive/3d-lab/traveling-wave/traveling-wave.js —— 行波天线 3D (r108)
+// pages/interactive/3d-lab/traveling-wave/traveling-wave.js —— 行波天线 3D (r108) · 深空暖金 v2
 const { createScopedThreejs } = require('threejs-miniprogram');
 const { registerOrbitControls } = require('../orbit-controls');
+const stage = require('../lab3d-stage');
 
 Page({
   data: {
@@ -9,6 +10,8 @@ Page({
     gSlider: 15, gVal: '0.15',
     angSlider: 35, angVal: '35°',
     mainAng: '-', fb: '-', ripple: '-', mode: '-',
+    showHint: true,
+    glReady: false,
   },
 
   THREE: null, canvasNode: null, renderer: null, scene: null,
@@ -20,7 +23,8 @@ Page({
 
   onReady() { this.initThree(); this.init2D(); },
   onUnload() { this.dispose(); },
-  onHide() { this.stopAnim(); },
+  onHide() { this.stopAnim(); stage.clearTimers(this); },
+  onShow() { if (this.canvasNode && this.renderer) { this.startAnim(); stage.scheduleIdle(this); } },
 
   initThree() {
     const sel = this.createSelectorQuery();
@@ -42,26 +46,22 @@ Page({
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
       renderer.setPixelRatio(Math.min(dpr, 2));
       renderer.setSize(cssW, cssH, false);
-      renderer.setClearColor(0x2a2e3a, 1);
+      renderer.setClearColor(stage.COL.bgEdge, 1);
       this.renderer = renderer;
 
       const scene = new THREE.Scene();
       this.scene = scene;
-      const camera = new THREE.PerspectiveCamera(42, cssW / cssH, 0.01, 100);
+      const camera = new THREE.PerspectiveCamera(42, cssW / cssH, 0.01, 200);
       this.camera = camera;
 
       const controls = new THREE.OrbitControls(camera, canvas);
       controls.enableDamping = true;
+      controls.autoRotateSpeed = 1.0;
       this.controls = controls;
 
-      // 三点布光（暖色调）
-      scene.add(new THREE.AmbientLight(0xfff4e6, 0.75));
-      const sun = new THREE.DirectionalLight(0xfff0d8, 1.2);
-      sun.position.set(2, 4, 3);
-      scene.add(sun);
-      const rim = new THREE.DirectionalLight(0xffd9a8, 0.5);
-      rim.position.set(-2, 1, -3);
-      scene.add(rim);
+      // 深空暖金舞台 + 三灯（方向图平面在 y=-0.58，地面放其下）
+      stage.buildStage(THREE, scene, { groundY: -0.85 });
+      stage.buildLights(THREE, scene);
 
       const root = new THREE.Group();
       scene.add(root);
@@ -74,15 +74,11 @@ Page({
 
       this.renderStatic();
       this.startAnim();
+      stage.ready(this);
     });
   },
 
-  clearGroup(g) {
-    while (g.children.length) {
-      const o = g.children.pop();
-      if (o.geometry) o.geometry.dispose();
-    }
-  },
+  clearGroup(g) { stage.clearGroup(g); },
 
   armDirs() {
     const THREE = this.THREE;
@@ -148,7 +144,7 @@ Page({
     }
 
     const p = this.pattern();
-    const patMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.78 });
+    const patMat = new THREE.LineBasicMaterial({ color: 0xf0e6d6, transparent: true, opacity: 0.78 });
     const pts = [];
     p.vals.forEach((v, i) => {
       const th = (-90 + i * 0.5) * Math.PI / 180;
@@ -157,8 +153,14 @@ Page({
     });
     this.patternGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), patMat));
 
-    this.camera.position.set(1.8, 1.3, 2.1);
-    this.controls.target.set(0, 0, 0.35);
+    // 相机只在首次定位；之后用户视角不被参数修改打断
+    if (!this._camInit) {
+      this.camera.position.set(1.8, 1.3, 2.1);
+      this.controls.target.set(0, 0, 0.35);
+      this.controls.update();
+      this._home = stage.saveHome(this.controls);
+      this._camInit = true;
+    }
     this.controls.update();
   },
 
@@ -169,7 +171,7 @@ Page({
 
     const scale = 0.32;
     const fwdMat = new THREE.MeshBasicMaterial({ color: 0xffc45f });
-    const revMat = new THREE.MeshBasicMaterial({ color: 0x5f8bff });
+    const revMat = new THREE.MeshBasicMaterial({ color: 0x6c88e8 });
 
     for (const dir of this.armDirs()) {
       for (let i = 0; i <= 30; i++) {
@@ -206,13 +208,14 @@ Page({
 
   dispose() {
     this.stopAnim();
+    stage.clearTimers(this);
     if (this.renderer) { this.renderer.dispose(); this.renderer = null; }
     if (this.controls) { this.controls.dispose(); this.controls = null; }
   },
 
-  onTouchStart(e) { if (this.controls) this.controls.onTouchStart(e); },
-  onTouchMove(e) { if (this.controls) this.controls.onTouchMove(e); },
-  onTouchEnd(e) { if (this.controls) this.controls.onTouchEnd(e); },
+  onTouchStart(e) { stage.touchStart(this, e); },
+  onTouchMove(e) { stage.touchMove(this, e); },
+  onTouchEnd(e) { stage.touchEnd(this, e); },
 
   onGeo(e) {
     this.state.geo = e.currentTarget.dataset.g;
@@ -224,15 +227,30 @@ Page({
     this.setData({ lVal: this.state.L.toFixed(1) });
     this.renderStatic();
   },
+  onLChanging(e) {
+    this.state.L = e.detail.value / 10;
+    this.setData({ lVal: this.state.L.toFixed(1) });
+    stage.throttle(this, 55, function () { this.renderStatic(); });
+  },
   onRef(e) {
     this.state.ref = e.detail.value / 100;
     this.setData({ gVal: this.state.ref.toFixed(2) });
     this.renderStatic();
   },
+  onRefChanging(e) {
+    this.state.ref = e.detail.value / 100;
+    this.setData({ gVal: this.state.ref.toFixed(2) });
+    stage.throttle(this, 55, function () { this.renderStatic(); });
+  },
   onAng(e) {
     this.state.ang = e.detail.value;
     this.setData({ angVal: this.state.ang + '°' });
     this.renderStatic();
+  },
+  onAngChanging(e) {
+    this.state.ang = e.detail.value;
+    this.setData({ angVal: this.state.ang + '°' });
+    stage.throttle(this, 55, function () { this.renderStatic(); });
   },
 
   renderStatic() {
@@ -276,17 +294,17 @@ Page({
     const cx = w / 2, cy = h / 2;
     const R = Math.min(w, h) * 0.39;
 
-    pg.fillStyle = '#0a0c16';
+    pg.fillStyle = '#1c2130';
     pg.fillRect(0, 0, w, h);
 
-    pg.strokeStyle = '#252b46';
+    pg.strokeStyle = '#313a55';
     for (const r of [0.25, 0.5, 0.75, 1]) {
       pg.beginPath();
       pg.arc(cx, cy, R * r, 0, Math.PI * 2);
       pg.stroke();
     }
 
-    pg.strokeStyle = '#fff';
+    pg.strokeStyle = '#f0e6d6';
     pg.lineWidth = 2;
     pg.beginPath();
     p.vals.forEach((v, i) => {

@@ -10,7 +10,11 @@
   <view class="lab3d-canvas-wrap rise">
     <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
-    <view class="lab3d-hint">单指拖动旋转 · 双指缩放</view>
+    <view wx:if="{{!glReady}}" class="lab3d-skel">
+      <view class="lab3d-skel-ring"></view>
+      <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
+    </view>
+    <view class="lab3d-hint {{showHint ? '' : 'fade'}}">单指旋转 · 双指缩放 · 双击复位</view>
   </view>
 
   <view class="lab3d-section rise">
@@ -25,9 +29,9 @@
   <view class="lab3d-section rise">
     <view class="kicker">转台控制</view>
     <view class="lab3d-row"><text class="lab3d-label">方位角 φ</text><text class="lab3d-val">{{angVal}}</text></view>
-    <slider min="0" max="359" step="1" value="{{angSlider}}" bindchange="onAng" block-size="18" />
+    <slider min="0" max="359" step="1" value="{{angSlider}}" bindchanging="onAngChanging" bindchange="onAng" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
     <view class="lab3d-row"><text class="lab3d-label">采样步进</text><text class="lab3d-val">{{stepVal}}</text></view>
-    <slider min="1" max="15" step="1" value="{{stepSlider}}" bindchange="onStep" block-size="18" />
+    <slider min="1" max="15" step="1" value="{{stepSlider}}" bindchanging="onStepChanging" bindchange="onStep" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
     <view class="lab3d-btns" style="margin-top:12rpx">
       <view class="lab3d-btn {{scanning?'on':''}}" bindtap="onScan">{{scanText}}</view>
       <view class="lab3d-btn" bindtap="onClear">清空</view>

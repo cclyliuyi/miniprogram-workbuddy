@@ -10,7 +10,11 @@
   <view class="lab3d-canvas-wrap rise">
     <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
-    <view class="lab3d-hint">单指拖动旋转 · 双指缩放</view>
+    <view wx:if="{{!glReady}}" class="lab3d-skel">
+      <view class="lab3d-skel-ring"></view>
+      <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
+    </view>
+    <view class="lab3d-hint {{showHint ? '' : 'fade'}}">单指旋转 · 双指缩放 · 双击复位</view>
   </view>
 
   <view class="lab3d-section rise">
@@ -27,17 +31,17 @@
       <text class="lab3d-label">长度 L/λ</text>
       <text class="lab3d-val">{{lVal}}</text>
     </view>
-    <slider min="5" max="80" step="1" value="{{lSlider}}" bindchange="onL" block-size="18" />
+    <slider min="5" max="80" step="1" value="{{lSlider}}" bindchanging="onLChanging" bindchange="onL" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
     <view class="lab3d-row">
       <text class="lab3d-label">终端反射 |Γ|</text>
       <text class="lab3d-val">{{gVal}}</text>
     </view>
-    <slider min="0" max="85" step="1" value="{{gSlider}}" bindchange="onRef" block-size="18" />
+    <slider min="0" max="85" step="1" value="{{gSlider}}" bindchanging="onRefChanging" bindchange="onRef" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
     <view class="lab3d-row">
       <text class="lab3d-label">V 形半角</text>
       <text class="lab3d-val">{{angVal}}</text>
     </view>
-    <slider min="10" max="75" step="1" value="{{angSlider}}" bindchange="onAng" block-size="18" />
+    <slider min="10" max="75" step="1" value="{{angSlider}}" bindchanging="onAngChanging" bindchange="onAng" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
   </view>
 
   <view class="lab3d-stats pop">

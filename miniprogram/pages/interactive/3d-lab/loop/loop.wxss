@@ -106,3 +106,51 @@
   color: var(--muted);
   line-height: 1.8;
 }
+
+/* ════════════════════════════════════════
+   深空暖金实验室 · 公共舞台样式（全部 3D 页共享）
+   ════════════════════════════════════════ */
+.lab3d-canvas-wrap {
+  background: linear-gradient(168deg, #454b63 0%, #262b3c 52%, #161a26 100%);
+  border: 1rpx solid rgba(212, 173, 126, 0.14);
+  box-shadow: 0 8rpx 32rpx rgba(22, 26, 38, 0.35);
+}
+
+/* 手势提示：2.4s 后淡出 */
+.lab3d-hint { transition: opacity 0.6s ease; }
+.lab3d-hint.fade { opacity: 0; }
+
+/* WebGL 初始化骨架屏 */
+.lab3d-skel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20rpx;
+  background: linear-gradient(168deg, #454b63 0%, #262b3c 52%, #161a26 100%);
+  z-index: 2;
+}
+.lab3d-skel-ring {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  border: 3rpx solid rgba(212, 173, 126, 0.25);
+  border-top-color: rgba(212, 173, 126, 0.9);
+  animation: lab3d-spin 0.9s linear infinite;
+}
+@keyframes lab3d-spin {
+  to { transform: rotate(360deg); }
+}
+.lab3d-skel-text {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 3rpx;
+}
+
+/* 无障碍：减弱动画时骨架环静止、提示不淡出 */
+@media (prefers-reduced-motion: reduce) {
+  .lab3d-skel-ring { animation: none; }
+  .lab3d-hint { transition: none; }
+}

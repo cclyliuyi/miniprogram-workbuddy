@@ -10,15 +10,19 @@
   <view class="lab3d-canvas-wrap rise">
     <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
-    <view class="lab3d-hint">单指拖动旋转 · 双指缩放</view>
+    <view wx:if="{{!glReady}}" class="lab3d-skel">
+      <view class="lab3d-skel-ring"></view>
+      <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
+    </view>
+    <view class="lab3d-hint {{showHint ? '' : 'fade'}}">单指旋转 · 双指缩放 · 双击复位</view>
   </view>
 
   <view class="lab3d-section rise">
     <view class="kicker">阵列配置</view>
     <view class="lab3d-row"><text class="lab3d-label">阵元数 N</text><text class="lab3d-val">{{nVal}}</text></view>
-    <slider min="4" max="20" step="1" value="{{nSlider}}" bindchange="onN" block-size="18" />
+    <slider min="4" max="20" step="1" value="{{nSlider}}" bindchanging="onNChanging" bindchange="onN" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
     <view class="lab3d-row"><text class="lab3d-label">阵元间距 d/λ</text><text class="lab3d-val">{{dVal}}</text></view>
-    <slider min="30" max="100" step="1" value="{{dSlider}}" bindchange="onD" block-size="18" />
+    <slider min="30" max="100" step="1" value="{{dSlider}}" bindchanging="onDChanging" bindchange="onD" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
   </view>
 
   <view class="lab3d-section rise">
@@ -33,7 +37,7 @@
   <view class="lab3d-section rise">
     <view class="kicker">副瓣控制</view>
     <view class="lab3d-row"><text class="lab3d-label">副瓣电平 SLL</text><text class="lab3d-val">{{sllVal}}</text></view>
-    <slider min="-40" max="-10" step="1" value="{{sllSlider}}" bindchange="onSll" block-size="18" />
+    <slider min="-40" max="-10" step="1" value="{{sllSlider}}" bindchanging="onSllChanging" bindchange="onSll" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
   </view>
 
   <view class="lab3d-stats pop">

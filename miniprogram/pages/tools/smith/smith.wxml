@@ -103,4 +103,10 @@
     <view class="ts-formula-item">失配损耗 ML = −10log(1 − |Γ|²)</view>
   </view>
 
+  <!-- 读图直觉 -->
+  <view class="tc-insight rise">
+    <view class="tc-insight-kicker">读图直觉</view>
+    <view class="tc-insight-text"><text class="tc-hl">圆心 = 匹配点（|Γ|=0），最外圈 = 全反射（|Γ|=1）</text>：点离圆心越近匹配越好。上半圆是感抗（+j，串电感往上走）、下半圆是容抗（−j，串电容往下走）；右端点开路、左端点短路。沿传输线向源移动 = 绕圆心顺时针旋转，每走 λ/2 恰好转一整圈 —— 这就是 λ/4 线能"反转"阻抗的几何解释。</view>
+  </view>
+
 </view>

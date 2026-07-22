@@ -10,7 +10,11 @@
   <view class="lab3d-canvas-wrap rise">
     <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
-    <view class="lab3d-hint">单指拖动旋转 · 双指缩放</view>
+    <view wx:if="{{!glReady}}" class="lab3d-skel">
+      <view class="lab3d-skel-ring"></view>
+      <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
+    </view>
+    <view class="lab3d-hint {{showHint ? '' : 'fade'}}">单指旋转 · 双指缩放 · 双击复位</view>
   </view>
 
   <!-- 参数控制 -->
@@ -20,17 +24,17 @@
       <text class="lab3d-label">半径 a/λ</text>
       <text class="lab3d-val">{{aVal}}</text>
     </view>
-    <slider min="10" max="200" step="2" value="{{aSlider}}" bindchange="onA" block-size="18" />
+    <slider min="10" max="200" step="2" value="{{aSlider}}" bindchanging="onAChanging" bindchange="onA" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
     <view class="lab3d-row">
       <text class="lab3d-label">匝数 N</text>
       <text class="lab3d-val">{{nVal}}</text>
     </view>
-    <slider min="1" max="8" step="1" value="{{nSlider}}" bindchange="onTurns" block-size="18" />
+    <slider min="1" max="8" step="1" value="{{nSlider}}" bindchanging="onTurnsChanging" bindchange="onTurns" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
     <view class="lab3d-row">
       <text class="lab3d-label">损耗电阻</text>
       <text class="lab3d-val">{{lossVal}}</text>
     </view>
-    <slider min="2" max="500" step="2" value="{{lossSlider}}" bindchange="onLoss" block-size="18" />
+    <slider min="2" max="500" step="2" value="{{lossSlider}}" bindchanging="onLossChanging" bindchange="onLoss" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
   </view>
 
   <!-- 读数 -->

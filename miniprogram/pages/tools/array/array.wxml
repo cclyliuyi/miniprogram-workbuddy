@@ -30,6 +30,11 @@
         <text class="ta-dr-note">L = λ</text>
       </view>
     </view>
+
+    <view class="tc-insight">
+      <view class="tc-insight-kicker">直觉</view>
+      <view class="tc-insight-text">真实偶极子要比 λ/2 <text class="tc-hl">短约 5% 才谐振</text>（末端效应：电流到端点不会瞬间归零）—— 所以图纸写的是 0.48λ，不是笔误。线越粗，缩短越多。</view>
+    </view>
   </view>
 
   <!-- 参数面板 -->
@@ -106,6 +111,11 @@
 
   <view class="ta-tip" wx:if="{{!hasResult}}">
     设置参数后点击「计算方向图」，将绘制均匀线阵的阵列因子极坐标方向图。
+  </view>
+
+  <view class="tc-insight">
+    <view class="tc-insight-kicker">直觉</view>
+    <view class="tc-insight-text">窗函数是拿主瓣宽度换副瓣：<text class="tc-hl">均匀加权主瓣最窄，但副瓣只有 -13.3 dB；切比雪夫能把副瓣按到任意低，代价是主瓣变胖</text>。记住两条安全线：d/λ=0.5 扫描无栅瓣；N 翻倍，波束窄一半、方向性 +3 dB。</view>
   </view>
 
 </view>

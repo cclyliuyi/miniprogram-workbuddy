@@ -11,7 +11,11 @@
   <view class="r3d-canvas-wrap rise">
     <canvas type="webgl" id="three-canvas" class="r3d-canvas"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
-    <view class="r3d-hint">单指拖动旋转 · 双指缩放</view>
+    <view wx:if="{{!glReady}}" class="lab3d-skel">
+      <view class="lab3d-skel-ring"></view>
+      <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
+    </view>
+    <view class="r3d-hint {{showHint ? '' : 'fade'}}">单指旋转 · 双指缩放 · 双击复位</view>
   </view>
 
   <!-- 天线类型 -->
@@ -29,7 +33,7 @@
   <!-- 自定义长度 -->
   <view class="r3d-section rise" wx:if="{{S.type==='custom'}}">
     <view class="kicker">半长度 h/λ = {{hlText}}</view>
-    <slider class="r3d-slider" min="5" max="200" step="1" value="{{hlSlider}}" bindchange="onHl" block-size="18" />
+    <slider class="r3d-slider" min="5" max="200" step="1" value="{{hlSlider}}" bindchanging="onHlChanging" bindchange="onHl" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
   </view>
 
   <!-- 方向图类型 -->
@@ -47,7 +51,7 @@
     <view class="r3d-slider-row">
       <text class="r3d-slider-label">透明度 {{S.opacityText}}</text>
     </view>
-    <slider class="r3d-slider" min="15" max="100" step="5" value="{{S.opacityVal}}" bindchange="onOpacity" block-size="18" />
+    <slider class="r3d-slider" min="15" max="100" step="5" value="{{S.opacityVal}}" bindchanging="onOpacityChanging" bindchange="onOpacity" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
     <view class="r3d-toggles">
       <view class="r3d-toggle {{S.rotate?'on':''}}" bindtap="onRotate">
         <text class="r3d-toggle-dot"></text>

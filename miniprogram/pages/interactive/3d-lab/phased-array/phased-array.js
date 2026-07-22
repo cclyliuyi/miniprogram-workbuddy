@@ -6,6 +6,7 @@
 const { createScopedThreejs } = require('threejs-miniprogram');
 const { registerOrbitControls } = require('../orbit-controls');
 const haptic = require('../../../../utils/haptic');
+const stage = require('../lab3d-stage');
 
 const NTH = 60;   // theta 采样（绕阵列轴）
 const NPH = 80;   // phi 采样（绕阵列轴旋转）
@@ -16,6 +17,8 @@ Page({
     S: { N: 8, d: 0.5, beta: 0, el: 'iso' },
     stats: null,
     scanOn: false,
+    showHint: true,
+    glReady: false,
   },
 
   THREE: null,
@@ -47,7 +50,8 @@ Page({
     this.init2D();
   },
   onUnload() { this.dispose(); },
-  onHide() { this.stopAnim(); },
+  onHide() { this.stopAnim(); stage.clearTimers(this); },
+  onShow() { if (this.canvasNode && this.renderer) { this.startAnim(); stage.scheduleIdle(this); } },
 
   // ═══════════════════════════════════════════════════════════════
   //  3D 初始化
@@ -75,36 +79,28 @@ Page({
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
       renderer.setPixelRatio(Math.min(this.dpr, 2));
       renderer.setSize(cssW, cssH, false);
-      renderer.setClearColor(0x2a2e3a, 1);
+      renderer.setClearColor(stage.COL.bgEdge, 1);
       this.renderer = renderer;
 
       const scene = new THREE.Scene();
       this.scene = scene;
 
-      const camera = new THREE.PerspectiveCamera(40, cssW / cssH, 0.01, 100);
+      const camera = new THREE.PerspectiveCamera(40, cssW / cssH, 0.01, 200);
       camera.position.set(2.6, 1.5, 2.6);
       this.camera = camera;
 
       const controls = new THREE.OrbitControls(camera, canvas);
       controls.enableDamping = true;
       controls.dampingFactor = 0.06;
+      controls.autoRotateSpeed = 1.0;
       controls.target.set(0, 0, 0);
       controls.update();
       this.controls = controls;
+      this._home = stage.saveHome(controls);
 
-      // 光照（暖色调三点布光）
-      scene.add(new THREE.AmbientLight(0xfff4e6, 0.75));
-      const sun = new THREE.DirectionalLight(0xfff0d8, 1.2);
-      sun.position.set(4, 8, 5);
-      scene.add(sun);
-      const rim = new THREE.DirectionalLight(0xffd9a8, 0.5);
-      rim.position.set(-3, 2, -4);
-      scene.add(rim);
-
-      // 地面网格
-      const grid = new THREE.GridHelper(6, 24, 0x5a607a, 0x4a5068);
-      grid.position.y = -1.4;
-      scene.add(grid);
+      // 深空暖金舞台 + 三灯（替换原 GridHelper 灰蓝网格）
+      stage.buildStage(THREE, scene, { groundY: -1.4 });
+      stage.buildLights(THREE, scene);
 
       // 坐标轴
       const axesGroup = new THREE.Group();
@@ -160,6 +156,7 @@ Page({
       this.rebuildElements();
       this.updatePattern();
       this.startAnim();
+      stage.ready(this);
     });
   },
 
@@ -167,12 +164,7 @@ Page({
   //  辅助
   // ═══════════════════════════════════════════════════════════════
 
-  clearGroup(g) {
-    while (g.children.length) {
-      const o = g.children.pop();
-      if (o.geometry) o.geometry.dispose();
-    }
-  },
+  clearGroup(g) { stage.clearGroup(g); },
 
   heatRGB(t) {
     t = Math.max(0, Math.min(1, t));
@@ -424,20 +416,21 @@ Page({
 
   dispose() {
     this.stopAnim();
+    stage.clearTimers(this);
     if (this.renderer) { this.renderer.dispose(); this.renderer = null; }
     if (this.controls) { this.controls.dispose(); this.controls = null; }
   },
 
   // ═══════════════════════════════════════════════════════════════
-  //  触摸事件
+  //  触摸事件（双击复位 + 闲置自转）
   // ═══════════════════════════════════════════════════════════════
 
-  onTouchStart(e) { if (this.controls) this.controls.onTouchStart(e); },
-  onTouchMove(e) { if (this.controls) this.controls.onTouchMove(e); },
-  onTouchEnd(e) { if (this.controls) this.controls.onTouchEnd(e); },
+  onTouchStart(e) { stage.touchStart(this, e); },
+  onTouchMove(e) { stage.touchMove(this, e); },
+  onTouchEnd(e) { stage.touchEnd(this, e); },
 
   // ═══════════════════════════════════════════════════════════════
-  //  参数控制
+  //  参数控制（拖动节流 + 松手精修）
   // ═══════════════════════════════════════════════════════════════
 
   onN(e) {
@@ -446,6 +439,11 @@ Page({
     this.rebuildElements();
     this.updatePattern();
   },
+  onNChanging(e) {
+    this.state.N = e.detail.value;
+    this.setData({ 'S.N': e.detail.value });
+    stage.throttle(this, 55, function () { this.rebuildElements(); this.updatePattern(); });
+  },
 
   onD(e) {
     this.state.d = e.detail.value;
@@ -453,12 +451,23 @@ Page({
     this.rebuildElements();
     this.updatePattern();
   },
+  onDChanging(e) {
+    this.state.d = e.detail.value;
+    this.setData({ 'S.d': e.detail.value });
+    stage.throttle(this, 55, function () { this.rebuildElements(); this.updatePattern(); });
+  },
 
   onBeta(e) {
     this.state.beta = e.detail.value;
     this.setData({ 'S.beta': e.detail.value, scanOn: false });
     this.scanPhase = 0;
     this.updatePattern();
+  },
+  onBetaChanging(e) {
+    this.state.beta = e.detail.value;
+    this.setData({ 'S.beta': e.detail.value, scanOn: false });
+    this.scanPhase = 0;
+    stage.throttle(this, 55, function () { this.updatePattern(); });
   },
 
   setBroadside() {
@@ -536,14 +545,14 @@ Page({
     const w = this.plotW, h = this.plotH;
     const FLOOR = -40;
 
-    ctx.fillStyle = '#0a0c16';
+    ctx.fillStyle = '#1c2130';
     ctx.fillRect(0, 0, w, h);
 
     const cx = w / 2, cy = h / 2;
     const R = Math.min(w, h) / 2 - 20;
 
     // dB 圆栅格
-    ctx.strokeStyle = '#252b46';
+    ctx.strokeStyle = '#313a55';
     ctx.lineWidth = 0.5;
     ctx.font = '8px sans-serif';
     ctx.textAlign = 'left';
@@ -556,7 +565,7 @@ Page({
     }
 
     // 十字线
-    ctx.strokeStyle = '#252838';
+    ctx.strokeStyle = '#313a55';
     ctx.lineWidth = 0.5;
     ctx.beginPath();
     ctx.moveTo(cx - R - 8, cy); ctx.lineTo(cx + R + 8, cy);
@@ -596,11 +605,11 @@ Page({
       else ctx.lineTo(pts[i].x, pts[i].y);
     }
     ctx.closePath();
-    ctx.fillStyle = 'rgba(91,143,255,0.14)';
+    ctx.fillStyle = 'rgba(108,136,232,0.14)';
     ctx.fill();
 
     // 描边
-    ctx.strokeStyle = '#5b8fff';
+    ctx.strokeStyle = '#6c88e8';
     ctx.lineWidth = 1.3;
     ctx.beginPath();
     for (let i = 0; i < pts.length; i++) {

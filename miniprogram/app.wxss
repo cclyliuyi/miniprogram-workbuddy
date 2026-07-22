@@ -4,6 +4,7 @@ page {
   --paper: #f3efe6;
   --paper-2: #eae3d4;
   --card: #fbf9f4;
+  --bg-soft: #f1ece1;
   --ink: #20201c;
   --ink-soft: #4c463c;
   --muted: #9b9384;
@@ -158,6 +159,7 @@ view, text, image { box-sizing: border-box; }
     --paper: #1a1814;
     --paper-2: #252220;
     --card: #2a2724;
+    --bg-soft: #232019;
     --ink: #f0ebe2;
     --ink-soft: #c4bcae;
     --muted: #7a7268;
@@ -246,4 +248,81 @@ view, text, image { box-sizing: border-box; }
     --line-soft: rgba(32, 32, 28, 0.15);
     --muted: #6b6358;
   }
+}
+
+/* ════════════════════════════════════════
+   深入浅出 · 教学组件（工具页全局复用）
+   ════════════════════════════════════════ */
+
+/* 锚点 chips：一键填入典型值 */
+.tc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin: 4rpx 0 16rpx;
+}
+.tc-chip {
+  padding: 8rpx 22rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  color: var(--ink-soft);
+  background: var(--bg-soft);
+  border: 1rpx solid var(--line);
+  font-variant-numeric: tabular-nums;
+  transition: transform var(--dur-fast) var(--ease-spring), background var(--dur-fast);
+}
+.tc-chip:active {
+  transform: scale(.94);
+  background: rgba(200, 155, 110, .18);
+}
+
+/* 直觉卡：一句话物理直觉 + 工程经验 */
+.tc-insight {
+  margin-top: 18rpx;
+  padding: 18rpx 22rpx;
+  border-radius: 14rpx;
+  background: linear-gradient(135deg, rgba(122,145,129,.10), rgba(200,155,110,.08));
+  border: 1rpx solid rgba(122,145,129,.22);
+}
+.tc-insight-kicker {
+  font-size: 20rpx;
+  letter-spacing: 4rpx;
+  color: var(--sage);
+  font-weight: 600;
+  margin-bottom: 6rpx;
+}
+.tc-insight-text {
+  font-size: 24rpx;
+  line-height: 1.75;
+  color: var(--ink-soft);
+}
+.tc-hl {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* 结果质量分级：优/良/可用/差 */
+.tc-grade {
+  display: inline-block;
+  margin: 2rpx 0 14rpx;
+  padding: 8rpx 24rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  letter-spacing: 1rpx;
+}
+.tc-grade-good {
+  color: var(--sage);
+  background: rgba(122,145,129,.14);
+  border: 1rpx solid rgba(122,145,129,.35);
+}
+.tc-grade-warn {
+  color: #b07a3a;
+  background: rgba(200,155,110,.16);
+  border: 1rpx solid rgba(200,155,110,.4);
+}
+.tc-grade-bad {
+  color: var(--accent);
+  background: rgba(176,106,79,.12);
+  border: 1rpx solid rgba(176,106,79,.38);
 }

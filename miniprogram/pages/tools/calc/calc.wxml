@@ -30,6 +30,14 @@
       </view>
     </view>
 
+    <view class="tc-chips">
+      <view class="tc-chip" data-v="0" bindtap="fillDBm">0 dBm</view>
+      <view class="tc-chip" data-v="10" bindtap="fillDBm">10 dBm</view>
+      <view class="tc-chip" data-v="20" bindtap="fillDBm">20 dBm</view>
+      <view class="tc-chip" data-v="30" bindtap="fillDBm">30 dBm</view>
+      <view class="tc-chip" data-v="-30" bindtap="fillDBm">-30 dBm</view>
+    </view>
+
     <view class="tc-result-card pop" wx:if="{{dBmResult}}">
       <view class="tc-result-row">
         <text class="tc-result-label">{{dBmMode === 0 ? '功率 (W)' : '功率 (dBm)'}}</text>
@@ -41,7 +49,10 @@
       </view>
     </view>
 
-    <view class="tc-tip">参考：0 dBm = 1 mW · 30 dBm = 1 W · -30 dBm = 1 μW</view>
+    <view class="tc-insight">
+      <view class="tc-insight-kicker">直觉</view>
+      <view class="tc-insight-text">对数把乘法变加法：<text class="tc-hl">+3 dB ≈ 功率 ×2，+10 dB = ×10</text>。链路预算全程加减法，这就是 dB 存在的意义。0 dBm = 1 mW 是原点。</view>
+    </view>
   </view>
 
   <!-- ══════ 频率 ↔ 波长 ══════ -->
@@ -73,6 +84,13 @@
       </view>
     </view>
 
+    <view class="tc-chips">
+      <view class="tc-chip" data-v="433" data-unit="0" bindtap="fillFreq">433 MHz</view>
+      <view class="tc-chip" data-v="915" data-unit="0" bindtap="fillFreq">915 MHz</view>
+      <view class="tc-chip" data-v="2.4" data-unit="1" bindtap="fillFreq">2.4 GHz</view>
+      <view class="tc-chip" data-v="5.8" data-unit="1" bindtap="fillFreq">5.8 GHz</view>
+    </view>
+
     <view class="tc-result-card pop" wx:if="{{wlResult}}">
       <view class="tc-result-row">
         <text class="tc-result-label">波长 λ</text>
@@ -87,6 +105,11 @@
         <text class="tc-result-value num">{{wlQuarter}}</text>
       </view>
     </view>
+
+    <view class="tc-insight">
+      <view class="tc-insight-kicker">直觉</view>
+      <view class="tc-insight-text">λ/4 是单极天线的基本长度 —— <text class="tc-hl">2.4 GHz 在空气中约 3.1 cm</text>，路由器天线就那么长。介质里波长变短：FR4 中约为空气的一半。</view>
+    </view>
   </view>
 
   <!-- ══════ VSWR ↔ 回波损耗 ↔ 反射系数 ══════ -->
@@ -97,6 +120,16 @@
       <text class="tc-label">VSWR（驻波比）</text>
       <input class="tc-input num" type="digit" value="{{vswrInput}}" bindinput="onVSWRInput" placeholder="1.5" />
     </view>
+
+    <view class="tc-chips">
+      <view class="tc-chip" data-v="1.1" bindtap="fillVswr">1.1</view>
+      <view class="tc-chip" data-v="1.25" bindtap="fillVswr">1.25</view>
+      <view class="tc-chip" data-v="1.5" bindtap="fillVswr">1.5</view>
+      <view class="tc-chip" data-v="2.0" bindtap="fillVswr">2.0</view>
+      <view class="tc-chip" data-v="3.0" bindtap="fillVswr">3.0</view>
+    </view>
+
+    <view class="tc-grade tc-grade-{{vswrGrade.cls}}" wx:if="{{vswrGrade}}">{{vswrGrade.text}}</view>
 
     <view class="tc-result-card pop" wx:if="{{vswrResult}}">
       <view class="tc-result-row">
@@ -117,7 +150,10 @@
       </view>
     </view>
 
-    <view class="tc-tip">VSWR=1 完美匹配 · VSWR≤1.5 为良好 · VSWR≥2 需调匹配</view>
+    <view class="tc-insight">
+      <view class="tc-insight-kicker">直觉</view>
+      <view class="tc-insight-text">|Γ|² 就是反射功率比例。<text class="tc-hl">VSWR 1.5 只反射 4% 功率</text> —— 工程上已够用，不必盲目追 1.0；但超过 2 就有 11% 被弹回来，必须调匹配。</view>
+    </view>
   </view>
 
   <!-- ══════ 趋肤深度 ══════ -->
@@ -154,6 +190,11 @@
         <text class="tc-result-label">趋肤深度 δ</text>
         <text class="tc-result-value num">{{skinResult}}</text>
       </view>
+    </view>
+
+    <view class="tc-insight">
+      <view class="tc-insight-kicker">直觉</view>
+      <view class="tc-insight-text">频率 ×100 → δ ÷10。<text class="tc-hl">2.4 GHz 时铜的 δ ≈ 1.3 μm，比头发丝细 50 倍</text> —— 电流只走"皮肤"，这就是高频件要镀银、用空心波导的原因。</view>
     </view>
 
     <view class="tc-formula-box">
@@ -201,6 +242,11 @@
       </view>
     </view>
 
+    <view class="tc-insight">
+      <view class="tc-insight-kicker">直觉</view>
+      <view class="tc-insight-text">Ae 是天线的"捕波网面积"：<text class="tc-hl">增益翻倍 = 网大一倍；同增益下频率越低网越大</text> —— 这就是为什么低频天线都体格庞大。</view>
+    </view>
+
     <view class="tc-formula-box">
       <image class="tc-formula-img" src="{{formulaAe}}" mode="aspectFit" />
     </view>
@@ -244,6 +290,11 @@
         <text class="tc-result-label">D/λ</text>
         <text class="tc-result-value num">{{ffResult.dOverLam}}</text>
       </view>
+    </view>
+
+    <view class="tc-insight">
+      <view class="tc-insight-kicker">直觉</view>
+      <view class="tc-insight-text">天线越大、频率越高，远场越远。<text class="tc-hl">口径天线没越过 R_ff 就测方向图，读数必然偏小、波瓣变形</text> —— 这就是暗室要造那么长的原因。</view>
     </view>
 
     <view class="tc-formula-box">

@@ -11,7 +11,11 @@
   <view class="lab3d-canvas-wrap rise">
     <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
-    <view class="lab3d-hint">单指拖动旋转 · 双指缩放 · 绿环=主瓣 · 红环=栅瓣</view>
+    <view wx:if="{{!glReady}}" class="lab3d-skel">
+      <view class="lab3d-skel-ring"></view>
+      <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
+    </view>
+    <view class="lab3d-hint {{showHint ? '' : 'fade'}}">双击复位 · 绿环=主瓣 · 红环=栅瓣</view>
   </view>
 
   <!-- 阵列配置 -->
@@ -21,12 +25,12 @@
       <text class="lab3d-label">阵元数 N</text>
       <text class="lab3d-val">{{S.N}}</text>
     </view>
-    <slider min="2" max="24" step="1" value="{{S.N}}" bindchange="onN" block-size="18" />
+    <slider min="2" max="24" step="1" value="{{S.N}}" bindchanging="onNChanging" bindchange="onN" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
     <view class="pa3d-row">
       <text class="lab3d-label">间距 d/λ</text>
       <text class="lab3d-val">{{S.d}}</text>
     </view>
-    <slider min="0.1" max="1.5" step="0.01" value="{{S.d}}" bindchange="onD" block-size="18" />
+    <slider min="0.1" max="1.5" step="0.01" value="{{S.d}}" bindchanging="onDChanging" bindchange="onD" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
   </view>
 
   <!-- 波束扫描 -->
@@ -36,7 +40,7 @@
       <text class="lab3d-label">渐进相移 β</text>
       <text class="lab3d-val pa3d-accent">{{S.beta}}°</text>
     </view>
-    <slider min="-180" max="180" step="1" value="{{S.beta}}" bindchange="onBeta" block-size="18" />
+    <slider min="-180" max="180" step="1" value="{{S.beta}}" bindchanging="onBetaChanging" bindchange="onBeta" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
     <view class="pa3d-preset-btns">
       <view class="pa3d-preset {{S.beta > 60 ? 'active' : ''}}" bindtap="setEndfireBack">端射 ←</view>
       <view class="pa3d-preset {{S.beta === 0 ? 'active' : ''}}" bindtap="setBroadside">边射</view>

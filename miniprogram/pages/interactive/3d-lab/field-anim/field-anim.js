@@ -8,6 +8,7 @@ Page({
     sclSlider: 30, sclVal: '3 λ',
     normalize: true, showZones: true,
     fieldMode: 'both',
+    glReady: false,
   },
 
   THREE: null, canvasNode: null, renderer: null, scene: null,
@@ -125,6 +126,7 @@ Page({
       this.quadMesh = quad;
 
       this.startAnim();
+      this.setData({ glReady: true });
     });
   },
 
@@ -170,6 +172,11 @@ Page({
     this.setData({ spdVal: this.state.speed.toFixed(1) + '×' });
   },
   onScl(e) {
+    this.state.scale = e.detail.value / 10;
+    this.setData({ sclVal: this.state.scale.toFixed(1) + ' λ' });
+    if (this.uniforms) this.uniforms.uScale.value = this.state.scale;
+  },
+  onSclChanging(e) {
     this.state.scale = e.detail.value / 10;
     this.setData({ sclVal: this.state.scale.toFixed(1) + ' λ' });
     if (this.uniforms) this.uniforms.uScale.value = this.state.scale;

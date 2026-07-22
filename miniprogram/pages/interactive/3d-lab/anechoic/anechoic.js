@@ -1,6 +1,7 @@
-// pages/interactive/3d-lab/anechoic/anechoic.js —— 微波暗室 3D (r108)
+// pages/interactive/3d-lab/anechoic/anechoic.js —— 微波暗室 3D (r108) · 深空暖金 v2
 const { createScopedThreejs } = require('threejs-miniprogram');
 const { registerOrbitControls } = require('../orbit-controls');
+const stage = require('../lab3d-stage');
 
 // 常量
 const AUT_CENTER = { x: 1.35, y: 0, z: 0.05 };
@@ -15,6 +16,8 @@ Page({
     stepSlider: 5, stepVal: '5°',
     scanning: false, scanText: '自动扫描',
     pwr: '-', samples: '0', hpbw: '-', sll: '-',
+    showHint: true,
+    glReady: false,
   },
 
   THREE: null, canvasNode: null, renderer: null, scene: null,
@@ -29,7 +32,8 @@ Page({
 
   onReady() { this.initThree(); this.init2D(); },
   onUnload() { this.dispose(); },
-  onHide() { this.stopAnim(); },
+  onHide() { this.stopAnim(); stage.clearTimers(this); },
+  onShow() { if (this.canvasNode && this.renderer) { this.startAnim(); stage.scheduleIdle(this); } },
 
   initThree() {
     const sel = this.createSelectorQuery();
@@ -51,36 +55,30 @@ Page({
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
       renderer.setPixelRatio(Math.min(dpr, 2));
       renderer.setSize(cssW, cssH, false);
-      // 暖色调浅灰背景，呼应外部纸感主题
-      renderer.setClearColor(0x2a2e3a, 1);
+      renderer.setClearColor(stage.COL.bgEdge, 1);
       this.renderer = renderer;
 
       const scene = new THREE.Scene();
       this.scene = scene;
-      const camera = new THREE.PerspectiveCamera(42, cssW / cssH, 0.01, 100);
+      const camera = new THREE.PerspectiveCamera(42, cssW / cssH, 0.01, 200);
       camera.position.set(2.8, 2.35, 3.1);
       this.camera = camera;
 
       const controls = new THREE.OrbitControls(camera, canvas);
       controls.enableDamping = true;
+      controls.autoRotateSpeed = 1.0;
       controls.target.set(0, 0.75, 0);
+      controls.update();
       this.controls = controls;
+      this._home = stage.saveHome(controls);
 
-      // ── 三点布光（模拟实验室天花板灯阵 + 侧窗补光） ──
-      // 1) 暖白环境光 — 提亮整体，避免阴影区死黑
-      scene.add(new THREE.AmbientLight(0xfff4e6, 0.75));
-      // 2) 主光（顶光）— 暖色调，模拟天花板 LED 面板
-      const key = new THREE.DirectionalLight(0xfff0d8, 1.3);
-      key.position.set(-2, 5, 3);
-      scene.add(key);
-      // 3) 辅光（冷色侧补）— 平衡阴影，增加体积感
+      // 深空穹顶（暗室自带地板，不加地面网格）+ 三灯
+      stage.buildStage(THREE, scene, { ground: false, halo: false });
+      stage.buildLights(THREE, scene, { key: 1.3, rim: 0.6 });
+      // 保留：冷色侧补 PointLight — 平衡阴影，增加体积感
       const fill = new THREE.PointLight(0xb8d4ff, 1.2, 8);
       fill.position.set(1.2, 1.4, 1.2);
       scene.add(fill);
-      // 4) 轮廓光（背后低角度）— 勾勒喇叭和吸波锥边缘
-      const rim = new THREE.DirectionalLight(0xffd9a8, 0.6);
-      rim.position.set(2.5, 1.2, -2);
-      scene.add(rim);
 
       const root = new THREE.Group();
       scene.add(root);
@@ -100,15 +98,11 @@ Page({
       }
 
       this.startAnim();
+      stage.ready(this);
     });
   },
 
-  clearGroup(g) {
-    while (g.children.length) {
-      const o = g.children.pop();
-      if (o.geometry) o.geometry.dispose();
-    }
-  },
+  clearGroup(g) { stage.clearGroup(g); },
 
   // ── 暗室场景 ──
   buildChamber() {
@@ -402,13 +396,14 @@ Page({
 
   dispose() {
     this.stopAnim();
+    stage.clearTimers(this);
     if (this.renderer) { this.renderer.dispose(); this.renderer = null; }
     if (this.controls) { this.controls.dispose(); this.controls = null; }
   },
 
-  onTouchStart(e) { if (this.controls) this.controls.onTouchStart(e); },
-  onTouchMove(e) { if (this.controls) this.controls.onTouchMove(e); },
-  onTouchEnd(e) { if (this.controls) this.controls.onTouchEnd(e); },
+  onTouchStart(e) { stage.touchStart(this, e); },
+  onTouchMove(e) { stage.touchMove(this, e); },
+  onTouchEnd(e) { stage.touchEnd(this, e); },
 
   onAut(e) {
     this.state.aut = e.currentTarget.dataset.a;
@@ -423,10 +418,18 @@ Page({
     if (this.state.samples.indexOf(this.state.ang) === -1) this.state.samples.push(this.state.ang);
     this.updateAll();
   },
+  onAngChanging(e) {
+    this.state.ang = e.detail.value;
+    stage.throttle(this, 55, function () { this.updateAll(); });
+  },
 
   onStep(e) {
     this.state.step = e.detail.value;
     this.updateStats();
+  },
+  onStepChanging(e) {
+    this.state.step = e.detail.value;
+    stage.throttle(this, 55, function () { this.updateStats(); });
   },
 
   onScan() {

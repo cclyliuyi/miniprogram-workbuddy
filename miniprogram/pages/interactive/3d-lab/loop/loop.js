@@ -1,6 +1,7 @@
-// pages/interactive/3d-lab/loop/loop.js —— 小环天线 3D (Three.js r108)
+// pages/interactive/3d-lab/loop/loop.js —— 小环天线 3D (Three.js r108) · 深空暖金 v2
 const { createScopedThreejs } = require('threejs-miniprogram');
 const { registerOrbitControls } = require('../orbit-controls');
+const stage = require('../lab3d-stage');
 
 Page({
   data: {
@@ -13,6 +14,8 @@ Page({
     rr: '-',
     eta: '-',
     area: '-',
+    showHint: true,
+    glReady: false,
   },
 
   THREE: null,
@@ -39,7 +42,8 @@ Page({
     this.init2D();
   },
   onUnload() { this.dispose(); },
-  onHide() { this.stopAnim(); },
+  onHide() { this.stopAnim(); stage.clearTimers(this); },
+  onShow() { if (this.canvasNode && this.renderer) { this.startAnim(); stage.scheduleIdle(this); } },
 
   // ═══════════════════════════════════════════════════════════════
   //  3D 初始化
@@ -67,30 +71,27 @@ Page({
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
       renderer.setPixelRatio(Math.min(this.dpr, 2));
       renderer.setSize(cssW, cssH, false);
-      renderer.setClearColor(0x2a2e3a, 1);
+      renderer.setClearColor(stage.COL.bgEdge, 1);
       this.renderer = renderer;
 
       const scene = new THREE.Scene();
       this.scene = scene;
 
-      const camera = new THREE.PerspectiveCamera(42, cssW / cssH, 0.01, 100);
+      const camera = new THREE.PerspectiveCamera(42, cssW / cssH, 0.01, 200);
       camera.position.set(1.45, 1.2, 1.65);
       this.camera = camera;
 
       const controls = new THREE.OrbitControls(camera, canvas);
       controls.enableDamping = true;
+      controls.autoRotateSpeed = 1.0;
       controls.target.set(0, 0, 0);
       controls.update();
       this.controls = controls;
+      this._home = stage.saveHome(controls);
 
-      // 三点布光（暖色调）
-      scene.add(new THREE.AmbientLight(0xfff4e6, 0.75));
-      const sun = new THREE.DirectionalLight(0xfff0d8, 1.2);
-      sun.position.set(3, 4, 4);
-      scene.add(sun);
-      const rim = new THREE.DirectionalLight(0xffd9a8, 0.5);
-      rim.position.set(-3, 1, -3);
-      scene.add(rim);
+      // 深空暖金舞台 + 三灯
+      stage.buildStage(THREE, scene, { groundY: -1.0 });
+      stage.buildLights(THREE, scene);
 
       const root = new THREE.Group();
       scene.add(root);
@@ -103,6 +104,7 @@ Page({
 
       this.layout();
       this.startAnim();
+      stage.ready(this);
     });
   },
 
@@ -110,12 +112,7 @@ Page({
   //  场景构建
   // ═══════════════════════════════════════════════════════════════
 
-  clearGroup(g) {
-    while (g.children.length) {
-      const o = g.children.pop();
-      if (o.geometry) o.geometry.dispose();
-    }
-  },
+  clearGroup(g) { stage.clearGroup(g); },
 
   layout() {
     const THREE = this.THREE;
@@ -132,15 +129,18 @@ Page({
 
     const R = 0.48 + S.a * 1.5;
 
-    // 环
+    // 环（降 metalness 补偿无 envMap + 微暖自发光）
     this.loopMesh = new THREE.Mesh(
       new THREE.TorusGeometry(R, 0.018, 14, 96),
-      new THREE.MeshStandardMaterial({ color: 0xffc45f, metalness: 0.65, roughness: 0.28 })
+      new THREE.MeshStandardMaterial({
+        color: 0xffc45f, metalness: 0.45, roughness: 0.30,
+        emissive: 0x241606, emissiveIntensity: 0.35,
+      })
     );
     this.root.add(this.loopMesh);
 
     // 近区磁场闭合线
-    const fieldMat = new THREE.LineBasicMaterial({ color: 0x6f91ff, transparent: true, opacity: 0.48 });
+    const fieldMat = new THREE.LineBasicMaterial({ color: 0x6c88e8, transparent: true, opacity: 0.48 });
     for (let k = 0; k < 8; k++) {
       const z = (-0.55 + k * 0.16);
       const pts = [];
@@ -238,20 +238,21 @@ Page({
 
   dispose() {
     this.stopAnim();
+    stage.clearTimers(this);
     if (this.renderer) { this.renderer.dispose(); this.renderer = null; }
     if (this.controls) { this.controls.dispose(); this.controls = null; }
   },
 
   // ═══════════════════════════════════════════════════════════════
-  //  触摸事件
+  //  触摸事件（双击复位 + 闲置自转）
   // ═══════════════════════════════════════════════════════════════
 
-  onTouchStart(e) { if (this.controls) this.controls.onTouchStart(e); },
-  onTouchMove(e) { if (this.controls) this.controls.onTouchMove(e); },
-  onTouchEnd(e) { if (this.controls) this.controls.onTouchEnd(e); },
+  onTouchStart(e) { stage.touchStart(this, e); },
+  onTouchMove(e) { stage.touchMove(this, e); },
+  onTouchEnd(e) { stage.touchEnd(this, e); },
 
   // ═══════════════════════════════════════════════════════════════
-  //  参数控制
+  //  参数控制（拖动节流 + 松手精修）
   // ═══════════════════════════════════════════════════════════════
 
   onA(e) {
@@ -260,15 +261,30 @@ Page({
     this.updateStats();
     this.layout();
   },
+  onAChanging(e) {
+    this.state.a = e.detail.value / 1000;
+    this.setData({ aVal: this.state.a.toFixed(3) });
+    stage.throttle(this, 55, function () { this.updateStats(); this.layout(); });
+  },
   onTurns(e) {
     this.state.n = e.detail.value;
     this.setData({ nVal: String(this.state.n) });
     this.updateStats();
   },
+  onTurnsChanging(e) {
+    this.state.n = e.detail.value;
+    this.setData({ nVal: String(this.state.n) });
+    stage.throttle(this, 55, function () { this.updateStats(); });
+  },
   onLoss(e) {
     this.state.loss = e.detail.value / 100;
     this.setData({ lossVal: this.state.loss.toFixed(2) + ' Ω' });
     this.updateStats();
+  },
+  onLossChanging(e) {
+    this.state.loss = e.detail.value / 100;
+    this.setData({ lossVal: this.state.loss.toFixed(2) + ' Ω' });
+    stage.throttle(this, 55, function () { this.updateStats(); });
   },
 
   updateStats() {
@@ -316,16 +332,16 @@ Page({
     const cx = w / 2, cy = h / 2;
     const R = Math.min(w, h) * 0.36;
 
-    pg.fillStyle = '#0a0c16';
+    pg.fillStyle = '#1c2130';
     pg.fillRect(0, 0, w, h);
 
-    pg.strokeStyle = '#252b46';
+    pg.strokeStyle = '#313a55';
     pg.beginPath();
     pg.moveTo(cx - R - 12, cy); pg.lineTo(cx + R + 12, cy);
     pg.moveTo(cx, cy - R - 12); pg.lineTo(cx, cy + R + 12);
     pg.stroke();
 
-    pg.strokeStyle = '#fff';
+    pg.strokeStyle = '#f0e6d6';
     pg.lineWidth = 2;
     pg.beginPath();
     for (let i = 0; i <= 720; i++) {
@@ -342,10 +358,10 @@ Page({
     }
     pg.closePath();
     pg.stroke();
-    pg.fillStyle = 'rgba(111,145,255,.12)';
+    pg.fillStyle = 'rgba(108,136,232,.12)';
     pg.fill();
 
-    pg.fillStyle = '#9aa6cc';
+    pg.fillStyle = '#7c89b0';
     pg.font = '11px sans-serif';
     pg.fillText('轴向为零，环面内最大', cx - R, cy + R + 22);
   },

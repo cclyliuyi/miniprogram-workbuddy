@@ -1,6 +1,7 @@
-// pages/interactive/radiation-3d/radiation-3d.js —— 三维辐射方向图 (Three.js)
+// pages/interactive/radiation-3d/radiation-3d.js —— 三维辐射方向图 (Three.js) · 深空暖金 v2
 const { createScopedThreejs } = require('threejs-miniprogram');
 const { registerOrbitControls } = require('./orbit-controls');
+const stage = require('../3d-lab/lab3d-stage');
 
 Page({
   data: {
@@ -17,6 +18,8 @@ Page({
     hlSlider: 25,
     hlText: '0.25λ',
     stats: null,
+    showHint: true,
+    glReady: false,
   },
 
   THREE: null,
@@ -47,9 +50,9 @@ Page({
   },
 
   onUnload() { this.dispose(); },
-  onHide() { this.stopAnim(); },
+  onHide() { this.stopAnim(); stage.clearTimers(this); },
   onShow() {
-    if (this.renderer && this.state.rotate) this.startAnim();
+    if (this.renderer) { this.startAnim(); stage.scheduleIdle(this); }
   },
 
   // ═══════════════════════════════════════════════════════════════
@@ -101,7 +104,7 @@ Page({
         const dpr = wx.getWindowInfo().pixelRatio;
         renderer.setPixelRatio(Math.min(dpr, 2));
         renderer.setSize(cssW, cssH, false);
-        renderer.setClearColor(0x2a2e3a, 1);
+        renderer.setClearColor(stage.COL.bgEdge, 1);
         console.log('[r3d] ✅ renderer created, drawingBuffer:', renderer.domElement.width, 'x', renderer.domElement.height);
       } catch (err) {
         console.error('[r3d] ❌ renderer failed:', err);
@@ -118,14 +121,9 @@ Page({
       camera.lookAt(0, 0, 0);
       this.camera = camera;
 
-      // ── Step 3: 光源（暖色调三点布光） ──
-      scene.add(new THREE.AmbientLight(0xfff4e6, 0.85));
-      const dl = new THREE.DirectionalLight(0xfff0d8, 1.0);
-      dl.position.set(5, 10, 5);
-      scene.add(dl);
-      const rim = new THREE.DirectionalLight(0xffd9a8, 0.5);
-      rim.position.set(-5, 2, -5);
-      scene.add(rim);
+      // ── Step 3: 深空穹顶 + 三灯 ──
+      stage.buildStage(THREE, scene, { ground: false, halo: false });
+      stage.buildLights(THREE, scene, { ambient: 0.7, key: 1.0 });
 
       // ── Step 4: 诊断球 — 先放一个最简单的亮球，确认渲染管线通畅 ──
       const ball = new THREE.Mesh(
@@ -148,6 +146,7 @@ Page({
         controls.minDistance = 1.2;
         controls.maxDistance = 8;
         this.controls = controls;
+        this._home = stage.saveHome(controls);
         console.log('[r3d] ✅ controls created');
       } catch (e) {
         console.error('[r3d] ❌ controls failed:', e);
@@ -166,6 +165,7 @@ Page({
         this.buildPattern();
         this.refreshStats();
         console.log('[r3d] ✅ full scene loaded');
+        stage.ready(this);
       }, 100);
 
       // 启动动画循环
@@ -199,7 +199,9 @@ Page({
     }
     const geo = new THREE.BufferGeometry();
     geo.addAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
-    const mat = new THREE.LineBasicMaterial({ color: 0x2a3050 });
+    const mat = new THREE.LineBasicMaterial({
+      color: 0xd4ad7e, transparent: true, opacity: 0.14, depthWrite: false,
+    });
     const grid = new THREE.LineSegments(geo, mat);
     grid.position.y = -1.4;
     scene.add(grid);
@@ -478,6 +480,7 @@ Page({
 
   dispose() {
     this.stopAnim();
+    stage.clearTimers(this);
     if (this.controls) { this.controls.dispose(); this.controls = null; }
     if (this.patMesh) {
       this.patMesh.geometry.dispose();
@@ -516,6 +519,12 @@ Page({
     this.buildPattern();
     this.refreshStats();
   },
+  onHlChanging(e) {
+    const v = e.detail.value;
+    this.state.hl = v / 100;
+    this.setData({ hlSlider: v, hlText: this.state.hl.toFixed(2) + 'λ' });
+    stage.throttle(this, 55, function () { this.buildPattern(); this.refreshStats(); });
+  },
 
   onPtype(e) {
     this.state.ptype = e.currentTarget.dataset.p;
@@ -524,6 +533,12 @@ Page({
   },
 
   onOpacity(e) {
+    const v = e.detail.value;
+    this.state.opacity = v / 100;
+    this.setData({ 'S.opacityVal': v, 'S.opacityText': v + '%' });
+    if (this.patMesh) this.patMesh.material.opacity = v / 100;
+  },
+  onOpacityChanging(e) {
     const v = e.detail.value;
     this.state.opacity = v / 100;
     this.setData({ 'S.opacityVal': v, 'S.opacityText': v + '%' });
@@ -554,13 +569,7 @@ Page({
     if (this.antGroup) this.antGroup.visible = this.state.showAnt;
   },
 
-  onTouchStart(e) {
-    if (this.controls && this.controls.onTouchStart) this.controls.onTouchStart(e);
-  },
-  onTouchMove(e) {
-    if (this.controls && this.controls.onTouchMove) this.controls.onTouchMove(e);
-  },
-  onTouchEnd(e) {
-    if (this.controls && this.controls.onTouchEnd) this.controls.onTouchEnd(e);
-  },
+  onTouchStart(e) { stage.touchStart(this, e); },
+  onTouchMove(e) { stage.touchMove(this, e); },
+  onTouchEnd(e) { stage.touchEnd(this, e); },
 });

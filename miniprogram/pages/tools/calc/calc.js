@@ -84,6 +84,11 @@ Page({
     haptic.light()
     this.setData({ dBmMode: +e.currentTarget.dataset.mode }, () => this.calcDBm())
   },
+  // 常用锚点：一键填入典型值
+  fillDBm(e) {
+    haptic.light()
+    this.setData({ dBmInput: e.currentTarget.dataset.v }, () => this.calcDBm())
+  },
   calcDBm() {
     const val = parseFloat(this.data.dBmInput)
     if (isNaN(val)) { this.setData({ dBmResult: '', dBmExtra: '' }); return }
@@ -120,6 +125,12 @@ Page({
     haptic.light()
     this.setData({ medium: +e.currentTarget.dataset.index }, () => this.calcWL())
   },
+  // 常用频段锚点
+  fillFreq(e) {
+    haptic.light()
+    const v = e.currentTarget.dataset.v
+    this.setData({ freqInput: v, freqUnit: +e.currentTarget.dataset.unit }, () => this.calcWL())
+  },
   calcWL() {
     const f = parseFloat(this.data.freqInput)
     if (isNaN(f) || f <= 0) { this.setData({ wlResult: '', wlHalf: '', wlQuarter: '' }); return }
@@ -138,20 +149,31 @@ Page({
   onVSWRInput(e) {
     this.setData({ vswrInput: e.detail.value }, () => this.calcVSWR())
   },
+  fillVswr(e) {
+    haptic.light()
+    this.setData({ vswrInput: e.currentTarget.dataset.v }, () => this.calcVSWR())
+  },
   calcVSWR() {
     const vswr = parseFloat(this.data.vswrInput)
-    if (isNaN(vswr) || vswr < 1) { this.setData({ vswrResult: null }); return }
+    if (isNaN(vswr) || vswr < 1) { this.setData({ vswrResult: null, vswrGrade: null }); return }
     const gamma = (vswr - 1) / (vswr + 1)
     const rl = -20 * Math.log10(gamma)
     const pref = gamma * gamma * 100
     const mismatch = -10 * Math.log10(1 - gamma * gamma)
+    // 工程质量分级
+    let grade
+    if (vswr <= 1.2) grade = { text: '优秀 · 实验室级', cls: 'good' }
+    else if (vswr <= 1.5) grade = { text: '良好 · 工程达标', cls: 'good' }
+    else if (vswr <= 2.0) grade = { text: '可用 · 建议优化', cls: 'warn' }
+    else grade = { text: '失配 · 需要调匹配', cls: 'bad' }
     this.setData({
       vswrResult: {
         gamma: gamma.toFixed(4),
         rl: rl.toFixed(2),
         pref: pref.toFixed(2),
         mismatch: mismatch.toFixed(2),
-      }
+      },
+      vswrGrade: grade,
     })
   },
 

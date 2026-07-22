@@ -66,6 +66,11 @@
       <view class="tl3-verdict tl3-verdict-ok">{{msResult.hint}}</view>
       <view class="tl3-formula">Z₀ = (60/√εeff)·ln(F(u)/u + √(1+4/u²))</view>
     </view>
+
+    <view class="tc-insight">
+      <view class="tc-insight-kicker">直觉</view>
+      <view class="tc-insight-text">Z₀ 由几何决定：<text class="tc-hl">线越宽 → 阻抗越低；介质越薄/εr 越高 → 阻抗越低</text>。FR4 (1.6mm) 上 50Ω 线宽约 3 mm —— 先背下这个"手感"，再谈微调。εeff 总比 εr 小，因为一半场在空气里跑。</view>
+    </view>
   </view>
 
   <!-- ══════ Tab2: λ/4 阻抗变换器 ══════ -->
@@ -123,6 +128,11 @@
       <view class="tl3-verdict tl3-verdict-warn">{{qResult.bwHint}}</view>
       <view class="tl3-formula">Z₀ = √(Z_in × Z_L)</view>
       <view class="tl3-formula tl3-formula-sub">{{qResult.msHint}}</view>
+    </view>
+
+    <view class="tc-insight">
+      <view class="tc-insight-kicker">直觉</view>
+      <view class="tc-insight-text">λ/4 线是一台"阻抗逆变器"：<text class="tc-hl">Z₀ 取源和负载的几何平均值 √(Zin·ZL)</text>，短路的变开路、大电阻变小电阻。简单但单频 —— 偏离中心频率匹配就开始塌，宽带要靠多节级联。</view>
     </view>
   </view>
 
@@ -186,6 +196,11 @@
       <view class="tl3-verdict tl3-verdict-ok">{{lResult.topologyNote}}</view>
       <view class="tl3-formula">Q = √(R_high/R_low − 1) · Xs = Q·R_low · Xp = R_high/Q</view>
     </view>
+
+    <view class="tc-insight">
+      <view class="tc-insight-kicker">直觉</view>
+      <view class="tc-insight-text">L 网络只认"高阻变低阻（或反过来）"：<text class="tc-hl">Q 被阻抗比锁死，Q = √(R高/R低−1)，不由你选</text>。阻抗差 9 倍 → Q=2.8；差 99 倍 → Q≈10，带宽跟着牺牲 —— 大跨度匹配要付出窄带代价。</view>
+    </view>
   </view>
 
   <!-- ══════ Tab4: 波导截止频率 ══════ -->
@@ -242,6 +257,11 @@
 
       <view class="tl3-verdict tl3-verdict-ok" wx:if="{{wgResult.bandName}}">{{wgResult.bandName}}</view>
       <view class="tl3-formula">f_c(TE₁₀) = c / (2a·√εr)</view>
+    </view>
+
+    <view class="tc-insight">
+      <view class="tc-insight-kicker">直觉</view>
+      <view class="tc-insight-text">波导是"高通滤波器"：<text class="tc-hl">宽边 a 决定门槛，a = 半个截止波长</text>。低于 fc 的波当场"消失"（凋落模），所以波导天生没有低频端直流问题；工作在 1.25~1.9×fc10 区间，高模还没醒、主模衰减又小。</view>
     </view>
   </view>
 

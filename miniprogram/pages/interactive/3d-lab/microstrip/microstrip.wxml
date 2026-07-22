@@ -10,19 +10,23 @@
   <view class="lab3d-canvas-wrap rise">
     <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
-    <view class="lab3d-hint">单指拖动旋转 · 双指缩放</view>
+    <view wx:if="{{!glReady}}" class="lab3d-skel">
+      <view class="lab3d-skel-ring"></view>
+      <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
+    </view>
+    <view class="lab3d-hint {{showHint ? '' : 'fade'}}">单指旋转 · 双指缩放 · 双击复位</view>
   </view>
 
   <view class="lab3d-section rise">
     <view class="kicker">设计参数</view>
     <view class="lab3d-row"><text class="lab3d-label">工作频率 f₀</text><text class="lab3d-val">{{fVal}}</text></view>
-    <slider min="80" max="1200" step="5" value="{{fSlider}}" bindchange="onF" block-size="18" />
+    <slider min="80" max="1200" step="5" value="{{fSlider}}" bindchanging="onFChanging" bindchange="onF" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
     <view class="lab3d-row"><text class="lab3d-label">介电常数 εᵣ</text><text class="lab3d-val">{{erVal}}</text></view>
-    <slider min="20" max="120" step="1" value="{{erSlider}}" bindchange="onEr" block-size="18" />
+    <slider min="20" max="120" step="1" value="{{erSlider}}" bindchanging="onErChanging" bindchange="onEr" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
     <view class="lab3d-row"><text class="lab3d-label">基板厚度 h</text><text class="lab3d-val">{{hVal}}</text></view>
-    <slider min="20" max="400" step="5" value="{{hSlider}}" bindchange="onH" block-size="18" />
+    <slider min="20" max="400" step="5" value="{{hSlider}}" bindchanging="onHChanging" bindchange="onH" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
     <view class="lab3d-row"><text class="lab3d-label">馈点内凹 y₀/L</text><text class="lab3d-val">{{insetVal}}</text></view>
-    <slider min="0" max="48" step="1" value="{{insetSlider}}" bindchange="onInset" block-size="18" />
+    <slider min="0" max="48" step="1" value="{{insetSlider}}" bindchanging="onInsetChanging" bindchange="onInset" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
   </view>
 
   <view class="lab3d-stats pop">

@@ -10,7 +10,10 @@
   <view class="lab3d-canvas-wrap rise">
     <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
-    <view class="lab3d-hint">单指拖动旋转视角</view>
+    <view wx:if="{{!glReady}}" class="lab3d-skel">
+      <view class="lab3d-skel-ring"></view>
+      <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
+    </view>
   </view>
 
   <!-- 播放控制 -->
@@ -23,12 +26,12 @@
       <text class="lab3d-label">播放速度</text>
       <text class="lab3d-val">{{spdVal}}</text>
     </view>
-    <slider min="1" max="30" step="1" value="{{spdSlider}}" bindchange="onSpd" block-size="18" />
+    <slider min="1" max="30" step="1" value="{{spdSlider}}" bindchange="onSpd" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
     <view class="lab3d-row">
       <text class="lab3d-label">视野范围</text>
       <text class="lab3d-val">{{sclVal}}</text>
     </view>
-    <slider min="10" max="80" step="5" value="{{sclSlider}}" bindchange="onScl" block-size="18" />
+    <slider min="10" max="80" step="5" value="{{sclSlider}}" bindchanging="onSclChanging" bindchange="onScl" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
   </view>
 
   <!-- 显示控制 -->

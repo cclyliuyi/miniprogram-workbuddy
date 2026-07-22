@@ -168,3 +168,5 @@
   max-width: 100%;
   max-height: 160rpx;
 }
+
+/* 锚点 chips / 直觉卡 / 质量分级 → 已沉淀至 app.wxss 全局 */

@@ -11,7 +11,11 @@
   <view class="lab3d-canvas-wrap rise">
     <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
-    <view class="lab3d-hint">红=Ex · 蓝=Ey · 白=E 矢量 · 单指旋转 · 双指缩放</view>
+    <view wx:if="{{!glReady}}" class="lab3d-skel">
+      <view class="lab3d-skel-ring"></view>
+      <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
+    </view>
+    <view class="lab3d-hint {{showHint ? '' : 'fade'}}">红=Ex · 蓝=Ey · 白=E 矢量 · 双击复位</view>
   </view>
 
   <!-- 端面极化椭圆 -->
@@ -37,17 +41,17 @@
     <view class="pol3d-slider-row">
       <text class="lab3d-label">Ex 幅度</text>
       <slider class="pol3d-slider" min="0" max="1" step="0.01" value="{{S.ex}}"
-        bindchange="onEx" show-value />
+        bindchanging="onExChanging" bindchange="onEx" show-value activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
     </view>
     <view class="pol3d-slider-row">
       <text class="lab3d-label">Ey 幅度</text>
       <slider class="pol3d-slider" min="0" max="1" step="0.01" value="{{S.ey}}"
-        bindchange="onEy" show-value />
+        bindchanging="onEyChanging" bindchange="onEy" show-value activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
     </view>
     <view class="pol3d-slider-row">
       <text class="lab3d-label">相位差 δ</text>
       <slider class="pol3d-slider" min="-180" max="180" step="1" value="{{S.del}}"
-        bindchange="onDel" show-value />
+        bindchanging="onDelChanging" bindchange="onDel" show-value activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
       <text class="pol3d-unit">°</text>
     </view>
   </view>

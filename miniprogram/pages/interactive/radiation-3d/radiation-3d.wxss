@@ -9,10 +9,10 @@
 .r3d-canvas-wrap {
   margin: 0 12rpx 20rpx;
   padding: 0;
-  background: #2a2e3a;
+  background: linear-gradient(168deg, #454b63 0%, #262b3c 52%, #161a26 100%);
   border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.05);
+  border: 1rpx solid rgba(212, 173, 126, 0.14);
+  box-shadow: 0 8rpx 32rpx rgba(22, 26, 38, 0.35);
   position: relative;
   overflow: hidden;
 }
@@ -29,6 +29,41 @@
   font-size: 20rpx;
   color: rgba(255,255,255,.35);
   white-space: nowrap;
+  transition: opacity 0.6s ease;
+}
+.r3d-hint.fade { opacity: 0; }
+
+/* WebGL 初始化骨架屏 */
+.lab3d-skel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20rpx;
+  background: linear-gradient(168deg, #454b63 0%, #262b3c 52%, #161a26 100%);
+  z-index: 2;
+}
+.lab3d-skel-ring {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  border: 3rpx solid rgba(212, 173, 126, 0.25);
+  border-top-color: rgba(212, 173, 126, 0.9);
+  animation: lab3d-spin 0.9s linear infinite;
+}
+@keyframes lab3d-spin {
+  to { transform: rotate(360deg); }
+}
+.lab3d-skel-text {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 3rpx;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lab3d-skel-ring { animation: none; }
+  .r3d-hint { transition: none; }
 }
 
 /* ── 通用 section ── */

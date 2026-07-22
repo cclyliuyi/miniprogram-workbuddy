@@ -10,17 +10,21 @@
   <view class="lab3d-canvas-wrap rise">
     <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
-    <view class="lab3d-hint">单指拖动旋转 · 双指缩放</view>
+    <view wx:if="{{!glReady}}" class="lab3d-skel">
+      <view class="lab3d-skel-ring"></view>
+      <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
+    </view>
+    <view class="lab3d-hint {{showHint ? '' : 'fade'}}">单指旋转 · 双指缩放 · 双击复位</view>
   </view>
 
   <view class="lab3d-section rise">
     <view class="kicker">几何参数</view>
     <view class="lab3d-row"><text class="lab3d-label">焦径比 f/D</text><text class="lab3d-val">{{fdVal}}</text></view>
-    <slider min="25" max="100" step="1" value="{{fdSlider}}" bindchange="onFd" block-size="18" />
+    <slider min="25" max="100" step="1" value="{{fdSlider}}" bindchanging="onFdChanging" bindchange="onFd" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
     <view class="lab3d-row"><text class="lab3d-label">射线数</text><text class="lab3d-val">{{rayVal}}</text></view>
-    <slider min="7" max="45" step="2" value="{{raySlider}}" bindchange="onRays" block-size="18" />
+    <slider min="7" max="45" step="2" value="{{raySlider}}" bindchanging="onRaysChanging" bindchange="onRays" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
     <view class="lab3d-row"><text class="lab3d-label">轴向离焦 Δ/f</text><text class="lab3d-val">{{dzVal}}</text></view>
-    <slider min="-42" max="42" step="1" value="{{dzSlider}}" bindchange="onDz" block-size="18" />
+    <slider min="-42" max="42" step="1" value="{{dzSlider}}" bindchanging="onDzChanging" bindchange="onDz" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
   </view>
 
   <view class="lab3d-section rise">

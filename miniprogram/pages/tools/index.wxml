@@ -1,4 +1,4 @@
-<!-- pages/tools/index.wxml —— 常用工具首页 -->
+<!-- pages/tools/index.wxml —— 常用工具首页（数据驱动 v2） -->
 <view class="screen tl">
 
   <!-- 标题区 -->
@@ -8,420 +8,91 @@
     <view class="tl-sub">天线 · 雷达 · 通信 — 工程师口袋计算器</view>
   </view>
 
-  <!-- 工具卡片网格 -->
-  <view class="tl-grid">
-
-    <!-- 专用计算 -->
-    <view class="tl-card rise" bindtap="goCalc" style="animation-delay:.05s">
-      <view class="tl-card-icon tl-icon-calc">
-        <view class="tl-icon-inner">RF</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">专用计算</view>
-        <view class="tl-card-desc">dBm↔W · 波长 · VSWR · 趋肤深度</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
+  <!-- 最近使用 -->
+  <view class="tl-recent rise" wx:if="{{recent.length}}">
+    <view class="tl-recent-head">
+      <view class="kicker">最近使用</view>
+      <view class="tl-recent-clear" bindtap="clearRecent">清空</view>
     </view>
-
-    <!-- 天线阵列 -->
-    <view class="tl-card rise" bindtap="goArray" style="animation-delay:.10s">
-      <view class="tl-card-icon tl-icon-array">
-        <view class="tl-icon-inner">⬡</view>
+    <scroll-view scroll-x class="tl-recent-scroll" enhanced show-scrollbar="{{false}}">
+      <view class="tl-recent-row">
+        <view
+          wx:for="{{recent}}"
+          wx:key="key"
+          class="tl-recent-chip"
+          data-url="{{item.url}}" data-key="{{item.key}}" data-name="{{item.name}}"
+          data-icon="{{item.icon}}" data-cls="{{item.cls}}"
+          bindtap="onCard">
+          <view class="tl-recent-icon {{item.cls}}"><view class="tl-recent-icon-inner">{{item.icon}}</view></view>
+          <text class="tl-recent-name">{{item.name}}</text>
+        </view>
       </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">天线阵列</view>
-        <view class="tl-card-desc">方向图 · 阵列因子 · 波束扫描</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 通信链路 -->
-    <view class="tl-card rise" bindtap="goLink" style="animation-delay:.15s">
-      <view class="tl-card-icon tl-icon-link">
-        <view class="tl-icon-inner">📶</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">通信链路</view>
-        <view class="tl-card-desc">弗里斯方程 · 路径损耗 · 链路预算</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- Radar 链路 -->
-    <view class="tl-card rise" bindtap="goRadar" style="animation-delay:.20s">
-      <view class="tl-card-icon tl-icon-radar">
-        <view class="tl-icon-inner">⊙</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">Radar 链路</view>
-        <view class="tl-card-desc">雷达方程 · RCS · 多普勒频移</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 传输线 & 阻抗匹配 -->
-    <view class="tl-card rise" bindtap="goMatch" style="animation-delay:.25s">
-      <view class="tl-card-icon tl-icon-match">
-        <view class="tl-icon-inner">Z₀</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">传输线 & 匹配</view>
-        <view class="tl-card-desc">微带线 · λ/4 变换器 · L 型匹配 · 波导截止</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- Smith 圆图 -->
-    <view class="tl-card rise" bindtap="goSmith" style="animation-delay:.30s">
-      <view class="tl-card-icon tl-icon-smith">
-        <view class="tl-icon-inner">◎</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">Smith 圆图</view>
-        <view class="tl-card-desc">交互式阻抗图 · Γ/SWR/回波损耗 · 实时标点</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
+    </scroll-view>
   </view>
 
-  <!-- ═══ 交互动画分区 ═══ -->
-  <view class="tl-section-title">
-    <view class="rule-dot"></view>
-    <text class="tl-section-name">交互动画</text>
-    <text class="tl-section-en">INTERACTIVE</text>
-    <view class="rule-dot"></view>
+  <!-- 分段锚点（sticky） -->
+  <view class="tl-segbar">
+    <view
+      wx:for="{{segs}}"
+      wx:key="key"
+      class="tl-seg"
+      data-key="{{item.key}}"
+      bindtap="onSeg">
+      {{item.name}}
+    </view>
   </view>
 
-  <view class="tl-grid">
-
-    <!-- 链路预算 -->
-    <view class="tl-card rise" bindtap="goFriis" style="animation-delay:.05s">
-      <view class="tl-card-icon tl-icon-link">
-        <view class="tl-icon-inner">📡</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">链路预算</view>
-        <view class="tl-card-desc">Friis 单程 + 雷达双程 · Pr vs 距离曲线</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
+  <!-- 分区渲染 -->
+  <block wx:for="{{sections}}" wx:key="key" wx:for-item="sec">
+    <view id="sec-{{sec.key}}" class="tl-section-title">
+      <view class="rule-dot"></view>
+      <text class="tl-section-name">{{sec.name}}</text>
+      <text class="tl-section-en">{{sec.en}}</text>
+      <view class="rule-dot"></view>
     </view>
 
-    <!-- 阵列综合 -->
-    <view class="tl-card rise" bindtap="goSynthesis" style="animation-delay:.10s">
-      <view class="tl-card-icon tl-icon-array">
-        <view class="tl-icon-inner">⊞</view>
+    <!-- 大卡（单列） -->
+    <view class="tl-grid" wx:if="{{!sec.compact}}">
+      <view
+        wx:for="{{sec.items}}"
+        wx:key="key"
+        wx:for-item="tool"
+        class="tl-card rise"
+        data-url="{{tool.url}}" data-key="{{tool.key}}" data-name="{{tool.name}}"
+        data-icon="{{tool.icon}}" data-cls="{{tool.cls}}"
+        bindtap="onCard"
+        style="animation-delay:{{index * 0.05}}s">
+        <view class="tl-card-icon {{tool.cls}}">
+          <view class="tl-icon-inner">{{tool.icon}}</view>
+        </view>
+        <view class="tl-card-body">
+          <view class="tl-card-name">{{tool.name}}</view>
+          <view class="tl-card-desc">{{tool.desc}}</view>
+        </view>
+        <view class="tl-card-arrow">›</view>
       </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">阵列综合</view>
-        <view class="tl-card-desc">均匀/余弦/汉明/切比雪夫加权 · 阵因子对比</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
     </view>
 
-    <!-- 阻抗圆图 -->
-    <view class="tl-card rise" bindtap="goSmithChart" style="animation-delay:.15s">
-      <view class="tl-card-icon tl-icon-smith">
-        <view class="tl-icon-inner">◎</view>
+    <!-- 小卡（双列 · 综合实验室） -->
+    <view class="tl-grid-sm" wx:else>
+      <view
+        wx:for="{{sec.items}}"
+        wx:key="key"
+        wx:for-item="tool"
+        class="tl-card-sm rise"
+        data-url="{{tool.url}}" data-key="{{tool.key}}" data-name="{{tool.name}}"
+        data-icon="{{tool.icon}}" data-cls="{{tool.cls}}"
+        bindtap="onCard"
+        style="animation-delay:{{index * 0.04}}s">
+        <view class="tl-card-sm-icon {{tool.cls}}">
+          <view class="tl-icon-sm-inner">{{tool.icon}}</view>
+          <view class="tl-3d-badge" wx:if="{{tool.is3d}}">3D</view>
+        </view>
+        <view class="tl-card-sm-name">{{tool.name}}</view>
+        <view class="tl-card-sm-desc">{{tool.desc}}</view>
       </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">阻抗圆图</view>
-        <view class="tl-card-desc">点击图面 · 实时求解 Γ / SWR / ZL</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
     </view>
-
-    <!-- 口径衍射 -->
-    <view class="tl-card rise" bindtap="goAperture" style="animation-delay:.20s">
-      <view class="tl-card-icon tl-icon-array">
-        <view class="tl-icon-inner">▭</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">口径衍射</view>
-        <view class="tl-card-desc">矩形/圆形口径 · 照明分布 · 远场方向图</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 传输线驻波 -->
-    <view class="tl-card rise" bindtap="goTransmissionLine" style="animation-delay:.25s">
-      <view class="tl-card-icon tl-icon-link">
-        <view class="tl-icon-inner">∿</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">传输线驻波</view>
-        <view class="tl-card-desc">V(z)/I(z) 分布 · Γ · SWR · 短路/开路/匹配</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 相控阵扫描 -->
-    <view class="tl-card rise" bindtap="goPhasedArray" style="animation-delay:.30s">
-      <view class="tl-card-icon tl-icon-array">
-        <view class="tl-icon-inner">⊟</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">相控阵扫描</view>
-        <view class="tl-card-desc">波束指向 · 渐进相移 · 栅瓣检测</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 极化椭圆 -->
-    <view class="tl-card rise" bindtap="goPolarization" style="animation-delay:.35s">
-      <view class="tl-card-icon tl-icon-smith">
-        <view class="tl-icon-inner">◯</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">极化椭圆</view>
-        <view class="tl-card-desc">Ex/Ey 分量 · 线/圆/椭圆 · 行波传播</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 矩量法 -->
-    <view class="tl-card rise" bindtap="goMomentMethod" style="animation-delay:.40s">
-      <view class="tl-card-icon tl-icon-link">
-        <view class="tl-icon-inner">Z</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">矩量法</view>
-        <view class="tl-card-desc">细线电流分布 · 阻抗矩阵热图 · 远场方向图</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 宽带匹配 -->
-    <view class="tl-card rise" bindtap="goBroadbandMatching" style="animation-delay:.45s">
-      <view class="tl-card-icon tl-icon-smith">
-        <view class="tl-icon-inner">∿</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">宽带匹配</view>
-        <view class="tl-card-desc">回波损耗曲线 · Smith 阻抗轨迹 · 带宽分析</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 电小天线 Chu 极限 -->
-    <view class="tl-card rise" bindtap="goMiniaturization" style="animation-delay:.50s">
-      <view class="tl-card-icon tl-icon-calc">
-        <view class="tl-icon-inner">ka</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">电小天线</view>
-        <view class="tl-card-desc">Chu Q 下界 · 辐射电阻 · 效率 · 近场储能</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 辐射积分 -->
-    <view class="tl-card rise" bindtap="goRadiationIntegral" style="animation-delay:.55s">
-      <view class="tl-card-icon tl-icon-array">
-        <view class="tl-icon-inner">∫</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">辐射积分</view>
-        <view class="tl-card-desc">电流分布 → 积分路径 → 远场方向图</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 智能天线 -->
-    <view class="tl-card rise" bindtap="goSmartArray" style="animation-delay:.60s">
-      <view class="tl-card-icon tl-icon-radar">
-        <view class="tl-icon-inner">∇</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">智能天线</view>
-        <view class="tl-card-desc">MVDR 自适应零陷 · 目标增强 · 干扰抑制</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-  </view>
-
-  <!-- ═══ 综合实验室分区 ═══ -->
-  <view class="tl-section-title">
-    <view class="rule-dot"></view>
-    <text class="tl-section-name">综合实验室</text>
-    <text class="tl-section-en">UNIFIED LABS</text>
-    <view class="rule-dot"></view>
-  </view>
-
-  <view class="tl-grid">
-
-    <!-- 三维辐射方向图 -->
-    <view class="tl-card rise" bindtap="goRadiation3D" style="animation-delay:.00s">
-      <view class="tl-card-icon tl-icon-radar">
-        <view class="tl-icon-inner">◈</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">辐射方向图 3D</view>
-        <view class="tl-card-desc">三维方向图 · 天线类型 · 方向性 / HPBW</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 电磁能流账本 -->
-    <view class="tl-card rise" bindtap="goEnergyFlow" style="animation-delay:.05s">
-      <view class="tl-card-icon tl-icon-calc">
-        <view class="tl-icon-inner">∇·S</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">能流账本</view>
-        <view class="tl-card-desc">端口分账 · Poynting 矢量 · Chu Q 极限</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 傅里叶空间 -->
-    <view class="tl-card rise" bindtap="goFourierSpace" style="animation-delay:.10s">
-      <view class="tl-card-icon tl-icon-array">
-        <view class="tl-icon-inner">F{·}</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">傅里叶空间</view>
-        <view class="tl-card-desc">时频 · 口径 · 阵列 · 不确定性对偶</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 相位相干 -->
-    <view class="tl-card rise" bindtap="goPhaseCoherence" style="animation-delay:.15s">
-      <view class="tl-card-icon tl-icon-link">
-        <view class="tl-icon-inner">∠</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">相位相干</view>
-        <view class="tl-card-desc">相量叠加 · 阵列扫描 · 等光程聚焦</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 边界模式 -->
-    <view class="tl-card rise" bindtap="goBoundaryMode" style="animation-delay:.20s">
-      <view class="tl-card-icon tl-icon-smith">
-        <view class="tl-icon-inner">∂n</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">边界模式</view>
-        <view class="tl-card-desc">边界条件 · 本征模式 · 格林函数 · 对称性</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 极化互易 -->
-    <view class="tl-card rise" bindtap="goPolarReciprocity" style="animation-delay:.25s">
-      <view class="tl-card-icon tl-icon-radar">
-        <view class="tl-icon-inner">⇄</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">极化互易</view>
-        <view class="tl-card-desc">极化椭圆 · 接收投影 · 收发互易</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- ── 3D 天线结构实验室 ── -->
-
-    <!-- 小环天线 -->
-    <view class="tl-card rise" bindtap="goLoop3D" style="animation-delay:.30s">
-      <view class="tl-card-icon tl-icon-radar">
-        <view class="tl-icon-inner">◯</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">小环天线 3D</view>
-        <view class="tl-card-desc">磁偶极子 · sin²θ 方向图 · 辐射电阻</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 行波天线 -->
-    <view class="tl-card rise" bindtap="goTravelingWave3D" style="animation-delay:.35s">
-      <view class="tl-card-icon tl-icon-radar">
-        <view class="tl-icon-inner">→</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">行波天线 3D</view>
-        <view class="tl-card-desc">传播电流 · 反射 · 端射波束</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 喇叭天线 -->
-    <view class="tl-card rise" bindtap="goHorn3D" style="animation-delay:.40s">
-      <view class="tl-card-icon tl-icon-radar">
-        <view class="tl-icon-inner">◁</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">喇叭天线 3D</view>
-        <view class="tl-card-desc">口径相位 · E/H 面方向图 · 增益估计</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 抛物面反射器 -->
-    <view class="tl-card rise" bindtap="goParabolic3D" style="animation-delay:.45s">
-      <view class="tl-card-icon tl-icon-radar">
-        <view class="tl-icon-inner">⌒</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">抛物面反射器 3D</view>
-        <view class="tl-card-desc">射线追踪 · 离焦 · 口面相位</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 微带贴片天线 -->
-    <view class="tl-card rise" bindtap="goMicrostrip3D" style="animation-delay:.50s">
-      <view class="tl-card-icon tl-icon-radar">
-        <view class="tl-icon-inner">▤</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">微带贴片 3D</view>
-        <view class="tl-card-desc">一阶尺寸 · 馈点匹配 · S11 参数</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 微波暗室 -->
-    <view class="tl-card rise" bindtap="goAnechoic3D" style="animation-delay:.55s">
-      <view class="tl-card-icon tl-icon-radar">
-        <view class="tl-icon-inner">⊟</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">微波暗室 3D</view>
-        <view class="tl-card-desc">标准增益法 · 转台扫描 · 方向图采集</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 电偶极子辐射 -->
-    <view class="tl-card rise" bindtap="goFieldAnim3D" style="animation-delay:.60s">
-      <view class="tl-card-icon tl-icon-radar">
-        <view class="tl-icon-inner">≈</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">偶极子辐射</view>
-        <view class="tl-card-desc">近场 → 远场过渡 · E 面截面 · 推迟时间</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-    <!-- 方向图综合 -->
-    <view class="tl-card rise" bindtap="goArraySynth3D" style="animation-delay:.65s">
-      <view class="tl-card-icon tl-icon-array">
-        <view class="tl-icon-inner">Σ</view>
-      </view>
-      <view class="tl-card-body">
-        <view class="tl-card-name">方向图综合 3D</view>
-        <view class="tl-card-desc">Dolph-Chebyshev · Taylor · 均匀加权</view>
-      </view>
-      <view class="tl-card-arrow">›</view>
-    </view>
-
-  </view>
+  </block>
 
   <!-- 底部说明 -->
   <view class="tl-foot">

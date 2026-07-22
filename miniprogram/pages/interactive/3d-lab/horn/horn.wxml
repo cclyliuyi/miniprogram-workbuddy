@@ -10,17 +10,21 @@
   <view class="lab3d-canvas-wrap rise">
     <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
-    <view class="lab3d-hint">单指拖动旋转 · 双指缩放</view>
+    <view wx:if="{{!glReady}}" class="lab3d-skel">
+      <view class="lab3d-skel-ring"></view>
+      <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
+    </view>
+    <view class="lab3d-hint {{showHint ? '' : 'fade'}}">单指旋转 · 双指缩放 · 双击复位</view>
   </view>
 
   <view class="lab3d-section rise">
     <view class="kicker">几何尺寸</view>
     <view class="lab3d-row"><text class="lab3d-label">口径 A/λ</text><text class="lab3d-val">{{aVal}}</text></view>
-    <slider min="20" max="160" step="2" value="{{aSlider}}" bindchange="onA" block-size="18" />
+    <slider min="20" max="160" step="2" value="{{aSlider}}" bindchanging="onAChanging" bindchange="onA" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
     <view class="lab3d-row"><text class="lab3d-label">轴向长度 R/λ</text><text class="lab3d-val">{{lVal}}</text></view>
-    <slider min="20" max="240" step="2" value="{{lSlider}}" bindchange="onR" block-size="18" />
+    <slider min="20" max="240" step="2" value="{{lSlider}}" bindchanging="onRChanging" bindchange="onR" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
     <view class="lab3d-row"><text class="lab3d-label">照明边缘电平</text><text class="lab3d-val">{{tapVal}}</text></view>
-    <slider min="0" max="24" step="1" value="{{tapSlider}}" bindchange="onTap" block-size="18" />
+    <slider min="0" max="24" step="1" value="{{tapSlider}}" bindchanging="onTapChanging" bindchange="onTap" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
   </view>
 
   <view class="lab3d-stats pop">
@@ -42,7 +46,7 @@
     <view class="kicker">原理</view>
     <view class="lab3d-note-item">口径越大，理想增益越高；但喇叭太短会让边缘路径更长</view>
     <view class="lab3d-note-item">口径相位弯曲会导致方向图效率下降</view>
-    <view class="lab3d-note-item">铜色 = 喇叭金属壁 · 口径色带 = 相位从中心到边缘滞后 · 白线 = 等相位波前</view>
+    <view class="lab3d-note-item">铜色 = 喇叭金属壁 · 口径色带 = 相位从中心到边缘滞后 · 暖金环 = 等相位波前</view>
   </view>
 
 </view>

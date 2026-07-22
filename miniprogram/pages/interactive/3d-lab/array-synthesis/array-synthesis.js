@@ -1,6 +1,7 @@
-// pages/interactive/3d-lab/array-synthesis/array-synthesis.js —— 方向图综合 3D (r108)
+// pages/interactive/3d-lab/array-synthesis/array-synthesis.js —— 方向图综合 3D (r108) · 深空暖金 v2
 const { createScopedThreejs } = require('threejs-miniprogram');
 const { registerOrbitControls } = require('../orbit-controls');
+const stage = require('../lab3d-stage');
 
 Page({
   data: {
@@ -9,6 +10,8 @@ Page({
     method: 'chebyshev',
     sllSlider: -20, sllVal: '-20 dB',
     dbi: '-', hpbw: '-', actualSll: '-', nulCount: '-',
+    showHint: true,
+    glReady: false,
   },
 
   THREE: null, canvasNode: null, renderer: null, scene: null,
@@ -20,7 +23,8 @@ Page({
 
   onReady() { this.initThree(); this.init2D(); },
   onUnload() { this.dispose(); },
-  onHide() { this.stopAnim(); },
+  onHide() { this.stopAnim(); stage.clearTimers(this); },
+  onShow() { if (this.canvasNode && this.renderer) { this.startAnim(); stage.scheduleIdle(this); } },
 
   initThree() {
     const sel = this.createSelectorQuery();
@@ -42,32 +46,25 @@ Page({
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
       renderer.setPixelRatio(Math.min(dpr, 2));
       renderer.setSize(cssW, cssH, false);
-      renderer.setClearColor(0x2a2e3a, 1);
+      renderer.setClearColor(stage.COL.bgEdge, 1);
       this.renderer = renderer;
 
       const scene = new THREE.Scene();
       this.scene = scene;
-      const camera = new THREE.PerspectiveCamera(45, cssW / cssH, 0.1, 100);
+      const camera = new THREE.PerspectiveCamera(45, cssW / cssH, 0.1, 200);
       camera.position.set(3, 2, 3);
       this.camera = camera;
 
       const controls = new THREE.OrbitControls(camera, canvas);
       controls.enableDamping = true;
+      controls.autoRotateSpeed = 1.0;
+      controls.update();
       this.controls = controls;
+      this._home = stage.saveHome(controls);
 
-      // 三点布光（暖色调）
-      scene.add(new THREE.AmbientLight(0xfff4e6, 0.75));
-      const sun = new THREE.DirectionalLight(0xfff0d8, 1.2);
-      sun.position.set(4, 8, 5);
-      scene.add(sun);
-      const rim = new THREE.DirectionalLight(0xffd9a8, 0.5);
-      rim.position.set(-3, 2, -4);
-      scene.add(rim);
-
-      // 地面网格
-      const grid = new THREE.GridHelper(8, 32, 0x5a607a, 0x4a5068);
-      grid.position.y = -2;
-      scene.add(grid);
+      // 深空暖金舞台 + 三灯（替换原 GridHelper 灰蓝网格）
+      stage.buildStage(THREE, scene, { groundY: -2 });
+      stage.buildLights(THREE, scene);
 
       this.elemGroup = new THREE.Group();
       this.patternGroup = new THREE.Group();
@@ -75,15 +72,11 @@ Page({
 
       this.render();
       this.startAnim();
+      stage.ready(this);
     });
   },
 
-  clearGroup(g) {
-    while (g.children.length) {
-      const o = g.children.pop();
-      if (o.geometry) o.geometry.dispose();
-    }
-  },
+  clearGroup(g) { stage.clearGroup(g); },
 
   // ── 权重计算 ──
   chebyshevWeights(N, sllDb) {
@@ -234,23 +227,34 @@ Page({
 
   dispose() {
     this.stopAnim();
+    stage.clearTimers(this);
     if (this.renderer) { this.renderer.dispose(); this.renderer = null; }
     if (this.controls) { this.controls.dispose(); this.controls = null; }
   },
 
-  onTouchStart(e) { if (this.controls) this.controls.onTouchStart(e); },
-  onTouchMove(e) { if (this.controls) this.controls.onTouchMove(e); },
-  onTouchEnd(e) { if (this.controls) this.controls.onTouchEnd(e); },
+  onTouchStart(e) { stage.touchStart(this, e); },
+  onTouchMove(e) { stage.touchMove(this, e); },
+  onTouchEnd(e) { stage.touchEnd(this, e); },
 
   onN(e) {
     this.state.N = e.detail.value;
     this.setData({ nVal: String(this.state.N) });
     this.render();
   },
+  onNChanging(e) {
+    this.state.N = e.detail.value;
+    this.setData({ nVal: String(this.state.N) });
+    stage.throttle(this, 55, function () { this.render(); });
+  },
   onD(e) {
     this.state.d = e.detail.value / 100;
     this.setData({ dVal: this.state.d.toFixed(2) + 'λ' });
     this.render();
+  },
+  onDChanging(e) {
+    this.state.d = e.detail.value / 100;
+    this.setData({ dVal: this.state.d.toFixed(2) + 'λ' });
+    stage.throttle(this, 55, function () { this.render(); });
   },
   onMethod(e) {
     this.state.method = e.currentTarget.dataset.m;
@@ -261,6 +265,11 @@ Page({
     this.state.SLL = e.detail.value;
     this.setData({ sllVal: this.state.SLL + ' dB' });
     this.render();
+  },
+  onSllChanging(e) {
+    this.state.SLL = e.detail.value;
+    this.setData({ sllVal: this.state.SLL + ' dB' });
+    stage.throttle(this, 55, function () { this.render(); });
   },
 
   render() {
@@ -318,19 +327,19 @@ Page({
     const pg = this.plotCtx;
     const w = this.plotW, h = this.plotH;
 
-    pg.fillStyle = '#0a0c16';
+    pg.fillStyle = '#1c2130';
     pg.fillRect(0, 0, w, h);
 
     const pad = { l: 40, r: 15, t: 15, b: 25 };
     const plotW2 = w - pad.l - pad.r;
     const plotH = h - pad.t - pad.b;
 
-    pg.strokeStyle = '#1e2235';
+    pg.strokeStyle = '#313a55';
     pg.lineWidth = 1;
     for (let db = 0; db >= -40; db -= 10) {
       const y = pad.t + plotH * (1 - (db + 40) / 40);
       pg.beginPath(); pg.moveTo(pad.l, y); pg.lineTo(w - pad.r, y); pg.stroke();
-      pg.fillStyle = '#4a5270';
+      pg.fillStyle = '#7c89b0';
       pg.font = '9px monospace';
       pg.textAlign = 'right';
       pg.fillText(db + ' dB', pad.l - 3, y + 3);
@@ -358,7 +367,7 @@ Page({
     pg.setLineDash([]);
 
     // 加权方向图
-    pg.strokeStyle = '#4f8cff';
+    pg.strokeStyle = '#6c88e8';
     pg.lineWidth = 2;
     pg.beginPath();
     for (let i = 0; i <= 180; i++) {
@@ -372,7 +381,7 @@ Page({
     pg.stroke();
 
     // SLL 线
-    pg.strokeStyle = '#28c6a4';
+    pg.strokeStyle = '#3ec9a7';
     pg.setLineDash([3, 3]);
     const sllY = pad.t + plotH * (1 - (S.SLL + 40) / 40);
     pg.beginPath(); pg.moveTo(pad.l, sllY); pg.lineTo(w - pad.r, sllY); pg.stroke();

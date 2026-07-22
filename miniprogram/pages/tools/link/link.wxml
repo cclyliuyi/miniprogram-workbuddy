@@ -103,6 +103,11 @@
         {{result.verdict}}
       </view>
     </view>
+
+    <view class="tc-insight">
+      <view class="tc-insight-kicker">直觉</view>
+      <view class="tc-insight-text"><text class="tc-hl">距离 ×2 → FSPL +6 dB；频率 ×2 同样 +6 dB</text> —— 这就是 5G 毫米波覆盖难的根本原因。链路余量 ≥10 dB 才算稳妥，余量为负的链路只存在于纸面上。</view>
+    </view>
   </view>
 
   <!-- ══════ Tab2: 菲涅尔区 ══════ -->
@@ -159,6 +164,11 @@
         <image class="tl2-formula-img" src="{{formulaLOS}}" mode="aspectFit" />
       </view>
     </view>
+
+    <view class="tc-insight">
+      <view class="tc-insight-kicker">直觉</view>
+      <view class="tc-insight-text">不是"看得见"就通：<text class="tc-hl">60% 净空是工程底线</text>。2.4 GHz、10 km 链路中点的 r₁≈17.7 m —— 树梢、广告牌、楼顶水箱都可能侵入，勘察时先用这个数筛一遍。</view>
+    </view>
   </view>
 
   <!-- ══════ Tab3: 无线电视距 ══════ -->
@@ -212,6 +222,11 @@
       <view class="tl2-formula-box">
         <image class="tl2-formula-img" src="{{formulaLOS}}" mode="aspectFit" />
       </view>
+    </view>
+
+    <view class="tc-insight">
+      <view class="tc-insight-kicker">直觉</view>
+      <view class="tc-insight-text">k=4/3 是"地球鼓起来一点"的等效：<text class="tc-hl">大气折射把射线微微掰弯，等效地球半径变大、视距变远</text>。两座 10 m 天线互视 ≈ 26 km；高度翻倍，视距只 ×1.41 —— 架高是最贵的"增益"。</view>
     </view>
   </view>
 
@@ -278,6 +293,11 @@
       <view class="tl2-formula-box">
         <image class="tl2-formula-img" src="{{formulaNoise}}" mode="aspectFit" />
       </view>
+    </view>
+
+    <view class="tc-insight">
+      <view class="tc-insight-kicker">直觉</view>
+      <view class="tc-insight-text">kT·B 是宇宙的地板：<text class="tc-hl">-174 dBm/Hz，带宽 ×1000 噪声 +30 dB</text>。灵敏度 = 地板 + NF + 解调门限 —— 想听得更远，要么压低 NF（低噪放），要么收窄带宽（慢速率），没有第三条路。</view>
     </view>
   </view>
 

@@ -1,6 +1,7 @@
-// pages/interactive/3d-lab/microstrip/microstrip.js —— 微带贴片天线 3D (r108)
+// pages/interactive/3d-lab/microstrip/microstrip.js —— 微带贴片天线 3D (r108) · 深空暖金 v2
 const { createScopedThreejs } = require('threejs-miniprogram');
 const { registerOrbitControls } = require('../orbit-controls');
+const stage = require('../lab3d-stage');
 
 Page({
   data: {
@@ -9,6 +10,8 @@ Page({
     hSlider: 160, hVal: '1.60 mm',
     insetSlider: 34, insetVal: '0.34',
     W: '-', L: '-', ee: '-', rin: '-', smin: '-', bw: '-',
+    showHint: true,
+    glReady: false,
   },
 
   THREE: null, canvasNode: null, renderer: null, scene: null,
@@ -24,7 +27,8 @@ Page({
 
   onReady() { this.initThree(); this.init2D(); },
   onUnload() { this.dispose(); },
-  onHide() { this.stopAnim(); },
+  onHide() { this.stopAnim(); stage.clearTimers(this); },
+  onShow() { if (this.canvasNode && this.renderer) { this.startAnim(); stage.scheduleIdle(this); } },
 
   clamp(v, a, b) { return Math.max(a, Math.min(b, v)); },
 
@@ -48,28 +52,24 @@ Page({
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
       renderer.setPixelRatio(Math.min(dpr, 2));
       renderer.setSize(cssW, cssH, false);
-      renderer.setClearColor(0x2a2e3a, 1);
+      renderer.setClearColor(stage.COL.bgEdge, 1);
       this.renderer = renderer;
 
       const scene = new THREE.Scene();
       this.scene = scene;
-      const camera = new THREE.PerspectiveCamera(42, cssW / cssH, 0.01, 100);
+      const camera = new THREE.PerspectiveCamera(42, cssW / cssH, 0.01, 200);
       this.camera = camera;
 
       const controls = new THREE.OrbitControls(camera, canvas);
       controls.enableDamping = true;
       controls.dampingFactor = 0.08;
+      controls.autoRotateSpeed = 1.0;
       controls.target.set(0, 0.08, 0);
       this.controls = controls;
 
-      // 三点布光（暖色调）
-      scene.add(new THREE.AmbientLight(0xfff4e6, 0.75));
-      const key = new THREE.DirectionalLight(0xfff0d8, 1.2);
-      key.position.set(3, 4, 5);
-      scene.add(key);
-      const rim = new THREE.DirectionalLight(0xffd9a8, 0.5);
-      rim.position.set(-3, 2, -4);
-      scene.add(rim);
+      // 深空暖金舞台 + 三灯（电路板平放 y≈0，地面贴板底）
+      stage.buildStage(THREE, scene, { groundY: -0.14 });
+      stage.buildLights(THREE, scene);
 
       const root = new THREE.Group();
       scene.add(root);
@@ -85,8 +85,14 @@ Page({
         color: 0x3a7090, transparent: true, opacity: 0.52,
         roughness: 0.55, metalness: 0, side: THREE.DoubleSide
       });
-      const matGround = new THREE.MeshStandardMaterial({ color: 0xd08040, metalness: 0.78, roughness: 0.28 });
-      const matCopper = new THREE.MeshStandardMaterial({ color: 0xe0a040, emissive: 0x2a1810, metalness: 0.8, roughness: 0.22 });
+      const matGround = new THREE.MeshStandardMaterial({
+        color: 0xd08040, metalness: 0.45, roughness: 0.30,
+        emissive: 0x201205, emissiveIntensity: 0.35,
+      });
+      const matCopper = new THREE.MeshStandardMaterial({
+        color: 0xe0a040, emissive: 0x2a1810, emissiveIntensity: 0.4,
+        metalness: 0.45, roughness: 0.26,
+      });
       const matCut = new THREE.MeshBasicMaterial({ color: 0x1a1e2a });
 
       this.substrate = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), matSub);
@@ -99,15 +105,11 @@ Page({
 
       this.renderAll();
       this.startAnim();
+      stage.ready(this);
     });
   },
 
-  clearGroup(g) {
-    while (g.children.length) {
-      const o = g.children.pop();
-      if (o.geometry) o.geometry.dispose();
-    }
-  },
+  clearGroup(g) { stage.clearGroup(g); },
 
   setBox(mesh, w, h, d, x, y, z) {
     const THREE = this.THREE;
@@ -186,9 +188,9 @@ Page({
     this.setBox(this.slotR, slotW, 0.028, slotLen, feedW * 0.86, top + 0.018, slotZ);
     this.slotL.visible = this.slotR.visible = slotVisible;
 
-    // 边缘缝隙场
-    const matFieldA = new THREE.LineBasicMaterial({ color: 0x6fd8ff, transparent: true, opacity: 0.62 });
-    const matFieldB = new THREE.LineBasicMaterial({ color: 0x6ff0b2, transparent: true, opacity: 0.52 });
+    // 边缘缝隙场（色系对齐：蓝 = E 边 · 青绿 = H 边）
+    const matFieldA = new THREE.LineBasicMaterial({ color: 0x6c88e8, transparent: true, opacity: 0.62 });
+    const matFieldB = new THREE.LineBasicMaterial({ color: 0x3ec9a7, transparent: true, opacity: 0.52 });
     const edgeCount = 9;
     for (const side of [-1, 1]) {
       for (let k = 0; k < edgeCount; k++) {
@@ -234,12 +236,17 @@ Page({
     addLine(new THREE.Vector3(-W / 2, yD, -L / 2 - 0.17), new THREE.Vector3(W / 2, yD, -L / 2 - 0.17));
     addLine(new THREE.Vector3(W / 2 + 0.17, yD, -L / 2), new THREE.Vector3(W / 2 + 0.17, yD, L / 2));
 
-    // 相机
+    // 相机只在首次定位；之后用户视角不被参数修改打断
     const maxDim = Math.max(boardW, boardL);
-    this.camera.position.set(maxDim * 0.86, maxDim * 0.64, maxDim * 1.02);
-    this.camera.near = 0.01; this.camera.far = 100;
-    this.camera.updateProjectionMatrix();
-    this.controls.target.set(0, 0.03, 0);
+    if (!this._camInit) {
+      this.camera.position.set(maxDim * 0.86, maxDim * 0.64, maxDim * 1.02);
+      this.camera.near = 0.01; this.camera.far = 200;
+      this.camera.updateProjectionMatrix();
+      this.controls.target.set(0, 0.03, 0);
+      this.controls.update();
+      this._home = stage.saveHome(this.controls);
+      this._camInit = true;
+    }
     this.controls.update();
   },
 
@@ -276,18 +283,23 @@ Page({
 
   dispose() {
     this.stopAnim();
+    stage.clearTimers(this);
     if (this.renderer) { this.renderer.dispose(); this.renderer = null; }
     if (this.controls) { this.controls.dispose(); this.controls = null; }
   },
 
-  onTouchStart(e) { if (this.controls) this.controls.onTouchStart(e); },
-  onTouchMove(e) { if (this.controls) this.controls.onTouchMove(e); },
-  onTouchEnd(e) { if (this.controls) this.controls.onTouchEnd(e); },
+  onTouchStart(e) { stage.touchStart(this, e); },
+  onTouchMove(e) { stage.touchMove(this, e); },
+  onTouchEnd(e) { stage.touchEnd(this, e); },
 
   onF(e) { this.state.f = e.detail.value / 100; this.setData({ fVal: this.state.f.toFixed(2) + ' GHz' }); this.renderAll(); },
+  onFChanging(e) { this.state.f = e.detail.value / 100; this.setData({ fVal: this.state.f.toFixed(2) + ' GHz' }); stage.throttle(this); },
   onEr(e) { this.state.er = e.detail.value / 10; this.setData({ erVal: this.state.er.toFixed(2) }); this.renderAll(); },
+  onErChanging(e) { this.state.er = e.detail.value / 10; this.setData({ erVal: this.state.er.toFixed(2) }); stage.throttle(this); },
   onH(e) { this.state.h = e.detail.value / 100; this.setData({ hVal: this.state.h.toFixed(2) + ' mm' }); this.renderAll(); },
+  onHChanging(e) { this.state.h = e.detail.value / 100; this.setData({ hVal: this.state.h.toFixed(2) + ' mm' }); stage.throttle(this); },
   onInset(e) { this.state.inset = e.detail.value / 100; this.setData({ insetVal: this.state.inset.toFixed(2) }); this.renderAll(); },
+  onInsetChanging(e) { this.state.inset = e.detail.value / 100; this.setData({ insetVal: this.state.inset.toFixed(2) }); stage.throttle(this); },
 
   renderAll() {
     const d = this.design();
@@ -330,16 +342,16 @@ Page({
     if (!this.plotCtx) return;
     const pg = this.plotCtx;
     const w = this.plotW, h = this.plotH;
-    pg.fillStyle = '#0a0c16';
+    pg.fillStyle = '#1c2130';
     pg.fillRect(0, 0, w, h);
     const L = 42, R = w - 14, T = 18, B = h - 28, minDb = -35;
-    pg.strokeStyle = '#242a3f';
+    pg.strokeStyle = '#313a55';
     pg.lineWidth = 1;
     for (let db = minDb; db <= 0; db += 5) {
       const y = T + (-db / (-minDb)) * (B - T);
       pg.beginPath(); pg.moveTo(L, y); pg.lineTo(R, y); pg.stroke();
       if (db % 10 === 0) {
-        pg.fillStyle = '#5f6886';
+        pg.fillStyle = '#7c89b0';
         pg.font = '10px Consolas';
         pg.textAlign = 'right';
         pg.fillText(db + ' dB', L - 7, y + 3);
@@ -353,7 +365,7 @@ Page({
     pg.setLineDash([]);
 
     const fMin = sw.pts[0].f, fMax = sw.pts[sw.pts.length - 1].f;
-    pg.strokeStyle = '#7ca0ff';
+    pg.strokeStyle = '#6c88e8';
     pg.lineWidth = 2;
     pg.beginPath();
     sw.pts.forEach((p, i) => {
@@ -366,17 +378,17 @@ Page({
 
     // f0 标线
     const x0 = L + (d.f0 - fMin) / (fMax - fMin) * (R - L);
-    pg.strokeStyle = '#64d79f';
+    pg.strokeStyle = '#3ec9a7';
     pg.beginPath(); pg.moveTo(x0, T); pg.lineTo(x0, B); pg.stroke();
 
-    pg.fillStyle = '#7a84a8';
+    pg.fillStyle = '#7c89b0';
     pg.font = '10px sans-serif';
     pg.textAlign = 'left';
     pg.fillText(fMin.toFixed(2) + ' GHz', L, B + 17);
     pg.textAlign = 'right';
     pg.fillText(fMax.toFixed(2) + ' GHz', R, B + 17);
     pg.textAlign = 'left';
-    pg.fillStyle = '#9aa6cc';
+    pg.fillStyle = '#9db1e8';
     pg.fillText('min ' + (20 * Math.log10(sw.min)).toFixed(1) + ' dB @ ' + sw.minF.toFixed(2) + ' GHz', L, T - 6);
   },
 });

@@ -1,6 +1,7 @@
-// pages/interactive/3d-lab/parabolic/parabolic.js —— 抛物面反射器 3D (r108)
+// pages/interactive/3d-lab/parabolic/parabolic.js —— 抛物面反射器 3D (r108) · 深空暖金 v2
 const { createScopedThreejs } = require('threejs-miniprogram');
 const { registerOrbitControls } = require('../orbit-controls');
+const stage = require('../lab3d-stage');
 
 Page({
   data: {
@@ -9,6 +10,8 @@ Page({
     dzSlider: 0, dzVal: '0.00',
     showIn: true, showOut: true, showPhase: true,
     focal: '-', theta: '-', phase: '-', gain: '-',
+    showHint: true,
+    glReady: false,
   },
 
   THREE: null, canvasNode: null, renderer: null, scene: null,
@@ -21,7 +24,8 @@ Page({
 
   onReady() { this.initThree(); this.init2D(); },
   onUnload() { this.dispose(); },
-  onHide() { this.stopAnim(); },
+  onHide() { this.stopAnim(); stage.clearTimers(this); },
+  onShow() { if (this.canvasNode && this.renderer) { this.startAnim(); stage.scheduleIdle(this); } },
 
   clamp(v, a, b) { return Math.max(a, Math.min(b, v)); },
 
@@ -45,26 +49,22 @@ Page({
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
       renderer.setPixelRatio(Math.min(dpr, 2));
       renderer.setSize(cssW, cssH, false);
-      renderer.setClearColor(0x2a2e3a, 1);
+      renderer.setClearColor(stage.COL.bgEdge, 1);
       this.renderer = renderer;
 
       const scene = new THREE.Scene();
       this.scene = scene;
-      const camera = new THREE.PerspectiveCamera(42, cssW / cssH, 0.01, 100);
+      const camera = new THREE.PerspectiveCamera(42, cssW / cssH, 0.01, 200);
       this.camera = camera;
 
       const controls = new THREE.OrbitControls(camera, canvas);
       controls.enableDamping = true;
+      controls.autoRotateSpeed = 1.0;
       this.controls = controls;
 
-      // 三点布光（暖色调）
-      scene.add(new THREE.AmbientLight(0xfff4e6, 0.75));
-      const sun = new THREE.DirectionalLight(0xfff0d8, 1.2);
-      sun.position.set(3, 4, 5);
-      scene.add(sun);
-      const rim = new THREE.DirectionalLight(0xffd9a8, 0.5);
-      rim.position.set(-3, 1, -3);
-      scene.add(rim);
+      // 深空暖金舞台 + 三灯（盘面半径 3λ，地面按比例放大）
+      stage.buildStage(THREE, scene, { groundY: -3.4, groundScale: 1.8 });
+      stage.buildLights(THREE, scene);
 
       const root = new THREE.Group();
       scene.add(root);
@@ -77,15 +77,11 @@ Page({
 
       this.renderAll();
       this.startAnim();
+      stage.ready(this);
     });
   },
 
-  clearGroup(g) {
-    while (g.children.length) {
-      const o = g.children.pop();
-      if (o.geometry) o.geometry.dispose();
-    }
-  },
+  clearGroup(g) { stage.clearGroup(g); },
 
   metrics() {
     const S = this.state;
@@ -173,7 +169,8 @@ Page({
     geo.computeVertexNormals();
 
     const dishMat = new THREE.MeshStandardMaterial({
-      color: 0xb06f2b, metalness: 0.76, roughness: 0.30,
+      color: 0xb06f2b, metalness: 0.45, roughness: 0.30,
+      emissive: 0x201205, emissiveIntensity: 0.35,
       side: THREE.DoubleSide, transparent: true, opacity: 0.92
     });
     this.dishGroup.add(new THREE.Mesh(geo, dishMat));
@@ -196,8 +193,8 @@ Page({
     this.dishGroup.add(feedMesh);
 
     // 射线
-    const inMat = new THREE.LineBasicMaterial({ color: 0x5f8bff, transparent: true, opacity: 0.62 });
-    const outMat = new THREE.LineBasicMaterial({ color: 0xe8efff, transparent: true, opacity: 0.70 });
+    const inMat = new THREE.LineBasicMaterial({ color: 0x6c88e8, transparent: true, opacity: 0.62 });
+    const outMat = new THREE.LineBasicMaterial({ color: 0xf0e6d6, transparent: true, opacity: 0.70 });
 
     const rings = Math.max(1, Math.round(S.rays / 6));
     const per = Math.max(8, Math.round(S.rays / rings));
@@ -225,10 +222,16 @@ Page({
       })));
     }
 
-    this.camera.position.set(m.D * 0.66, -m.D * 0.72, m.D * 0.58);
-    this.controls.target.set(0, 0, m.F * 0.28);
-    this.camera.near = 0.01; this.camera.far = 100;
-    this.camera.updateProjectionMatrix();
+    // 相机只在首次定位；之后用户视角不被参数修改打断
+    if (!this._camInit) {
+      this.camera.position.set(m.D * 0.66, -m.D * 0.72, m.D * 0.58);
+      this.controls.target.set(0, 0, m.F * 0.28);
+      this.camera.near = 0.01; this.camera.far = 200;
+      this.camera.updateProjectionMatrix();
+      this.controls.update();
+      this._home = stage.saveHome(this.controls);
+      this._camInit = true;
+    }
     this.controls.update();
   },
 
@@ -252,17 +255,21 @@ Page({
 
   dispose() {
     this.stopAnim();
+    stage.clearTimers(this);
     if (this.renderer) { this.renderer.dispose(); this.renderer = null; }
     if (this.controls) { this.controls.dispose(); this.controls = null; }
   },
 
-  onTouchStart(e) { if (this.controls) this.controls.onTouchStart(e); },
-  onTouchMove(e) { if (this.controls) this.controls.onTouchMove(e); },
-  onTouchEnd(e) { if (this.controls) this.controls.onTouchEnd(e); },
+  onTouchStart(e) { stage.touchStart(this, e); },
+  onTouchMove(e) { stage.touchMove(this, e); },
+  onTouchEnd(e) { stage.touchEnd(this, e); },
 
   onFd(e) { this.state.fd = e.detail.value / 100; this.setData({ fdVal: this.state.fd.toFixed(2) }); this.renderAll(); },
+  onFdChanging(e) { this.state.fd = e.detail.value / 100; this.setData({ fdVal: this.state.fd.toFixed(2) }); stage.throttle(this); },
   onRays(e) { this.state.rays = e.detail.value; this.setData({ rayVal: String(this.state.rays) }); this.renderAll(); },
+  onRaysChanging(e) { this.state.rays = e.detail.value; this.setData({ rayVal: String(this.state.rays) }); stage.throttle(this); },
   onDz(e) { this.state.dz = e.detail.value / 100; this.setData({ dzVal: this.state.dz.toFixed(2) }); this.renderAll(); },
+  onDzChanging(e) { this.state.dz = e.detail.value / 100; this.setData({ dzVal: this.state.dz.toFixed(2) }); stage.throttle(this); },
 
   onTogIn() { this.state.show.in = !this.state.show.in; this.setData({ showIn: this.state.show.in }); this.renderAll(); },
   onTogOut() { this.state.show.out = !this.state.show.out; this.setData({ showOut: this.state.show.out }); this.renderAll(); },
@@ -308,16 +315,16 @@ Page({
     if (!this.plotCtx) return;
     const pg = this.plotCtx;
     const w = this.plotW, h = this.plotH;
-    pg.fillStyle = '#0a0c16';
+    pg.fillStyle = '#1c2130';
     pg.fillRect(0, 0, w, h);
     const L = 40, R = w - 14, T = 16, B = h - 24;
     const max = Math.max(20, ...err.map(x => Math.abs(x)));
-    pg.strokeStyle = '#242a3f';
+    pg.strokeStyle = '#313a55';
     for (let i = -2; i <= 2; i++) {
       const y = (T + B) / 2 - i * (B - T) / 4;
       pg.beginPath(); pg.moveTo(L, y); pg.lineTo(R, y); pg.stroke();
     }
-    pg.strokeStyle = '#7ca0ff';
+    pg.strokeStyle = '#6c88e8';
     pg.lineWidth = 2;
     pg.beginPath();
     err.forEach((e, i) => {
@@ -326,7 +333,7 @@ Page({
       i ? pg.lineTo(x, y) : pg.moveTo(x, y);
     });
     pg.stroke();
-    pg.fillStyle = '#9aa6cc';
+    pg.fillStyle = '#7c89b0';
     pg.font = '10px Consolas';
     pg.textAlign = 'left';
     pg.fillText('中心 → 边缘路径相位误差', L, T - 4);
