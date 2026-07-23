@@ -134,6 +134,9 @@
       <view class="blurb-vibe">{{monthVibe}}</view>
     </view>
 
+    <!-- 署名 -->
+    <view class="dev-credit">Developed by MaxFire</view>
+
     <!-- 底部留白：给 tabBar 腾位 -->
     <view style="height:140rpx"></view>
   </view>

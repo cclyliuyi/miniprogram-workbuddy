@@ -590,3 +590,14 @@
   border-color: var(--sage, #7a9181);
   border-style: dashed;
 }
+
+/* ═══ 署名：极低存在感，滚到底才看到 ═══ */
+.dev-credit {
+  text-align: center;
+  margin-top: 32rpx;
+  font-size: 20rpx;
+  color: var(--muted);
+  opacity: 0.55;
+  letter-spacing: 1.5rpx;
+  font-weight: 400;
+}
