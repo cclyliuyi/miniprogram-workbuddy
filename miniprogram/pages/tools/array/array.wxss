@@ -1,187 +1,21 @@
-/* pages/tools/array/array.wxss —— 天线阵列 */
-.ta { padding-top: 20rpx; }
+/* pages/tools/array/array.wxss —— 天线阵列方向图实验室 */
+@import "../../../styles/tool-ui.wxss";
 
-/* ═══ 偶极子尺寸卡片 ═══ */
-.ta-dipole {
-  margin: 0 12rpx 24rpx;
-  padding: 28rpx;
-  background: var(--card);
-  border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.05);
-}
-.ta-dipole-row { margin-top: 16rpx; }
-.ta-dipole-input { display: flex; gap: 16rpx; }
-.ta-dipole-freq {
-  flex: 1;
-  height: 80rpx;
-  padding: 0 24rpx;
-  font-size: 32rpx;
-  font-weight: 600;
-  color: var(--ink);
-  background: var(--paper);
-  border: 1rpx solid var(--line);
-  border-radius: 14rpx;
-  box-sizing: border-box;
-}
-.ta-dipole-unit {
-  display: flex;
-  background: var(--paper);
-  border: 1rpx solid var(--line);
-  border-radius: 14rpx;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-.ta-du {
-  padding: 0 24rpx;
-  display: flex;
-  align-items: center;
-  font-size: 24rpx;
-  color: var(--muted);
-  height: 80rpx;
-}
-.ta-du-on { color: #fff; background: var(--ink); }
-.ta-dipole-result { display: flex; gap: 12rpx; margin-top: 20rpx; }
-.ta-dr-item {
-  flex: 1;
-  text-align: center;
-  padding: 16rpx 8rpx;
-  background: rgba(122,145,129,.06);
-  border-radius: 12rpx;
-}
-.ta-dr-type { display: block; font-size: 22rpx; color: var(--muted); margin-bottom: 6rpx; }
-.ta-dr-val { display: block; font-size: 28rpx; font-weight: 700; color: var(--accent); margin-bottom: 4rpx; }
-.ta-dr-note { font-size: 20rpx; color: var(--muted); opacity: .7; }
-
-/* ═══ 参数面板 ═══ */
-.ta-params {
-  padding: 28rpx;
-  margin: 0 12rpx 24rpx;
-  background: var(--card);
-  border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.05);
-}
-.ta-param-grid {
-  display: flex;
-  gap: 20rpx;
-  margin: 24rpx 0;
-}
-.ta-param {
-  flex: 1;
-}
-.ta-param-label {
-  display: block;
-  font-size: 22rpx;
-  color: var(--muted);
-  margin-bottom: 10rpx;
-  letter-spacing: .5rpx;
-}
-.ta-param-input {
-  width: 100%;
-  height: 72rpx;
-  padding: 0 16rpx;
-  font-size: 30rpx;
-  font-weight: 600;
-  color: var(--ink);
-  background: var(--paper);
-  border: 1rpx solid var(--line);
-  border-radius: 12rpx;
-  box-sizing: border-box;
-}
-
-/* 窗函数 */
-.ta-window-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10rpx;
-  margin-top: 12rpx;
-}
-.ta-window {
-  padding: 10rpx 20rpx;
+/* 窗函数小标题 */
+.ta-win-label {
+  margin: 20rpx 0 12rpx;
   font-size: 24rpx;
   color: var(--ink-soft);
-  background: var(--paper);
-  border: 1rpx solid var(--line-soft);
-  border-radius: 999rpx;
-  transition: all .2s;
-}
-.ta-window-on {
-  color: var(--accent);
-  border-color: var(--accent);
-  background: rgba(176,106,79,.08);
 }
 
-.ta-calc-btn {
-  width: 100%;
-  margin-top: 32rpx;
-}
-
-/* ═══ 方向图区域 ═══ */
-.ta-chart-area {
-  margin: 0 12rpx 24rpx;
-  padding: 24rpx;
-  background: var(--card);
-  border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-}
-.ta-chart-title {
-  margin-bottom: 16rpx;
-}
-.ta-canvas {
-  width: 100%;
-  height: 580rpx;
-}
-
-/* ═══ 结果指标 ═══ */
-.ta-metrics {
-  display: flex;
-  margin: 0 12rpx 24rpx;
-  gap: 1rpx;
-  background: var(--line-soft);
-  border-radius: 20rpx;
-  overflow: hidden;
-}
-.ta-metric {
-  flex: 1;
-  background: var(--card);
-  padding: 24rpx 8rpx;
-  text-align: center;
-}
-.ta-metric-label {
-  font-size: 22rpx;
-  color: var(--muted);
-  margin-bottom: 8rpx;
-}
-.ta-metric-value {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-/* 警告 */
-.ta-note {
-  display: flex;
-  align-items: flex-start;
-  gap: 12rpx;
-  margin: 0 12rpx 24rpx;
-  padding: 20rpx 24rpx;
-  background: rgba(200,155,110,.10);
-  border-radius: 16rpx;
-  border-left: 5rpx solid var(--accent-2);
-  font-size: 24rpx;
-  color: var(--ink-soft);
+/* 栅瓣警告条 */
+.ta-warn {
+  margin-top: 16rpx;
+  padding: 14rpx 20rpx;
+  font-size: 23rpx;
   line-height: 1.6;
-}
-.ta-note-icon {
-  font-size: 28rpx;
-  color: var(--accent-2);
-}
-
-/* 提示 */
-.ta-tip {
-  margin: 0 16rpx;
-  font-size: 24rpx;
-  color: var(--muted);
-  line-height: 1.6;
+  color: #b3403a;
+  background: rgba(179, 64, 58, 0.08);
+  border-left: 4rpx solid #b3403a;
+  border-radius: 10rpx;
 }

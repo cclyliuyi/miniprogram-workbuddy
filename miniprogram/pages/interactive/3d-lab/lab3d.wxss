@@ -1,0 +1,186 @@
+/* pages/interactive/3d-lab/lab3d.wxss —— 3D 实验室 · 共享舞台样式
+   所有 3D 页 wxss 里 @import "../lab3d.wxss";（从各页子目录看是上一级）
+   本文件取代原先寄生在 loop/loop.wxss 里的共享段落。
+
+   ── 配色方案说明（暖纸舞台）──
+   旧版为深空渐变（#454b63→#161a26）+ 暖金点缀，与全局暖纸编辑风割裂。
+   现改为「暖纸舞台」：容器底色取 --paper #f3efe6（= THEME.bgSoft），
+   与 three.js scene.background 0xf3efe6 完全同色，canvas 与卡片无缝衔接；
+   点缀色只用赤陶 #b85c38（加载环/强调）与赭金 #b07d1e（次级点缀），
+   文字一律 ink/muted 墨色系，符合规范"深色背景一律移除"。 */
+
+@import "../../../styles/tool-ui.wxss";
+
+/* ── 页骨架 ── */
+.lab3d { padding-top: 20rpx; }
+
+.lab3d-head { padding: 20rpx 12rpx 24rpx; }
+.lab3d-title { font-size: 44rpx; margin: 8rpx 0 4rpx; }
+.lab3d-sub { font-size: 24rpx; color: var(--muted); }
+
+/* ── 3D Canvas 装裱 ── */
+.lab3d-canvas-wrap {
+  margin: 0 12rpx 20rpx;
+  /* 与 scene.background 0xf3efe6 同色：WebGL 初始化前后视觉无跳变 */
+  background: #f3efe6;
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32, 32, 28, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+.lab3d-canvas {
+  width: 686rpx;
+  height: 600rpx;
+  display: block;
+}
+
+/* 手势提示：纸底上用墨色 + 半透明纸色药丸垫底保证可读，2.4s 后淡出 */
+.lab3d-hint {
+  position: absolute;
+  bottom: 16rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 20rpx;
+  color: var(--muted);
+  background: rgba(251, 249, 244, 0.78);
+  padding: 4rpx 18rpx;
+  border-radius: 999rpx;
+  white-space: nowrap;
+  transition: opacity 0.6s ease;
+}
+.lab3d-hint.fade { opacity: 0; }
+
+/* ── WebGL 初始化骨架屏（暖纸底 + 赤陶加载环）── */
+.lab3d-skel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20rpx;
+  background: #f3efe6;
+  z-index: 2;
+}
+.lab3d-skel-ring {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  border: 3rpx solid rgba(184, 92, 56, 0.18);
+  border-top-color: rgba(184, 92, 56, 0.85);
+  animation: lab3d-spin 0.9s linear infinite;
+}
+@keyframes lab3d-spin {
+  to { transform: rotate(360deg); }
+}
+.lab3d-skel-text {
+  font-size: 22rpx;
+  color: var(--muted);
+  letter-spacing: 3rpx;
+}
+
+/* ── 通用 section 卡 ── */
+.lab3d-section {
+  margin: 0 12rpx 20rpx;
+  padding: 24rpx 28rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32, 32, 28, 0.04);
+}
+.lab3d-section .kicker { margin-bottom: 16rpx; }
+
+/* ── 参数行（slider 标签 + 数值）── */
+.lab3d-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8rpx 0 4rpx;
+}
+.lab3d-label { font-size: 26rpx; color: var(--muted); }
+.lab3d-val {
+  font-size: 26rpx;
+  color: var(--ink);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 2D 副图画布（lab-canvas 纸底绘图）── */
+.lab3d-2d {
+  width: 630rpx;
+  height: 280rpx;
+  display: block;
+  margin: 0 auto;
+}
+
+/* ── 读数 stats 网格 ── */
+.lab3d-stats {
+  margin: 0 12rpx 20rpx;
+  padding: 24rpx 28rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32, 32, 28, 0.04);
+}
+.lab3d-stats-title { margin-bottom: 16rpx; }
+.lab3d-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+}
+.lab3d-stat {
+  background: var(--bg-soft);
+  padding: 16rpx 20rpx;
+  border-radius: 12rpx;
+  border: 1rpx solid var(--line);
+}
+.lab3d-stat-value {
+  font-size: 40rpx;
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.lab3d-stat-name {
+  font-size: 22rpx;
+  color: var(--muted);
+  margin-top: 4rpx;
+}
+
+/* ── 说明/提示卡 ── */
+.lab3d-note {
+  margin: 0 12rpx 40rpx;
+  padding: 24rpx 28rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+}
+.lab3d-note .kicker { margin-bottom: 12rpx; }
+.lab3d-note-item {
+  font-size: 24rpx;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+/* ── 图层开关（原 parabolic 专有，提为共享；选中态用赤陶）── */
+.lab3d-toggles { display: flex; flex-wrap: wrap; gap: 20rpx; margin-top: 8rpx; }
+.lab3d-toggle { display: flex; align-items: center; gap: 10rpx; }
+.lab3d-toggle-dot {
+  width: 28rpx; height: 28rpx; border-radius: 50%;
+  border: 2rpx solid var(--line); background: var(--bg-soft);
+  display: inline-block; position: relative; transition: all 0.2s;
+}
+.lab3d-toggle.on .lab3d-toggle-dot { background: #b85c38; border-color: #b85c38; }
+.lab3d-toggle.on .lab3d-toggle-dot::after {
+  content: ''; position: absolute; left: 8rpx; top: 4rpx;
+  width: 8rpx; height: 14rpx; border: solid #fbf9f4; border-width: 0 3rpx 3rpx 0;
+  transform: rotate(45deg);
+}
+.lab3d-toggle-text { font-size: 26rpx; color: var(--muted); }
+.lab3d-toggle.on .lab3d-toggle-text { color: var(--ink); }
+
+/* ── 无障碍：减弱动画时骨架环静止、提示不淡出 ── */
+@media (prefers-reduced-motion: reduce) {
+  .lab3d-skel-ring { animation: none; }
+  .lab3d-hint { transition: none; }
+}

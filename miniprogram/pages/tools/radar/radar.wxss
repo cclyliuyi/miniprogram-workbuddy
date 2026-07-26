@@ -1,160 +1,35 @@
-/* pages/tools/radar/radar.wxss —— Radar 链路 */
-.tr { padding-top: 12rpx; }
+/* pages/tools/radar/radar.wxss —— 雷达工具（共享样板见 styles/tool-ui.wxss） */
+@import "../../../styles/tool-ui.wxss";
 
-/* Tab */
-.tr-tabs {
-  display: flex;
-  margin: 0 12rpx 24rpx;
-  background: var(--card);
-  border-radius: 999rpx;
-  padding: 6rpx;
-  border: 1rpx solid var(--line-soft);
-}
-.tr-tab {
-  flex: 1;
-  text-align: center;
-  padding: 16rpx 0;
-  font-size: 26rpx;
-  color: var(--muted);
-  border-radius: 999rpx;
-  transition: all .2s;
-}
-.tr-tab-on {
-  color: #fff;
-  background: var(--ink);
-}
-
-.tr-section {
-  padding: 28rpx;
-  margin: 0 12rpx 24rpx;
-  background: var(--card);
-  border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-}
-
-.tr-field {
-  margin-bottom: 24rpx;
-}
-.tr-label {
-  display: block;
-  font-size: 24rpx;
-  color: var(--muted);
-  margin-bottom: 10rpx;
-}
+/* 输入行下方的小字提示 */
 .tr-hint {
-  display: block;
   font-size: 20rpx;
   color: var(--muted);
-  margin-top: 6rpx;
-  opacity: .7;
+  opacity: .75;
+  line-height: 1.5;
+  margin: -4rpx 0 10rpx 192rpx;
 }
-.tr-input {
-  width: 100%;
-  height: 80rpx;
-  padding: 0 24rpx;
-  font-size: 32rpx;
-  font-weight: 600;
-  color: var(--ink);
-  background: var(--paper);
-  border: 1rpx solid var(--line);
-  border-radius: 14rpx;
-  box-sizing: border-box;
-}
-.tr-input-row {
-  display: flex;
-  gap: 16rpx;
-}
-.tr-input-row .tr-input { flex: 1; }
-.tr-unit-toggle {
-  display: flex;
-  background: var(--paper);
-  border: 1rpx solid var(--line);
-  border-radius: 14rpx;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-.tru {
-  padding: 0 24rpx;
-  display: flex;
-  align-items: center;
-  font-size: 24rpx;
+
+/* 结果卡里的假设/符号说明 */
+.tr-assume {
+  font-size: 20rpx;
   color: var(--muted);
-  height: 80rpx;
-}
-.tru-on {
-  color: #fff;
-  background: var(--ink);
+  line-height: 1.6;
+  margin-top: 10rpx;
 }
 
-.tr-calc-btn {
-  margin: 0 12rpx 24rpx;
-  width: calc(100% - 24rpx);
-}
-
-/* 结果 */
-.tr-result {
-  margin: 0 12rpx 24rpx;
-  padding: 28rpx;
-  background: var(--card);
-  border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-}
-.tr-result-title { margin-bottom: 20rpx; }
-
-.tr-result-big {
-  text-align: center;
-  margin: 24rpx 0;
-  padding: 20rpx;
-  background: rgba(176,106,79,.06);
-  border-radius: 16rpx;
-}
-.tr-result-big-label {
-  font-size: 24rpx;
-  color: var(--muted);
-  margin-bottom: 8rpx;
-}
-.tr-result-big-value {
-  font-size: 56rpx;
-  font-weight: 700;
-  color: var(--accent);
-  line-height: 1.2;
-}
-.tr-result-big-unit {
-  font-size: 24rpx;
-  color: var(--accent);
-}
-
-.tr-result-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding: 12rpx 0;
-  border-bottom: 1rpx solid var(--line-soft);
-}
-.tr-result-label {
-  font-size: 24rpx;
-  color: var(--muted);
-}
-.tr-result-value {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: var(--ink);
-}
-.tr-highlight {
-  color: var(--accent);
-}
-
-.tr-note {
-  margin-top: 16rpx;
-  padding: 16rpx 20rpx;
-  background: var(--paper);
-  border-radius: 12rpx;
+/* 模糊卡片对载频的回显（消除隐藏耦合） */
+.tr-echo {
   font-size: 22rpx;
-  color: var(--muted);
-  font-family: var(--serif);
-  text-align: center;
+  color: var(--ink-soft);
+  background: var(--paper);
+  border-radius: 10rpx;
+  padding: 12rpx 16rpx;
+  margin: 4rpx 0 8rpx;
 }
 
-.tr-doppler, .tr-ambig {
-  margin-top: 20rpx;
-}
+/* 大号主结果 */
+.tr-big { font-size: 48rpx; }
+
+/* 计算结果与按钮的间距 */
+.tr-result-gap { margin-top: 20rpx; }

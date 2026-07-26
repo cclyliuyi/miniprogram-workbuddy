@@ -1,121 +1,113 @@
-<!-- pages/tools/array/array.wxml —— 天线阵列方向图 -->
-<view class="screen ta">
+<!-- pages/tools/array/array.wxml —— 天线阵列方向图实验室 -->
+<view class="screen tp-page">
 
-  <!-- 偶极子/单极子快速尺寸 -->
-  <view class="ta-dipole rise">
+  <view class="tp-head rise">
+    <view class="kicker">ANTENNA ARRAY LAB</view>
+    <view class="tp-title display">阵列方向图</view>
+    <view class="tp-sub">均匀线阵阵因子 · 幅度加权 · 波束扫描 · 栅瓣</view>
+  </view>
+
+  <!-- 极坐标方向图（参数变化实时重绘） -->
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">{{caption}}</view>
+    <canvas type="2d" id="afCanvas" class="tp-canvas-tall"></canvas>
+  </view>
+
+  <!-- 参数 -->
+  <view class="tp-section rise">
+    <view class="kicker">阵列参数</view>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">阵元数 N</text>
+      <slider class="tp-slider" min="2" max="32" step="1" value="{{N}}" bindchanging="onN" bindchange="onN" />
+      <text class="tp-slider-val">{{N}} 元</text>
+    </view>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">间距 d/λ</text>
+      <slider class="tp-slider" min="10" max="150" step="5" value="{{dLam100}}" bindchanging="onD" bindchange="onD" />
+      <text class="tp-slider-val">{{dStr}} λ</text>
+    </view>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">扫描角 θ₀</text>
+      <slider class="tp-slider" min="-60" max="60" step="1" value="{{theta0}}" bindchanging="onTheta" bindchange="onTheta" />
+      <text class="tp-slider-val">{{theta0}}°</text>
+    </view>
+    <view class="ta-win-label">幅度加权（窗函数）</view>
+    <view class="tp-btns">
+      <view
+        wx:for="{{windows}}"
+        wx:key="*this"
+        class="tp-btn {{winIdx === index ? 'active' : ''}}"
+        bindtap="setWindow"
+        data-i="{{index}}">
+        {{item}}
+      </view>
+    </view>
+    <view class="ta-warn" wx:if="{{gratingText}}">⚠ {{gratingText}}</view>
+  </view>
+
+  <!-- 指标读数 -->
+  <view class="tp-section pop" wx:if="{{metrics}}">
+    <view class="kicker">波束指标（可见区 −90°~+90°）</view>
+    <view class="tp-stats-grid">
+      <view class="tp-stat">
+        <view class="tp-stat-label">主瓣指向</view>
+        <view class="tp-stat-value tp-c-accent">{{metrics.mainLobe}}</view>
+      </view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">HPBW（−3dB 宽度）</view>
+        <view class="tp-stat-value tp-c-teal">{{metrics.hpbw}}</view>
+      </view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">最大旁瓣 SLL</view>
+        <view class="tp-stat-value tp-c-gold">{{metrics.sll}}</view>
+      </view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">方向性 D₀（广边近似）</view>
+        <view class="tp-stat-value tp-c-indigo">{{metrics.dir}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 公式注脚 -->
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">所用公式</view>
+    <view class="tp-formula-line">AF(θ) = Σₙ wₙ·e^(jn·kd(sinθ−sinθ₀))，kd = 2πd/λ</view>
+    <view class="tp-formula-line">D₀ ≈ 2(d/λ)(Σwₙ)²/Σwₙ²　·　栅瓣判据：d/λ ≥ 1/(1+|sinθ₀|)</view>
+    <view class="tp-formula-cond">适用条件：各向同性阵元、等间距线阵；D₀ 为广边近似，d ≳ λ/2 且无栅瓣时有效；实际增益还需乘阵元方向图与效率。指标只在可见区 −90°~+90° 内统计。</view>
+  </view>
+
+  <!-- 偶极子尺寸速查 -->
+  <view class="tp-section rise">
     <view class="kicker">天线尺寸速查</view>
-    <view class="ta-dipole-row">
-      <view class="ta-dipole-input">
-        <input class="ta-dipole-freq num" type="digit" value="{{dipoleFreq}}" bindinput="onDipoleFreq" />
-        <view class="ta-dipole-unit">
-          <view class="ta-du {{dipoleFreqUnit === 0 ? 'ta-du-on' : ''}}" bindtap="setDipoleUnit" data-u="0">MHz</view>
-          <view class="ta-du {{dipoleFreqUnit === 1 ? 'ta-du-on' : ''}}" bindtap="setDipoleUnit" data-u="1">GHz</view>
-        </view>
+    <view class="tp-input-row">
+      <text class="tp-input-label">工作频率</text>
+      <input class="tp-input num" type="digit" value="{{dipoleFreq}}" bindinput="onDipoleFreq" />
+      <view class="tp-unit-group">
+        <view class="tp-unit {{dipoleFreqUnit === 0 ? 'active' : ''}}" bindtap="setDipoleUnit" data-u="0">MHz</view>
+        <view class="tp-unit {{dipoleFreqUnit === 1 ? 'active' : ''}}" bindtap="setDipoleUnit" data-u="1">GHz</view>
       </view>
     </view>
-    <view class="ta-dipole-result pop" wx:if="{{dipoleResult}}">
-      <view class="ta-dr-item">
-        <text class="ta-dr-type">半波偶极子</text>
-        <text class="ta-dr-val num">{{dipoleResult.halfDipole}}</text>
-        <text class="ta-dr-note">L = λ/2</text>
+    <view class="tp-stats-grid" wx:if="{{dipoleResult}}">
+      <view class="tp-stat">
+        <view class="tp-stat-label">半波偶极子 L = λ/2</view>
+        <view class="tp-stat-value tp-c-accent">{{dipoleResult.halfDipole}}</view>
       </view>
-      <view class="ta-dr-item">
-        <text class="ta-dr-type">λ/4 单极子</text>
-        <text class="ta-dr-val num">{{dipoleResult.quarterMono}}</text>
-        <text class="ta-dr-note">L = λ/4</text>
+      <view class="tp-stat">
+        <view class="tp-stat-label">λ/4 单极子 L = λ/4</view>
+        <view class="tp-stat-value tp-c-teal">{{dipoleResult.quarterMono}}</view>
       </view>
-      <view class="ta-dr-item">
-        <text class="ta-dr-type">全波环天线</text>
-        <text class="ta-dr-val num">{{dipoleResult.fullLoop}}</text>
-        <text class="ta-dr-note">L = λ</text>
+      <view class="tp-stat tp-stat-wide">
+        <view class="tp-stat-label">全波环天线 周长 = λ</view>
+        <view class="tp-stat-value tp-c-indigo">{{dipoleResult.fullLoop}}</view>
       </view>
     </view>
-
-    <view class="tc-insight">
-      <view class="tc-insight-kicker">直觉</view>
-      <view class="tc-insight-text">真实偶极子要比 λ/2 <text class="tc-hl">短约 5% 才谐振</text>（末端效应：电流到端点不会瞬间归零）—— 所以图纸写的是 0.48λ，不是笔误。线越粗，缩短越多。</view>
-    </view>
+    <view class="tp-formula-cond">理想自由空间谐振长度；真实偶极子因末端效应需缩短约 5%（≈0.48λ），线越粗缩短越多。</view>
   </view>
 
-  <!-- 参数面板 -->
-  <view class="ta-params rise">
-    <view class="kicker">ARRAY PARAMETERS</view>
-
-    <view class="ta-param-grid">
-      <view class="ta-param">
-        <text class="ta-param-label">阵元数 N</text>
-        <input class="ta-param-input num" type="number" value="{{N}}" bindinput="onNChange" />
-      </view>
-      <view class="ta-param">
-        <text class="ta-param-label">间距 d/λ</text>
-        <input class="ta-param-input num" type="digit" value="{{dLam}}" bindinput="onDChange" />
-      </view>
-      <view class="ta-param">
-        <text class="ta-param-label">扫描角 θ₀°</text>
-        <input class="ta-param-input num" type="digit" value="{{theta0}}" bindinput="onThetaChange" />
-      </view>
-    </view>
-
-    <view class="ta-param">
-      <text class="ta-param-label">幅度加权（窗函数）</text>
-      <view class="ta-window-row">
-        <view
-          wx:for="{{windows}}"
-          wx:key="*this"
-          class="ta-window {{winType === index ? 'ta-window-on' : ''}}"
-          bindtap="setWindow"
-          data-index="{{index}}">
-          {{item}}
-        </view>
-      </view>
-    </view>
-
-    <button class="btn grad ta-calc-btn" bindtap="calculate">计算方向图</button>
-  </view>
-
-  <!-- 方向图 Canvas -->
-  <view class="ta-chart-area" wx:if="{{hasResult}}">
-    <view class="kicker ta-chart-title">极坐标方向图（dB）</view>
-    <canvas
-      type="2d"
-      id="polarChart"
-      class="ta-canvas"
-      bindtouchstart="onChartTouch"></canvas>
-  </view>
-
-  <!-- 结果指标 -->
-  <view class="ta-metrics pop" wx:if="{{hasResult}}">
-    <view class="ta-metric">
-      <view class="ta-metric-label">主瓣指向</view>
-      <view class="ta-metric-value num">{{metrics.mainLobe}}°</view>
-    </view>
-    <view class="ta-metric">
-      <view class="ta-metric-label">HPBW</view>
-      <view class="ta-metric-value num">{{metrics.hpbw}}°</view>
-    </view>
-    <view class="ta-metric">
-      <view class="ta-metric-label">SLL</view>
-      <view class="ta-metric-value num">{{metrics.sll}} dB</view>
-    </view>
-    <view class="ta-metric">
-      <view class="ta-metric-label">方向性 D</view>
-      <view class="ta-metric-value num">{{metrics.directivity}} dBi</view>
-    </view>
-  </view>
-
-  <!-- 提示 -->
-  <view class="ta-note" wx:if="{{gratingWarning}}">
-    <text class="ta-note-icon">⚠</text>
-    <text>注意：d/λ > 0.5 且大角度扫描时可能出现栅瓣（Grating Lobe）</text>
-  </view>
-
-  <view class="ta-tip" wx:if="{{!hasResult}}">
-    设置参数后点击「计算方向图」，将绘制均匀线阵的阵列因子极坐标方向图。
-  </view>
-
-  <view class="tc-insight">
+  <!-- 直觉 -->
+  <view class="tc-insight rise">
     <view class="tc-insight-kicker">直觉</view>
-    <view class="tc-insight-text">窗函数是拿主瓣宽度换副瓣：<text class="tc-hl">均匀加权主瓣最窄，但副瓣只有 -13.3 dB；切比雪夫能把副瓣按到任意低，代价是主瓣变胖</text>。记住两条安全线：d/λ=0.5 扫描无栅瓣；N 翻倍，波束窄一半、方向性 +3 dB。</view>
+    <view class="tc-insight-text">窗函数是拿主瓣宽度换副瓣：<text class="tc-hl">均匀加权主瓣最窄，但副瓣只有 −13.3 dB；切比雪夫能把副瓣压到指定电平，代价是主瓣变胖</text>——切到「切比雪夫 −30dB」亲眼对比。两条安全线：d/λ ≤ 1/(1+|sinθ₀|) 无栅瓣；N 翻倍，波束窄一半、方向性 +3 dB。</view>
   </view>
 
 </view>

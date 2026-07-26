@@ -1,304 +1,325 @@
-<!-- pages/tools/link/link.wxml —— 通信链路计算 -->
-<view class="screen tl2">
+<!-- pages/tools/link/link.wxml —— 通信链路计算（输入即算，图随参数实时变化） -->
+<view class="screen tp-page">
+
+  <view class="tp-head rise">
+    <view class="kicker">RF TOOLS · LINK</view>
+    <view class="tp-title display">通信链路计算</view>
+    <view class="tp-sub">链路预算 · 菲涅尔区 · 视距 · 噪声灵敏度</view>
+  </view>
 
   <!-- Tab 切换 -->
-  <scroll-view scroll-x class="tl2-tabs" enhanced show-scrollbar="{{false}}">
-    <view class="tl2-tabs-inner">
+  <view class="tp-section rise">
+    <view class="tp-btns">
       <view
         wx:for="{{tabs}}"
         wx:key="*this"
-        class="tl2-tab {{activeTab === index ? 'tl2-tab-on' : ''}}"
+        class="tp-btn {{activeTab === index ? 'active' : ''}}"
         bindtap="switchTab"
-        data-index="{{index}}">
-        {{item}}
-      </view>
+        data-i="{{index}}">{{item}}</view>
     </view>
-  </scroll-view>
+  </view>
 
   <!-- ══════ Tab1: 链路预算 ══════ -->
-  <view wx:if="{{activeTab === 0}}">
-    <view class="tl2-section rise">
+  <block wx:if="{{activeTab === 0}}">
+    <view class="tp-canvas-card rise">
+      <view class="tp-canvas-caption">接收功率 Pr 随距离衰减 · 绿带 = 可通信区，交点 = 最大距离</view>
+      <canvas type="2d" id="budgetCanvas" class="tp-canvas"></canvas>
+    </view>
+
+    <view class="tp-section rise">
       <view class="kicker">发射参数</view>
-
-      <view class="tl2-field">
-        <text class="tl2-label">发射功率 Pt</text>
-        <view class="tl2-input-row">
-          <input class="tl2-input num" type="digit" value="{{pt}}" bindinput="onPtChange" />
-          <view class="tl2-unit-toggle">
-            <view class="tu2 {{ptUnit === 0 ? 'tu2-on' : ''}}" bindtap="setPtUnit" data-unit="0">dBm</view>
-            <view class="tu2 {{ptUnit === 1 ? 'tu2-on' : ''}}" bindtap="setPtUnit" data-unit="1">W</view>
-          </view>
+      <view class="tp-input-row">
+        <text class="tp-input-label">发射功率 Pt</text>
+        <input class="tp-input num" type="digit" value="{{pt}}" data-f="pt" bindinput="onField" />
+        <view class="tp-unit-group">
+          <view class="tp-unit {{ptUnit === 0 ? 'active' : ''}}" bindtap="setUnit" data-f="ptUnit" data-u="0">dBm</view>
+          <view class="tp-unit {{ptUnit === 1 ? 'active' : ''}}" bindtap="setUnit" data-f="ptUnit" data-u="1">W</view>
         </view>
       </view>
-
-      <view class="tl2-field">
-        <text class="tl2-label">发射天线增益 Gt</text>
-        <input class="tl2-input num" type="digit" value="{{gt}}" bindinput="onGtChange" />
-        <text class="tl2-hint">dBi</text>
+      <view class="tp-input-row">
+        <text class="tp-input-label">发射增益 Gt</text>
+        <input class="tp-input num" type="digit" value="{{gt}}" data-f="gt" bindinput="onField" />
+        <text class="lk-suffix">dBi</text>
       </view>
-
-      <view class="tl2-field">
-        <text class="tl2-label">频率</text>
-        <view class="tl2-input-row">
-          <input class="tl2-input num" type="digit" value="{{freq}}" bindinput="onFreqChange" />
-          <view class="tl2-unit-toggle">
-            <view class="tu2 {{freqUnit === 0 ? 'tu2-on' : ''}}" bindtap="setFreqUnit" data-unit="0">MHz</view>
-            <view class="tu2 {{freqUnit === 1 ? 'tu2-on' : ''}}" bindtap="setFreqUnit" data-unit="1">GHz</view>
-          </view>
+      <view class="tp-input-row">
+        <text class="tp-input-label">频率 f</text>
+        <input class="tp-input num" type="digit" value="{{freq}}" data-f="freq" bindinput="onField" />
+        <view class="tp-unit-group">
+          <view class="tp-unit {{freqUnit === 0 ? 'active' : ''}}" bindtap="setUnit" data-f="freqUnit" data-u="0">MHz</view>
+          <view class="tp-unit {{freqUnit === 1 ? 'active' : ''}}" bindtap="setUnit" data-f="freqUnit" data-u="1">GHz</view>
         </view>
       </view>
     </view>
 
-    <view class="tl2-section rise">
+    <view class="tp-section rise">
       <view class="kicker">链路参数</view>
-
-      <view class="tl2-field">
-        <text class="tl2-label">距离 R</text>
-        <input class="tl2-input num" type="digit" value="{{distance}}" bindinput="onDistChange" />
-        <text class="tl2-hint">km</text>
+      <view class="tp-input-row">
+        <text class="tp-input-label">距离 d</text>
+        <input class="tp-input num" type="digit" value="{{distance}}" data-f="distance" bindinput="onField" />
+        <text class="lk-suffix">km</text>
       </view>
-
-      <view class="tl2-field">
-        <text class="tl2-label">接收天线增益 Gr</text>
-        <input class="tl2-input num" type="digit" value="{{gr}}" bindinput="onGrChange" />
-        <text class="tl2-hint">dBi</text>
+      <view class="tp-input-row">
+        <text class="tp-input-label">接收增益 Gr</text>
+        <input class="tp-input num" type="digit" value="{{gr}}" data-f="gr" bindinput="onField" />
+        <text class="lk-suffix">dBi</text>
       </view>
-
-      <view class="tl2-field">
-        <text class="tl2-label">系统损耗 L_sys</text>
-        <input class="tl2-input num" type="digit" value="{{sysLoss}}" bindinput="onLossChange" />
-        <text class="tl2-hint">dB（馈线、雨衰等附加损耗）</text>
+      <view class="tp-input-row">
+        <text class="tp-input-label">系统损耗 L_sys</text>
+        <input class="tp-input num" type="digit" value="{{sysLoss}}" data-f="sysLoss" bindinput="onField" />
+        <text class="lk-suffix">dB</text>
       </view>
-
-      <view class="tl2-field">
-        <text class="tl2-label">接收灵敏度 P_min</text>
-        <input class="tl2-input num" type="digit" value="{{sensitivity}}" bindinput="onSensChange" />
-        <text class="tl2-hint">dBm（接收机最小可检测功率）</text>
+      <view class="lk-hint">馈线、雨衰等附加损耗</view>
+      <view class="tp-input-row">
+        <text class="tp-input-label">接收灵敏度 P_min</text>
+        <input class="tp-input num" type="text" value="{{sensitivity}}" data-f="sensitivity" bindinput="onField" />
+        <text class="lk-suffix">dBm</text>
       </view>
+      <view class="lk-hint">接收机最小可检测功率（可为负值）</view>
     </view>
 
-    <button class="btn grad tl2-calc-btn" bindtap="calculate">计算链路预算</button>
+    <view class="tp-section pop" wx:if="{{result}}">
+      <view class="kicker">链路预算结果</view>
+      <view class="tp-stats-grid">
+        <view class="tp-stat">
+          <view class="tp-stat-label">EIRP（等效全向辐射功率）</view>
+          <view class="tp-stat-value">{{result.eirp}} dBm</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">FSPL（自由空间损耗）</view>
+          <view class="tp-stat-value">{{result.fspl}} dB</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">接收功率 Pr</view>
+          <view class="tp-stat-value tp-c-accent">{{result.pr}} dBm</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">链路余量 Margin</view>
+          <view class="tp-stat-value {{result.mClass}}">{{result.margin}} dB</view>
+        </view>
+        <view class="tp-stat tp-stat-wide">
+          <view class="tp-stat-label">最大可达距离（Pr = 灵敏度处）</view>
+          <view class="tp-stat-value tp-c-indigo">{{result.dMax}}</view>
+        </view>
+      </view>
+      <view class="lk-verdict lk-{{result.vClass}}">{{result.verdict}}</view>
+    </view>
 
-    <view class="tl2-results pop" wx:if="{{result}}">
-      <view class="kicker tl2-results-title">链路预算结果</view>
-
-      <view class="tl2-result-item">
-        <text class="tl2-result-label">EIRP（等效全向辐射功率）</text>
-        <text class="tl2-result-value num">{{result.eirp}} dBm</text>
-      </view>
-      <view class="tl2-result-item">
-        <text class="tl2-result-label">FSPL（自由空间路径损耗）</text>
-        <text class="tl2-result-value num">{{result.fspl}} dB</text>
-      </view>
-      <view class="tl2-result-item">
-        <text class="tl2-result-label">接收功率 Pr</text>
-        <text class="tl2-result-value num tl2-highlight">{{result.pr}} dBm</text>
-      </view>
-      <view class="tl2-result-item">
-        <text class="tl2-result-label">链路余量（Margin）</text>
-        <text class="tl2-result-value num {{result.marginClass}}">{{result.margin}} dB</text>
-      </view>
-
-      <view class="tl2-verdict {{result.verdictClass}}">
-        {{result.verdict}}
-      </view>
+    <view class="tp-formula rise">
+      <view class="tp-formula-title">所用公式</view>
+      <view class="tp-formula-line">Pr = Pt + Gt + Gr − FSPL − L_sys；FSPL = 20·lg(4πd/λ)</view>
+      <view class="tp-formula-line">余量 M = Pr − P_min；d_max = (λ/4π)·10^((EIRP+Gr−L_sys−P_min)/20)</view>
+      <view class="tp-formula-cond">适用条件：自由空间传播（无遮挡、无多径、无雨衰），d ≫ λ 的远场。实际链路请再留 ≥10 dB 衰落裕度。</view>
     </view>
 
     <view class="tc-insight">
       <view class="tc-insight-kicker">直觉</view>
       <view class="tc-insight-text"><text class="tc-hl">距离 ×2 → FSPL +6 dB；频率 ×2 同样 +6 dB</text> —— 这就是 5G 毫米波覆盖难的根本原因。链路余量 ≥10 dB 才算稳妥，余量为负的链路只存在于纸面上。</view>
     </view>
-  </view>
+  </block>
 
   <!-- ══════ Tab2: 菲涅尔区 ══════ -->
-  <view wx:if="{{activeTab === 1}}">
-    <view class="tl2-section rise">
-      <view class="kicker">菲涅尔区半径</view>
-
-      <view class="tl2-field">
-        <text class="tl2-label">频率</text>
-        <view class="tl2-input-row">
-          <input class="tl2-input num" type="digit" value="{{frFreq}}" bindinput="onFrFreq" />
-          <view class="tl2-unit-toggle">
-            <view class="tu2 {{frFreqUnit === 0 ? 'tu2-on' : ''}}" bindtap="setFrFreqUnit" data-unit="0">MHz</view>
-            <view class="tu2 {{frFreqUnit === 1 ? 'tu2-on' : ''}}" bindtap="setFrFreqUnit" data-unit="1">GHz</view>
-          </view>
-        </view>
-      </view>
-
-      <view class="tl2-field">
-        <text class="tl2-label">距离 d₁（发射端到障碍物）</text>
-        <input class="tl2-input num" type="digit" value="{{frD1}}" bindinput="onFrD1" />
-        <text class="tl2-hint">km</text>
-      </view>
-
-      <view class="tl2-field">
-        <text class="tl2-label">距离 d₂（障碍物到接收端）</text>
-        <input class="tl2-input num" type="digit" value="{{frD2}}" bindinput="onFrD2" />
-        <text class="tl2-hint">km</text>
-      </view>
+  <block wx:if="{{activeTab === 1}}">
+    <view class="tp-canvas-card rise">
+      <view class="tp-canvas-caption">侧视图：第一菲涅尔椭圆 + 60% 净空虚线 + 障碍物（纵向已放大）</view>
+      <canvas type="2d" id="fresnelCanvas" class="tp-canvas-short"></canvas>
     </view>
 
-    <button class="btn grad tl2-calc-btn" bindtap="calcFresnel">计算菲涅尔区</button>
+    <view class="tp-section rise">
+      <view class="kicker">链路几何</view>
+      <view class="tp-input-row">
+        <text class="tp-input-label">频率 f</text>
+        <input class="tp-input num" type="digit" value="{{frFreq}}" data-f="frFreq" bindinput="onField" />
+        <view class="tp-unit-group">
+          <view class="tp-unit {{frFreqUnit === 0 ? 'active' : ''}}" bindtap="setUnit" data-f="frFreqUnit" data-u="0">MHz</view>
+          <view class="tp-unit {{frFreqUnit === 1 ? 'active' : ''}}" bindtap="setUnit" data-f="frFreqUnit" data-u="1">GHz</view>
+        </view>
+      </view>
+      <view class="tp-input-row">
+        <text class="tp-input-label">d₁ 发射→障碍</text>
+        <input class="tp-input num" type="digit" value="{{frD1}}" data-f="frD1" bindinput="onField" />
+        <text class="lk-suffix">km</text>
+      </view>
+      <view class="tp-input-row">
+        <text class="tp-input-label">d₂ 障碍→接收</text>
+        <input class="tp-input num" type="digit" value="{{frD2}}" data-f="frD2" bindinput="onField" />
+        <text class="lk-suffix">km</text>
+      </view>
+      <view class="tp-input-row">
+        <text class="tp-input-label">障碍物净空 h_c</text>
+        <input class="tp-input num" type="text" value="{{frClear}}" data-f="frClear" bindinput="onField" />
+        <text class="lk-suffix">m</text>
+      </view>
+      <view class="lk-hint">障碍物顶端到视线的垂直距离；负值表示已高于视线</view>
+    </view>
 
-    <view class="tl2-results pop" wx:if="{{fresnelResult}}">
-      <view class="kicker tl2-results-title">菲涅尔区结果</view>
+    <view class="tp-section pop" wx:if="{{fresnelResult}}">
+      <view class="kicker">菲涅尔区结果</view>
+      <view class="tp-stats-grid">
+        <view class="tp-stat">
+          <view class="tp-stat-label">第一菲涅尔半径 r₁（障碍处）</view>
+          <view class="tp-stat-value tp-c-accent">{{fresnelResult.r1}}</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">60% 净空底线 0.6·r₁</view>
+          <view class="tp-stat-value tp-c-teal">{{fresnelResult.r60}}</view>
+        </view>
+        <view class="tp-stat tp-stat-wide">
+          <view class="tp-stat-label">总链路距离 d₁+d₂</view>
+          <view class="tp-stat-value">{{fresnelResult.totalD}}</view>
+        </view>
+      </view>
+      <view class="lk-verdict lk-{{fresnelResult.vClass}}">{{fresnelResult.verdict}}</view>
+    </view>
 
-      <view class="tl2-result-item">
-        <text class="tl2-result-label">第一菲涅尔区半径 r₁</text>
-        <text class="tl2-result-value num tl2-highlight">{{fresnelResult.r1}}</text>
-      </view>
-      <view class="tl2-result-item">
-        <text class="tl2-result-label">总链路距离</text>
-        <text class="tl2-result-value num">{{fresnelResult.totalD}}</text>
-      </view>
-      <view class="tl2-result-item">
-        <text class="tl2-result-label">60% 净空建议（可靠通信）</text>
-        <text class="tl2-result-value num">{{fresnelResult.r60}}</text>
-      </view>
-
-      <view class="tl2-verdict tl2-verdict-ok">
-        障碍物与视线轴线间需保留 ≥ r₁ 的净空，否则绕射损耗增大
-      </view>
-      <view class="tl2-formula-box">
-        <image class="tl2-formula-img" src="{{formulaLOS}}" mode="aspectFit" />
-      </view>
+    <view class="tp-formula rise">
+      <view class="tp-formula-title">所用公式</view>
+      <view class="tp-formula-line">r₁ = √( λ·d₁·d₂ / (d₁+d₂) )；第 n 区 rₙ = √n · r₁</view>
+      <view class="tp-formula-cond">适用条件：d₁、d₂ ≫ r₁（细长椭圆近似）。60% 净空是 ITU/工程通行的最低净空要求，满足后绕射损耗近似为 0。</view>
     </view>
 
     <view class="tc-insight">
       <view class="tc-insight-kicker">直觉</view>
       <view class="tc-insight-text">不是"看得见"就通：<text class="tc-hl">60% 净空是工程底线</text>。2.4 GHz、10 km 链路中点的 r₁≈17.7 m —— 树梢、广告牌、楼顶水箱都可能侵入，勘察时先用这个数筛一遍。</view>
     </view>
-  </view>
+  </block>
 
   <!-- ══════ Tab3: 无线电视距 ══════ -->
-  <view wx:if="{{activeTab === 2}}">
-    <view class="tl2-section rise">
-      <view class="kicker">无线电视距（LOS）</view>
+  <block wx:if="{{activeTab === 2}}">
+    <view class="tp-canvas-card rise">
+      <view class="tp-canvas-caption">切线坐标系：射线水平、地球下弯 · k 越大地球越"平"、视距越远</view>
+      <canvas type="2d" id="losCanvas" class="tp-canvas-short"></canvas>
+    </view>
 
-      <view class="tl2-field">
-        <text class="tl2-label">发射天线高度 h_t</text>
-        <input class="tl2-input num" type="digit" value="{{losHt}}" bindinput="onLosHt" />
-        <text class="tl2-hint">m</text>
+    <view class="tp-section rise">
+      <view class="kicker">天线高度与大气</view>
+      <view class="tp-input-row">
+        <text class="tp-input-label">发射高度 h_t</text>
+        <input class="tp-input num" type="digit" value="{{losHt}}" data-f="losHt" bindinput="onField" />
+        <text class="lk-suffix">m</text>
       </view>
-
-      <view class="tl2-field">
-        <text class="tl2-label">接收天线高度 h_r</text>
-        <input class="tl2-input num" type="digit" value="{{losHr}}" bindinput="onLosHr" />
-        <text class="tl2-hint">m</text>
+      <view class="tp-input-row">
+        <text class="tp-input-label">接收高度 h_r</text>
+        <input class="tp-input num" type="digit" value="{{losHr}}" data-f="losHr" bindinput="onField" />
+        <text class="lk-suffix">m</text>
       </view>
+      <view class="tp-btns">
+        <view
+          wx:for="{{kOpts}}"
+          wx:key="*this"
+          class="tp-btn {{losKIdx === index ? 'active' : ''}}"
+          bindtap="setLosK"
+          data-i="{{index}}">{{item}}</view>
+      </view>
+    </view>
 
-      <view class="tl2-field">
-        <text class="tl2-label">等效地球半径系数 k</text>
-        <view class="tl2-medium-row">
-          <view class="tl2-medium {{losK === 1.0 ? 'tl2-medium-on' : ''}}" bindtap="setLosK" data-k="1.0">k=1.0 标准大气</view>
-          <view class="tl2-medium {{losK === 1.333 ? 'tl2-medium-on' : ''}}" bindtap="setLosK" data-k="1.333">k=4/3 典型</view>
-          <view class="tl2-medium {{losK === 0.7 ? 'tl2-medium-on' : ''}}" bindtap="setLosK" data-k="0.7">k=0.7 恶劣</view>
+    <view class="tp-section pop" wx:if="{{losResult}}">
+      <view class="kicker">视距结果</view>
+      <view class="tp-stats-grid">
+        <view class="tp-stat tp-stat-wide">
+          <view class="tp-stat-label">无线电视距 d_LOS</view>
+          <view class="tp-stat-value tp-c-accent">{{losResult.dLOS}} km</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">发射侧地平线距离</view>
+          <view class="tp-stat-value">{{losResult.dHt}} km</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">接收侧地平线距离</view>
+          <view class="tp-stat-value">{{losResult.dHr}} km</view>
         </view>
       </view>
     </view>
 
-    <button class="btn grad tl2-calc-btn" bindtap="calcLOS">计算视距</button>
-
-    <view class="tl2-results pop" wx:if="{{losResult}}">
-      <view class="kicker tl2-results-title">视距结果</view>
-
-      <view class="tl2-result-item">
-        <text class="tl2-result-label">无线电视距 d_LOS</text>
-        <text class="tl2-result-value num tl2-highlight">{{losResult.dLOS}} km</text>
-      </view>
-      <view class="tl2-result-item">
-        <text class="tl2-result-label">发射侧地平线距离</text>
-        <text class="tl2-result-value num">{{losResult.dHt}} km</text>
-      </view>
-      <view class="tl2-result-item">
-        <text class="tl2-result-label">接收侧地平线距离</text>
-        <text class="tl2-result-value num">{{losResult.dHr}} km</text>
-      </view>
-
-      <view class="tl2-verdict tl2-verdict-ok">
-        d = √(2kR·h_t) + √(2kR·h_r) · R=6371 km
-      </view>
-      <view class="tl2-formula-box">
-        <image class="tl2-formula-img" src="{{formulaLOS}}" mode="aspectFit" />
-      </view>
+    <view class="tp-formula rise">
+      <view class="tp-formula-title">所用公式</view>
+      <view class="tp-formula-line">d_LOS = √(2kR·h_t) + √(2kR·h_r)，R = 6371 km</view>
+      <view class="tp-formula-cond">适用条件：平滑地球近似（未计地形与障碍）；大气折射用等效地球半径 k·R 表示，k=4/3 对应标准大气折射梯度。</view>
     </view>
 
     <view class="tc-insight">
       <view class="tc-insight-kicker">直觉</view>
       <view class="tc-insight-text">k=4/3 是"地球鼓起来一点"的等效：<text class="tc-hl">大气折射把射线微微掰弯，等效地球半径变大、视距变远</text>。两座 10 m 天线互视 ≈ 26 km；高度翻倍，视距只 ×1.41 —— 架高是最贵的"增益"。</view>
     </view>
-  </view>
+  </block>
 
   <!-- ══════ Tab4: 热噪声与灵敏度 ══════ -->
-  <view wx:if="{{activeTab === 3}}">
-    <view class="tl2-section rise">
-      <view class="kicker">接收机参数</view>
+  <block wx:if="{{activeTab === 3}}">
+    <view class="tp-canvas-card rise">
+      <view class="tp-canvas-caption">灵敏度瀑布：kT 地板 → +带宽 → +噪声系数 → +解调门限</view>
+      <canvas type="2d" id="noiseCanvas" class="tp-canvas-short"></canvas>
+    </view>
 
-      <view class="tl2-field">
-        <text class="tl2-label">系统带宽 B</text>
-        <view class="tl2-input-row">
-          <input class="tl2-input num" type="digit" value="{{nfBw}}" bindinput="onNfBw" />
-          <view class="tl2-unit-toggle">
-            <view class="tu2 {{nfBwUnit === 0 ? 'tu2-on' : ''}}" bindtap="setNfBwUnit" data-unit="0">kHz</view>
-            <view class="tu2 {{nfBwUnit === 1 ? 'tu2-on' : ''}}" bindtap="setNfBwUnit" data-unit="1">MHz</view>
-          </view>
+    <view class="tp-section rise">
+      <view class="kicker">接收机参数</view>
+      <view class="tp-input-row">
+        <text class="tp-input-label">系统带宽 B</text>
+        <input class="tp-input num" type="digit" value="{{nfBw}}" data-f="nfBw" bindinput="onField" />
+        <view class="tp-unit-group">
+          <view class="tp-unit {{nfBwUnit === 0 ? 'active' : ''}}" bindtap="setUnit" data-f="nfBwUnit" data-u="0">kHz</view>
+          <view class="tp-unit {{nfBwUnit === 1 ? 'active' : ''}}" bindtap="setUnit" data-f="nfBwUnit" data-u="1">MHz</view>
         </view>
       </view>
-
-      <view class="tl2-field">
-        <text class="tl2-label">噪声系数 NF</text>
-        <input class="tl2-input num" type="digit" value="{{nfVal}}" bindinput="onNfVal" />
-        <text class="tl2-hint">dB（系统级联总噪声系数）</text>
+      <view class="tp-input-row">
+        <text class="tp-input-label">噪声系数 NF</text>
+        <input class="tp-input num" type="digit" value="{{nfVal}}" data-f="nfVal" bindinput="onField" />
+        <text class="lk-suffix">dB</text>
       </view>
-
-      <view class="tl2-field">
-        <text class="tl2-label">所需最小 SNR</text>
-        <input class="tl2-input num" type="digit" value="{{nfSnr}}" bindinput="onNfSnr" />
-        <text class="tl2-hint">dB（解调门限信噪比，与调制方式有关）</text>
+      <view class="lk-hint">系统级联总噪声系数，按 IEEE 定义参考 T₀ = 290 K</view>
+      <view class="tp-input-row">
+        <text class="tp-input-label">最小 SNR</text>
+        <input class="tp-input num" type="text" value="{{nfSnr}}" data-f="nfSnr" bindinput="onField" />
+        <text class="lk-suffix">dB</text>
       </view>
+      <view class="lk-hint">解调门限信噪比，与调制方式有关</view>
+      <view class="tp-input-row">
+        <text class="tp-input-label">源温度 T</text>
+        <input class="tp-input num" type="digit" value="{{nfTemp}}" data-f="nfTemp" bindinput="onField" />
+        <text class="lk-suffix">K</text>
+      </view>
+      <view class="lk-hint">天线/源噪声温度（典型 290 K）；修改 T 只改变源噪声项，NF 项仍参考 290 K</view>
+    </view>
 
-      <view class="tl2-field">
-        <text class="tl2-label">环境温度 T</text>
-        <input class="tl2-input num" type="digit" value="{{nfTemp}}" bindinput="onNfTemp" />
-        <text class="tl2-hint">K（开尔文，典型 290K = 17°C）</text>
+    <view class="tp-section pop" wx:if="{{noiseResult}}">
+      <view class="kicker">噪声与灵敏度结果</view>
+      <view class="tp-stats-grid">
+        <view class="tp-stat">
+          <view class="tp-stat-label">源噪声密度 kT</view>
+          <view class="tp-stat-value tp-c-indigo">{{noiseResult.n0}} dBm/Hz</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">噪声抬升（含 NF）</view>
+          <view class="tp-stat-value tp-c-gold">+{{noiseResult.nfEff}} dB</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">系统噪声底 Pn</view>
+          <view class="tp-stat-value tp-c-accent">{{noiseResult.pn}} dBm</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">噪声功率（线性）</view>
+          <view class="tp-stat-value">{{noiseResult.pnW}}</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">接收机灵敏度</view>
+          <view class="tp-stat-value tp-c-teal">{{noiseResult.sens}} dBm</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">灵敏度（线性）</view>
+          <view class="tp-stat-value">{{noiseResult.sensW}}</view>
+        </view>
       </view>
     </view>
 
-    <button class="btn grad tl2-calc-btn" bindtap="calcNoise">计算噪声 & 灵敏度</button>
-
-    <view class="tl2-results pop" wx:if="{{noiseResult}}">
-      <view class="kicker tl2-results-title">噪声与灵敏度结果</view>
-
-      <view class="tl2-result-item">
-        <text class="tl2-result-label">热噪声功率 Pn</text>
-        <text class="tl2-result-value num">{{noiseResult.pn}} dBm</text>
-      </view>
-      <view class="tl2-result-item">
-        <text class="tl2-result-label">噪声功率（线性）</text>
-        <text class="tl2-result-value num">{{noiseResult.pnW}}</text>
-      </view>
-      <view class="tl2-result-item">
-        <text class="tl2-result-label">接收机灵敏度</text>
-        <text class="tl2-result-value num tl2-highlight">{{noiseResult.sens}} dBm</text>
-      </view>
-      <view class="tl2-result-item">
-        <text class="tl2-result-label">灵敏度（线性功率）</text>
-        <text class="tl2-result-value num">{{noiseResult.sensW}}</text>
-      </view>
-
-      <view class="tl2-verdict tl2-verdict-ok">
-        Pn = kT·B + NF · Sens = Pn + SNR_min
-      </view>
-      <view class="tl2-formula-box">
-        <image class="tl2-formula-img" src="{{formulaNoise}}" mode="aspectFit" />
-      </view>
+    <view class="tp-formula rise">
+      <view class="tp-formula-title">所用公式</view>
+      <view class="tp-formula-line">Pn = k·(T + (F−1)·290)·B，F = 10^(NF/10)</view>
+      <view class="tp-formula-line">Sens = Pn + SNR_min</view>
+      <view class="tp-formula-cond">适用条件：NF 按 IEEE 定义参考 T₀ = 290 K；T = 290 K 时退化为常用式 Pn = kTB + NF（dB）。k = 1.380649×10⁻²³ J/K。</view>
     </view>
 
     <view class="tc-insight">
       <view class="tc-insight-kicker">直觉</view>
       <view class="tc-insight-text">kT·B 是宇宙的地板：<text class="tc-hl">-174 dBm/Hz，带宽 ×1000 噪声 +30 dB</text>。灵敏度 = 地板 + NF + 解调门限 —— 想听得更远，要么压低 NF（低噪放），要么收窄带宽（慢速率），没有第三条路。</view>
     </view>
-  </view>
+  </block>
 
 </view>

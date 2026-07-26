@@ -1,305 +1,345 @@
-<!-- pages/tools/calc/calc.wxml —— 专用计算（RF换算合集） -->
-<view class="screen tc">
+<!-- pages/tools/calc/calc.wxml —— RF 换算合集（共享 tp-* UI + 实时图形） -->
+<view class="screen tp-page">
+
+  <view class="tp-head rise">
+    <view class="kicker">TOOLS · RF CONVERTER</view>
+    <view class="tp-title display">射频换算合集</view>
+    <view class="tp-sub">dBm · 波长 · VSWR · 趋肤深度 · 口径 · 远场</view>
+  </view>
 
   <!-- Tab 切换 -->
-  <scroll-view scroll-x class="tc-tabs" enhanced show-scrollbar="{{false}}">
-    <view class="tc-tabs-inner">
+  <view class="tp-section rise">
+    <view class="kicker">换算项目</view>
+    <view class="tp-btns">
       <view
         wx:for="{{tabs}}"
-        wx:key="key"
-        class="tc-tab {{activeTab === index ? 'tc-tab-on' : ''}}"
-        bindtap="switchTab"
-        data-index="{{index}}">
-        {{item}}
+        wx:key="*this"
+        class="tp-btn {{activeTab === index ? 'active' : ''}}"
+        data-index="{{index}}"
+        bindtap="switchTab">{{item}}</view>
+    </view>
+  </view>
+
+  <!-- 实时图 -->
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">{{captions[activeTab]}}</view>
+    <canvas type="2d" id="calcCanvas" class="tp-canvas"></canvas>
+  </view>
+
+  <!-- ══════ Tab 0：dBm ↔ W ══════ -->
+  <block wx:if="{{activeTab === 0}}">
+    <view class="tp-section rise">
+      <view class="kicker">功率单位换算</view>
+      <view class="tp-input-row">
+        <text class="tp-input-label">输入值</text>
+        <input class="tp-input num" type="digit" value="{{dBmInput}}" bindinput="onDBmInput" placeholder="30" />
+        <view class="tp-unit-group">
+          <view class="tp-unit {{dBmMode === 0 ? 'active' : ''}}" data-mode="0" bindtap="toggleDBm">dBm</view>
+          <view class="tp-unit {{dBmMode === 1 ? 'active' : ''}}" data-mode="1" bindtap="toggleDBm">W</view>
+        </view>
+      </view>
+      <view class="tc-chips">
+        <view wx:for="{{dBmChips}}" wx:key="v" class="tc-chip" data-v="{{item.v}}" bindtap="fillDBm">{{item.t}}</view>
       </view>
     </view>
-  </scroll-view>
 
-  <!-- ══════ dBm ↔ Watt ══════ -->
-  <view class="tc-panel rise" wx:if="{{activeTab === 0}}">
-    <view class="tc-panel-title kicker">功率单位换算</view>
-
-    <view class="tc-field">
-      <text class="tc-label">输入值</text>
-      <view class="tc-input-row">
-        <input class="tc-input num" type="digit" value="{{dBmInput}}" bindinput="onDBmInput" placeholder="0" />
-        <view class="tc-unit-toggle">
-          <view class="tu-pill {{dBmMode === 0 ? 'tu-on' : ''}}" bindtap="toggleDBm" data-mode="0">dBm</view>
-          <view class="tu-pill {{dBmMode === 1 ? 'tu-on' : ''}}" bindtap="toggleDBm" data-mode="1">W</view>
+    <view class="tp-section pop" wx:if="{{dBmResult}}">
+      <view class="kicker">结果</view>
+      <view class="tp-stats-grid">
+        <view class="tp-stat">
+          <view class="tp-stat-label">{{dBmMode === 0 ? '功率 P' : '功率电平'}}</view>
+          <view class="tp-stat-value tp-c-accent">{{dBmResult}}</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">电压电平（50Ω 系统）</view>
+          <view class="tp-stat-value tp-c-indigo">{{dBmExtra}}</view>
         </view>
       </view>
     </view>
 
-    <view class="tc-chips">
-      <view class="tc-chip" data-v="0" bindtap="fillDBm">0 dBm</view>
-      <view class="tc-chip" data-v="10" bindtap="fillDBm">10 dBm</view>
-      <view class="tc-chip" data-v="20" bindtap="fillDBm">20 dBm</view>
-      <view class="tc-chip" data-v="30" bindtap="fillDBm">30 dBm</view>
-      <view class="tc-chip" data-v="-30" bindtap="fillDBm">-30 dBm</view>
+    <view class="tp-formula rise">
+      <view class="tp-formula-title">所用公式</view>
+      <view class="tp-formula-line">P(dBm) = 10·lg(P / 1 mW)　·　P(W) = 10^((dBm−30)/10)</view>
+      <view class="tp-formula-line">dBμV = dBm + 10·lg(50) + 90 ≈ dBm + 107.0</view>
+      <view class="tp-formula-cond">dBμV 换算仅对 50Ω 系统成立：V = √(P·R)，1 mW × 50 Ω → 223.6 mV = 107 dBμV。</view>
     </view>
 
-    <view class="tc-result-card pop" wx:if="{{dBmResult}}">
-      <view class="tc-result-row">
-        <text class="tc-result-label">{{dBmMode === 0 ? '功率 (W)' : '功率 (dBm)'}}</text>
-        <text class="tc-result-value num">{{dBmResult}}</text>
-      </view>
-      <view class="tc-result-row tc-result-sub" wx:if="{{dBmExtra}}">
-        <text class="tc-result-label">{{dBmExtraLabel}}</text>
-        <text class="tc-result-value num">{{dBmExtra}}</text>
-      </view>
-    </view>
-
-    <view class="tc-insight">
+    <view class="tc-insight rise">
       <view class="tc-insight-kicker">直觉</view>
       <view class="tc-insight-text">对数把乘法变加法：<text class="tc-hl">+3 dB ≈ 功率 ×2，+10 dB = ×10</text>。链路预算全程加减法，这就是 dB 存在的意义。0 dBm = 1 mW 是原点。</view>
     </view>
-  </view>
+  </block>
 
-  <!-- ══════ 频率 ↔ 波长 ══════ -->
-  <view class="tc-panel rise" wx:if="{{activeTab === 1}}">
-    <view class="tc-panel-title kicker">频率 / 波长换算</view>
+  <!-- ══════ Tab 1：频率 ↔ 波长 ══════ -->
+  <block wx:if="{{activeTab === 1}}">
+    <view class="tp-section rise">
+      <view class="kicker">频率 / 波长换算</view>
+      <view class="tp-input-row">
+        <text class="tp-input-label">频率</text>
+        <input class="tp-input num" type="digit" value="{{freqInput}}" bindinput="onFreqInput" placeholder="2400" />
+        <view class="tp-unit-group">
+          <view class="tp-unit {{freqUnit === 0 ? 'active' : ''}}" data-unit="0" bindtap="setFreqUnit">MHz</view>
+          <view class="tp-unit {{freqUnit === 1 ? 'active' : ''}}" data-unit="1" bindtap="setFreqUnit">GHz</view>
+        </view>
+      </view>
+      <view class="tp-input-row">
+        <text class="tp-input-label">介质</text>
+        <view class="tp-btns">
+          <view
+            wx:for="{{mediums}}"
+            wx:key="*this"
+            class="tp-btn {{medium === index ? 'active' : ''}}"
+            data-index="{{index}}"
+            bindtap="setMedium">{{item}}</view>
+        </view>
+      </view>
+      <view class="tc-chips">
+        <view class="tc-chip" data-v="433" data-unit="0" bindtap="fillFreq">433 MHz</view>
+        <view class="tc-chip" data-v="915" data-unit="0" bindtap="fillFreq">915 MHz</view>
+        <view class="tc-chip" data-v="2.4" data-unit="1" bindtap="fillFreq">2.4 GHz</view>
+        <view class="tc-chip" data-v="5.8" data-unit="1" bindtap="fillFreq">5.8 GHz</view>
+      </view>
+    </view>
 
-    <view class="tc-field">
-      <text class="tc-label">频率</text>
-      <view class="tc-input-row">
-        <input class="tc-input num" type="digit" value="{{freqInput}}" bindinput="onFreqInput" placeholder="2400" />
-        <view class="tc-unit-toggle">
-          <view class="tu-pill {{freqUnit === 0 ? 'tu-on' : ''}}" bindtap="setFreqUnit" data-unit="0">MHz</view>
-          <view class="tu-pill {{freqUnit === 1 ? 'tu-on' : ''}}" bindtap="setFreqUnit" data-unit="1">GHz</view>
+    <view class="tp-section pop" wx:if="{{wlResult}}">
+      <view class="kicker">结果</view>
+      <view class="tp-stats-grid">
+        <view class="tp-stat">
+          <view class="tp-stat-label">波长 λ</view>
+          <view class="tp-stat-value tp-c-accent">{{wlResult}}</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">λ/2（偶极子全长）</view>
+          <view class="tp-stat-value tp-c-teal">{{wlHalf}}</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">λ/4（单极子高度）</view>
+          <view class="tp-stat-value tp-c-gold">{{wlQuarter}}</view>
         </view>
       </view>
     </view>
 
-    <view class="tc-field">
-      <text class="tc-label">介质</text>
-      <view class="tc-medium-row">
-        <view
-          wx:for="{{mediums}}"
-          wx:key="key"
-          class="tc-medium {{medium === index ? 'tc-medium-on' : ''}}"
-          bindtap="setMedium"
-          data-index="{{index}}">
-          {{item}}
-        </view>
-      </view>
+    <view class="tp-formula rise">
+      <view class="tp-formula-title">所用公式</view>
+      <view class="tp-formula-line">λ = c / (f·√εr)　·　v = c / √εr</view>
+      <view class="tp-formula-cond">适用条件：无界均匀非磁性介质。微带线等混合介质应改用 εeff（部分场在空气中），此处未计入。</view>
     </view>
 
-    <view class="tc-chips">
-      <view class="tc-chip" data-v="433" data-unit="0" bindtap="fillFreq">433 MHz</view>
-      <view class="tc-chip" data-v="915" data-unit="0" bindtap="fillFreq">915 MHz</view>
-      <view class="tc-chip" data-v="2.4" data-unit="1" bindtap="fillFreq">2.4 GHz</view>
-      <view class="tc-chip" data-v="5.8" data-unit="1" bindtap="fillFreq">5.8 GHz</view>
-    </view>
-
-    <view class="tc-result-card pop" wx:if="{{wlResult}}">
-      <view class="tc-result-row">
-        <text class="tc-result-label">波长 λ</text>
-        <text class="tc-result-value num">{{wlResult}}</text>
-      </view>
-      <view class="tc-result-row tc-result-sub">
-        <text class="tc-result-label">λ/2</text>
-        <text class="tc-result-value num">{{wlHalf}}</text>
-      </view>
-      <view class="tc-result-row tc-result-sub">
-        <text class="tc-result-label">λ/4</text>
-        <text class="tc-result-value num">{{wlQuarter}}</text>
-      </view>
-    </view>
-
-    <view class="tc-insight">
+    <view class="tc-insight rise">
       <view class="tc-insight-kicker">直觉</view>
       <view class="tc-insight-text">λ/4 是单极天线的基本长度 —— <text class="tc-hl">2.4 GHz 在空气中约 3.1 cm</text>，路由器天线就那么长。介质里波长变短：FR4 中约为空气的一半。</view>
     </view>
-  </view>
+  </block>
 
-  <!-- ══════ VSWR ↔ 回波损耗 ↔ 反射系数 ══════ -->
-  <view class="tc-panel rise" wx:if="{{activeTab === 2}}">
-    <view class="tc-panel-title kicker">驻波比 / 反射 / 回波损耗</view>
-
-    <view class="tc-field">
-      <text class="tc-label">VSWR（驻波比）</text>
-      <input class="tc-input num" type="digit" value="{{vswrInput}}" bindinput="onVSWRInput" placeholder="1.5" />
+  <!-- ══════ Tab 2：VSWR ══════ -->
+  <block wx:if="{{activeTab === 2}}">
+    <view class="tp-section rise">
+      <view class="kicker">驻波比 / 反射 / 回波损耗</view>
+      <view class="tp-input-row">
+        <text class="tp-input-label">VSWR</text>
+        <input class="tp-input num" type="digit" value="{{vswrInput}}" bindinput="onVSWRInput" placeholder="1.5" />
+      </view>
+      <view class="tc-chips">
+        <view class="tc-chip" data-v="1.1" bindtap="fillVswr">1.1</view>
+        <view class="tc-chip" data-v="1.25" bindtap="fillVswr">1.25</view>
+        <view class="tc-chip" data-v="1.5" bindtap="fillVswr">1.5</view>
+        <view class="tc-chip" data-v="2.0" bindtap="fillVswr">2.0</view>
+        <view class="tc-chip" data-v="3.0" bindtap="fillVswr">3.0</view>
+      </view>
+      <view class="tc-grade tc-grade-{{vswrGrade.cls}}" wx:if="{{vswrGrade}}">{{vswrGrade.text}}</view>
     </view>
 
-    <view class="tc-chips">
-      <view class="tc-chip" data-v="1.1" bindtap="fillVswr">1.1</view>
-      <view class="tc-chip" data-v="1.25" bindtap="fillVswr">1.25</view>
-      <view class="tc-chip" data-v="1.5" bindtap="fillVswr">1.5</view>
-      <view class="tc-chip" data-v="2.0" bindtap="fillVswr">2.0</view>
-      <view class="tc-chip" data-v="3.0" bindtap="fillVswr">3.0</view>
-    </view>
-
-    <view class="tc-grade tc-grade-{{vswrGrade.cls}}" wx:if="{{vswrGrade}}">{{vswrGrade.text}}</view>
-
-    <view class="tc-result-card pop" wx:if="{{vswrResult}}">
-      <view class="tc-result-row">
-        <text class="tc-result-label">反射系数 |Γ|</text>
-        <text class="tc-result-value num">{{vswrResult.gamma}}</text>
-      </view>
-      <view class="tc-result-row tc-result-sub">
-        <text class="tc-result-label">回波损耗 RL</text>
-        <text class="tc-result-value num">{{vswrResult.rl}} dB</text>
-      </view>
-      <view class="tc-result-row tc-result-sub">
-        <text class="tc-result-label">反射功率</text>
-        <text class="tc-result-value num">{{vswrResult.pref}} %</text>
-      </view>
-      <view class="tc-result-row tc-result-sub">
-        <text class="tc-result-label">失配损耗</text>
-        <text class="tc-result-value num">{{vswrResult.mismatch}} dB</text>
+    <view class="tp-section pop" wx:if="{{vswrResult}}">
+      <view class="kicker">结果</view>
+      <view class="tp-stats-grid">
+        <view class="tp-stat">
+          <view class="tp-stat-label">反射系数 |Γ|</view>
+          <view class="tp-stat-value tp-c-accent">{{vswrResult.gamma}}</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">回波损耗 RL</view>
+          <view class="tp-stat-value tp-c-teal">{{vswrResult.rl}}</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">反射功率 |Γ|²</view>
+          <view class="tp-stat-value tp-c-gold">{{vswrResult.pref}}</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">失配损耗 ML</view>
+          <view class="tp-stat-value tp-c-indigo">{{vswrResult.mismatch}}</view>
+        </view>
       </view>
     </view>
 
-    <view class="tc-insight">
+    <view class="tp-formula rise">
+      <view class="tp-formula-title">所用公式</view>
+      <view class="tp-formula-line">|Γ| = (s−1)/(s+1)　·　RL = −20·lg|Γ|　·　ML = −10·lg(1−|Γ|²)</view>
+      <view class="tp-formula-cond">适用条件：无耗传输线单频稳态。包络图取 ∠Γ = 0（负载处为波腹）；相位只平移曲线，不改变 Vmax/Vmin。</view>
+    </view>
+
+    <view class="tc-insight rise">
       <view class="tc-insight-kicker">直觉</view>
       <view class="tc-insight-text">|Γ|² 就是反射功率比例。<text class="tc-hl">VSWR 1.5 只反射 4% 功率</text> —— 工程上已够用，不必盲目追 1.0；但超过 2 就有 11% 被弹回来，必须调匹配。</view>
     </view>
-  </view>
+  </block>
 
-  <!-- ══════ 趋肤深度 ══════ -->
-  <view class="tc-panel rise" wx:if="{{activeTab === 3}}">
-    <view class="tc-panel-title kicker">趋肤深度计算</view>
-
-    <view class="tc-field">
-      <text class="tc-label">频率</text>
-      <view class="tc-input-row">
-        <input class="tc-input num" type="digit" value="{{skinFreq}}" bindinput="onSkinFreq" placeholder="1000" />
-        <view class="tc-unit-toggle">
-          <view class="tu-pill {{skinFreqUnit === 0 ? 'tu-on' : ''}}" bindtap="setSkinFreqUnit" data-unit="0">MHz</view>
-          <view class="tu-pill {{skinFreqUnit === 1 ? 'tu-on' : ''}}" bindtap="setSkinFreqUnit" data-unit="1">GHz</view>
+  <!-- ══════ Tab 3：趋肤深度 ══════ -->
+  <block wx:if="{{activeTab === 3}}">
+    <view class="tp-section rise">
+      <view class="kicker">趋肤深度计算</view>
+      <view class="tp-input-row">
+        <text class="tp-input-label">频率</text>
+        <input class="tp-input num" type="digit" value="{{skinFreq}}" bindinput="onSkinFreq" placeholder="1000" />
+        <view class="tp-unit-group">
+          <view class="tp-unit {{skinFreqUnit === 0 ? 'active' : ''}}" data-unit="0" bindtap="setSkinFreqUnit">MHz</view>
+          <view class="tp-unit {{skinFreqUnit === 1 ? 'active' : ''}}" data-unit="1" bindtap="setSkinFreqUnit">GHz</view>
+        </view>
+      </view>
+      <view class="tp-input-row">
+        <text class="tp-input-label">导体材料</text>
+        <view class="tp-btns">
+          <view
+            wx:for="{{materials}}"
+            wx:key="name"
+            class="tp-btn {{material === index ? 'active' : ''}}"
+            data-index="{{index}}"
+            bindtap="setMaterial">{{item.name}}</view>
         </view>
       </view>
     </view>
 
-    <view class="tc-field">
-      <text class="tc-label">导体材料</text>
-      <view class="tc-medium-row">
-        <view
-          wx:for="{{materials}}"
-          wx:key="key"
-          class="tc-medium {{material === index ? 'tc-medium-on' : ''}}"
-          bindtap="setMaterial"
-          data-index="{{index}}">
-          {{item.name}}
+    <view class="tp-section pop" wx:if="{{skinResult}}">
+      <view class="kicker">结果</view>
+      <view class="tp-stats-grid">
+        <view class="tp-stat tp-stat-wide">
+          <view class="tp-stat-label">趋肤深度 δ</view>
+          <view class="tp-stat-value tp-c-accent">{{skinResult}}</view>
         </view>
       </view>
     </view>
 
-    <view class="tc-result-card pop" wx:if="{{skinResult}}">
-      <view class="tc-result-row">
-        <text class="tc-result-label">趋肤深度 δ</text>
-        <text class="tc-result-value num">{{skinResult}}</text>
-      </view>
+    <view class="tp-formula rise">
+      <view class="tp-formula-title">所用公式</view>
+      <view class="tp-formula-line">δ = 1 / √(π·f·μ·σ)</view>
+      <view class="tp-formula-cond">适用条件：良导体近似（σ ≫ ωε）；非磁性材料取 μ ≈ μ0；σ 为 20°C 手册值。</view>
     </view>
 
-    <view class="tc-insight">
+    <view class="tc-insight rise">
       <view class="tc-insight-kicker">直觉</view>
       <view class="tc-insight-text">频率 ×100 → δ ÷10。<text class="tc-hl">2.4 GHz 时铜的 δ ≈ 1.3 μm，比头发丝细 50 倍</text> —— 电流只走"皮肤"，这就是高频件要镀银、用空心波导的原因。</view>
     </view>
+  </block>
 
-    <view class="tc-formula-box">
-      <image class="tc-formula-img" src="{{formulaSkin}}" mode="aspectFit" />
-    </view>
-  </view>
-
-  <!-- ══════ 增益 ↔ 有效口径 ══════ -->
-  <view class="tc-panel rise" wx:if="{{activeTab === 4}}">
-    <view class="tc-panel-title kicker">天线增益 ↔ 有效口径</view>
-
-    <view class="tc-field">
-      <text class="tc-label">天线增益 G</text>
-      <input class="tc-input num" type="digit" value="{{gainInput}}" bindinput="onGainInput" placeholder="15" />
-      <text class="tc-label" style="margin-top:6rpx;font-size:20rpx">dBi</text>
-    </view>
-
-    <view class="tc-field">
-      <text class="tc-label">频率</text>
-      <view class="tc-input-row">
-        <input class="tc-input num" type="digit" value="{{gainFreq}}" bindinput="onGainFreq" placeholder="10" />
-        <view class="tc-unit-toggle">
-          <view class="tu-pill {{gainFreqUnit === 0 ? 'tu-on' : ''}}" bindtap="setGainFreqUnit" data-unit="0">MHz</view>
-          <view class="tu-pill {{gainFreqUnit === 1 ? 'tu-on' : ''}}" bindtap="setGainFreqUnit" data-unit="1">GHz</view>
+  <!-- ══════ Tab 4：增益 ↔ 有效口径（双向）══════ -->
+  <block wx:if="{{activeTab === 4}}">
+    <view class="tp-section rise">
+      <view class="kicker">天线增益 ↔ 有效口径</view>
+      <view class="tp-btns">
+        <view class="tp-btn {{gainMode === 0 ? 'active' : ''}}" data-mode="0" bindtap="toggleGainMode">增益 → 口径</view>
+        <view class="tp-btn {{gainMode === 1 ? 'active' : ''}}" data-mode="1" bindtap="toggleGainMode">口径 → 增益</view>
+      </view>
+      <view class="tp-input-row" wx:if="{{gainMode === 0}}">
+        <text class="tp-input-label">增益 G（dBi）</text>
+        <input class="tp-input num" type="digit" value="{{gainInput}}" bindinput="onGainInput" placeholder="15" />
+      </view>
+      <view class="tp-input-row" wx:if="{{gainMode === 1}}">
+        <text class="tp-input-label">有效口径 Ae（m²）</text>
+        <input class="tp-input num" type="digit" value="{{aeInput}}" bindinput="onAeInput" placeholder="0.01" />
+      </view>
+      <view class="tp-input-row">
+        <text class="tp-input-label">频率</text>
+        <input class="tp-input num" type="digit" value="{{gainFreq}}" bindinput="onGainFreq" placeholder="10" />
+        <view class="tp-unit-group">
+          <view class="tp-unit {{gainFreqUnit === 0 ? 'active' : ''}}" data-unit="0" bindtap="setGainFreqUnit">MHz</view>
+          <view class="tp-unit {{gainFreqUnit === 1 ? 'active' : ''}}" data-unit="1" bindtap="setGainFreqUnit">GHz</view>
         </view>
       </view>
     </view>
 
-    <view class="tc-result-card pop" wx:if="{{gainResult}}">
-      <view class="tc-result-row">
-        <text class="tc-result-label">有效口径 Ae</text>
-        <text class="tc-result-value num">{{gainResult.ae}}</text>
-      </view>
-      <view class="tc-result-row tc-result-sub">
-        <text class="tc-result-label">Ae (cm²)</text>
-        <text class="tc-result-value num">{{gainResult.aeCm}}</text>
-      </view>
-      <view class="tc-result-row tc-result-sub">
-        <text class="tc-result-label">波长 λ</text>
-        <text class="tc-result-value num">{{gainResult.wavelength}}</text>
-      </view>
-      <view class="tc-result-row tc-result-sub">
-        <text class="tc-result-label">G (线性)</text>
-        <text class="tc-result-value num">{{gainResult.gLin}}</text>
+    <view class="tp-section pop" wx:if="{{gainResult}}">
+      <view class="kicker">结果</view>
+      <view class="tp-stats-grid">
+        <view class="tp-stat">
+          <view class="tp-stat-label">有效口径 Ae</view>
+          <view class="tp-stat-value tp-c-accent">{{gainResult.ae}}</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">增益 G</view>
+          <view class="tp-stat-value tp-c-teal">{{gainResult.g}}</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">G（线性倍数）</view>
+          <view class="tp-stat-value tp-c-gold">{{gainResult.gLin}}</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">波长 λ</view>
+          <view class="tp-stat-value tp-c-indigo">{{gainResult.wavelength}}</view>
+        </view>
       </view>
     </view>
 
-    <view class="tc-insight">
+    <view class="tp-formula rise">
+      <view class="tp-formula-title">所用公式</view>
+      <view class="tp-formula-line">Ae = G·λ² / (4π)　·　G = 4π·Ae / λ²</view>
+      <view class="tp-formula-cond">适用条件：阻抗匹配且极化对准的接收天线。Ae 为有效口径；实际物理口径 = Ae / 口径效率。</view>
+    </view>
+
+    <view class="tc-insight rise">
       <view class="tc-insight-kicker">直觉</view>
       <view class="tc-insight-text">Ae 是天线的"捕波网面积"：<text class="tc-hl">增益翻倍 = 网大一倍；同增益下频率越低网越大</text> —— 这就是为什么低频天线都体格庞大。</view>
     </view>
+  </block>
 
-    <view class="tc-formula-box">
-      <image class="tc-formula-img" src="{{formulaAe}}" mode="aspectFit" />
+  <!-- ══════ Tab 5：远场距离（Fraunhofer）══════ -->
+  <block wx:if="{{activeTab === 5}}">
+    <view class="tp-section rise">
+      <view class="kicker">远场距离（Fraunhofer 边界）</view>
+      <view class="tp-input-row">
+        <text class="tp-input-label">频率</text>
+        <input class="tp-input num" type="digit" value="{{ffFreq}}" bindinput="onFFFreq" placeholder="10" />
+        <view class="tp-unit-group">
+          <view class="tp-unit {{ffFreqUnit === 0 ? 'active' : ''}}" data-unit="0" bindtap="setFFFreqUnit">MHz</view>
+          <view class="tp-unit {{ffFreqUnit === 1 ? 'active' : ''}}" data-unit="1" bindtap="setFFFreqUnit">GHz</view>
+        </view>
+      </view>
+      <view class="tp-input-row">
+        <text class="tp-input-label">最大尺寸 D（m）</text>
+        <input class="tp-input num" type="digit" value="{{ffD}}" bindinput="onFFD" placeholder="1" />
+      </view>
     </view>
-  </view>
 
-  <!-- ══════ 远场距离 (Fraunhofer) ══════ -->
-  <view class="tc-panel rise" wx:if="{{activeTab === 5}}">
-    <view class="tc-panel-title kicker">远场距离（Fraunhofer 边界）</view>
-
-    <view class="tc-field">
-      <text class="tc-label">频率</text>
-      <view class="tc-input-row">
-        <input class="tc-input num" type="digit" value="{{ffFreq}}" bindinput="onFFFreq" placeholder="10" />
-        <view class="tc-unit-toggle">
-          <view class="tu-pill {{ffFreqUnit === 0 ? 'tu-on' : ''}}" bindtap="setFFFreqUnit" data-unit="0">MHz</view>
-          <view class="tu-pill {{ffFreqUnit === 1 ? 'tu-on' : ''}}" bindtap="setFFFreqUnit" data-unit="1">GHz</view>
+    <view class="tp-section pop" wx:if="{{ffResult}}">
+      <view class="kicker">结果</view>
+      <view class="tp-stats-grid">
+        <view class="tp-stat">
+          <view class="tp-stat-label">远场边界 R_ff = 2D²/λ</view>
+          <view class="tp-stat-value tp-c-teal">{{ffResult.rFF}}</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">感应近场边界 R_nf</view>
+          <view class="tp-stat-value tp-c-gold">{{ffResult.rNF}}</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">波长 λ</view>
+          <view class="tp-stat-value tp-c-indigo">{{ffResult.wavelength}}</view>
+        </view>
+        <view class="tp-stat">
+          <view class="tp-stat-label">电尺寸 D/λ</view>
+          <view class="tp-stat-value tp-c-accent">{{ffResult.dOverLam}}</view>
         </view>
       </view>
     </view>
 
-    <view class="tc-field">
-      <text class="tc-label">天线最大尺寸 D</text>
-      <input class="tc-input num" type="digit" value="{{ffD}}" bindinput="onFFD" placeholder="1" />
-      <text class="tc-label" style="margin-top:6rpx;font-size:20rpx">m（如抛物面直径、阵列最大边长）</text>
+    <view class="tp-formula rise">
+      <view class="tp-formula-title">所用公式</view>
+      <view class="tp-formula-line">R_ff = 2D² / λ　·　R_nf = 0.62·√(D³ / λ)</view>
+      <view class="tp-formula-cond">适用条件：电大天线（D &gt; λ）的常用分界；完整远场条件另需 R ≫ D 且 R ≫ λ。电小天线的近/远场界约在 λ/2π。</view>
     </view>
 
-    <view class="tc-result-card pop" wx:if="{{ffResult}}">
-      <view class="tc-result-row">
-        <text class="tc-result-label">远场边界 R_ff</text>
-        <text class="tc-result-value num">{{ffResult.rFF}}</text>
-      </view>
-      <view class="tc-result-row tc-result-sub">
-        <text class="tc-result-label">感应近场 R_nf</text>
-        <text class="tc-result-value num">{{ffResult.rNF}}</text>
-      </view>
-      <view class="tc-result-row tc-result-sub">
-        <text class="tc-result-label">波长 λ</text>
-        <text class="tc-result-value num">{{ffResult.wavelength}}</text>
-      </view>
-      <view class="tc-result-row tc-result-sub">
-        <text class="tc-result-label">D/λ</text>
-        <text class="tc-result-value num">{{ffResult.dOverLam}}</text>
-      </view>
-    </view>
-
-    <view class="tc-insight">
+    <view class="tc-insight rise">
       <view class="tc-insight-kicker">直觉</view>
       <view class="tc-insight-text">天线越大、频率越高，远场越远。<text class="tc-hl">口径天线没越过 R_ff 就测方向图，读数必然偏小、波瓣变形</text> —— 这就是暗室要造那么长的原因。</view>
     </view>
-
-    <view class="tc-formula-box">
-      <image class="tc-formula-img" src="{{formulaFarfield}}" mode="aspectFit" />
-    </view>
-  </view>
+  </block>
 
 </view>
