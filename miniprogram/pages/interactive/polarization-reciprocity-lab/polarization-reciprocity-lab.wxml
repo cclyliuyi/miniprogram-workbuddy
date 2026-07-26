@@ -1,67 +1,121 @@
 <!-- pages/interactive/polarization-reciprocity-lab/polarization-reciprocity-lab.wxml —— 极化互易 -->
-<view class="screen pr">
+<view class="screen tp-page">
 
-  <view class="pr-head rise">
+  <view class="tp-head rise">
     <view class="kicker">POLARIZATION &amp; RECIPROCITY</view>
-    <view class="pr-title display">极化与互易</view>
-    <view class="pr-sub">极化椭圆 · 接收投影 · 收发互易</view>
+    <view class="tp-title display">极化与互易</view>
+    <view class="tp-sub">极化椭圆 · 接收投影 PLF · 收发互易</view>
   </view>
 
   <!-- 主画布 -->
-  <view class="pr-canvas-wrap rise">
-    <view class="pr-sub-plot">{{modeLabel}}</view>
-    <canvas type="2d" id="mainCanvas" class="pr-canvas-sq"></canvas>
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">{{modeLabel}}</view>
+    <canvas type="2d" id="mainCanvas" class="tp-canvas"></canvas>
   </view>
 
   <!-- 模式切换 -->
-  <view class="pr-section rise">
+  <view class="tp-section rise">
     <view class="kicker">实验模式</view>
-    <view class="pr-btns">
-      <view class="pr-btn {{S.mode==='ellipse' ? 'active' : ''}}" bindtap="setEllipse">极化椭圆</view>
-      <view class="pr-btn {{S.mode==='match' ? 'active' : ''}}" bindtap="setMatch">接收投影</view>
-      <view class="pr-btn {{S.mode==='reciprocity' ? 'active' : ''}}" bindtap="setReciprocity">收发互易</view>
+    <view class="tp-btns">
+      <view class="tp-btn {{S.mode==='ellipse' ? 'active' : ''}}" data-m="ellipse" bindtap="setMode">极化椭圆</view>
+      <view class="tp-btn {{S.mode==='match' ? 'active' : ''}}" data-m="match" bindtap="setMode">接收投影</view>
+      <view class="tp-btn {{S.mode==='reciprocity' ? 'active' : ''}}" data-m="reciprocity" bindtap="setMode">收发互易</view>
     </view>
   </view>
 
-  <!-- 参数 -->
-  <view class="pr-section rise">
+  <!-- 参数（按模式只显示有效滑块） -->
+  <view class="tp-section rise">
     <view class="kicker">参数</view>
-    <view class="pr-slider-row">
-      <text class="pr-slider-label">Ey / Ex</text>
-      <slider class="pr-slider" min="0" max="140" step="1" value="{{S.ratio}}"
-        bindchange="onRatio" show-value />
+    <view class="tp-slider-row" wx:if="{{S.mode!=='reciprocity'}}">
+      <text class="tp-slider-label">幅度比 r=E₂/E₁</text>
+      <slider class="tp-slider" min="0" max="140" step="1" value="{{S.ratio}}"
+        bindchanging="onRatio" bindchange="onRatio" />
+      <text class="tp-slider-val">{{ratioTxt}}</text>
     </view>
-    <view class="pr-slider-row">
-      <text class="pr-slider-label">相位差 δ</text>
-      <slider class="pr-slider" min="-180" max="180" step="1" value="{{S.phase}}"
-        bindchange="onPhase" show-value />
+    <view class="tp-slider-row" wx:if="{{S.mode!=='reciprocity'}}">
+      <text class="tp-slider-label">相位差 δ</text>
+      <slider class="tp-slider" min="-180" max="180" step="1" value="{{S.phase}}"
+        bindchanging="onPhase" bindchange="onPhase" />
+      <text class="tp-slider-val">{{S.phase}}°</text>
     </view>
-    <view class="pr-slider-row">
-      <text class="pr-slider-label">接收角度</text>
-      <slider class="pr-slider" min="-90" max="90" step="1" value="{{S.angle}}"
-        bindchange="onAngle" show-value />
+    <view class="tp-slider-row" wx:if="{{S.mode==='match'}}">
+      <text class="tp-slider-label">接收角 ψ</text>
+      <slider class="tp-slider" min="-90" max="90" step="1" value="{{S.angle}}"
+        bindchanging="onAngle" bindchange="onAngle" />
+      <text class="tp-slider-val">{{S.angle}}°</text>
+    </view>
+    <view class="tp-slider-row" wx:if="{{S.mode==='reciprocity'}}">
+      <text class="tp-slider-label">天线 A 取向 ψA</text>
+      <slider class="tp-slider" min="-90" max="90" step="1" value="{{S.angle}}"
+        bindchanging="onAngle" bindchange="onAngle" />
+      <text class="tp-slider-val">{{S.angle}}°</text>
+    </view>
+    <view class="tp-slider-row" wx:if="{{S.mode==='reciprocity'}}">
+      <text class="tp-slider-label">天线 B 取向 ψB</text>
+      <slider class="tp-slider" min="-90" max="90" step="1" value="{{S.angleB}}"
+        bindchanging="onAngleB" bindchange="onAngleB" />
+      <text class="tp-slider-val">{{S.angleB}}°</text>
     </view>
   </view>
 
   <!-- 读数 -->
-  <view class="pr-stats pop" wx:if="{{stats}}">
-    <view class="kicker pr-stats-title">读数</view>
-    <view class="pr-stats-grid">
-      <view class="pr-stat">
-        <view class="pr-stat-label">极化状态</view>
-        <view class="pr-stat-value">{{stats.type}}</view>
+  <view class="tp-section pop" wx:if="{{stats}}">
+    <view class="kicker">读数</view>
+    <view class="tp-stats-grid" wx:if="{{S.mode!=='reciprocity'}}">
+      <view class="tp-stat">
+        <view class="tp-stat-label">极化状态（椭圆率角判别）</view>
+        <view class="tp-stat-value tp-c-accent">{{stats.type}}</view>
       </view>
-      <view class="pr-stat">
-        <view class="pr-stat-label">投影比例</view>
-        <view class="pr-stat-value">{{stats.proj}}</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">旋向（IEEE，沿传播方向）</view>
+        <view class="tp-stat-value tp-c-accent">{{stats.hand}}</view>
+      </view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">轴比 AR = cotε</view>
+        <view class="tp-stat-value tp-c-gold">{{stats.ar}}</view>
+      </view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">长轴倾角 τ</view>
+        <view class="tp-stat-value tp-c-indigo">{{stats.tau}}</view>
+      </view>
+      <view class="tp-stat tp-stat-wide" wx:if="{{S.mode==='match'}}">
+        <view class="tp-stat-label">极化损耗因子 PLF（时间平均）</view>
+        <view class="tp-stat-value tp-c-teal">{{stats.plf}}</view>
+      </view>
+    </view>
+    <view class="tp-stats-grid" wx:else>
+      <view class="tp-stat">
+        <view class="tp-stat-label">取向差 Δψ</view>
+        <view class="tp-stat-value tp-c-indigo">{{stats.dpsi}}</view>
+      </view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">互易判定</view>
+        <view class="tp-stat-value tp-c-accent">S21 = S12 ✓</view>
+      </view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">A→B 耦合 cos²Δψ</view>
+        <view class="tp-stat-value tp-c-teal">{{stats.cAB}}</view>
+      </view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">B→A 耦合 cos²Δψ</view>
+        <view class="tp-stat-value tp-c-teal">{{stats.cBA}}</view>
       </view>
     </view>
   </view>
 
+  <!-- 公式注脚 -->
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">所用公式</view>
+    <view class="tp-formula-line">Ex = E₁cos ωt，Ey = E₂cos(ωt+δ)，r = E₂/E₁；sin 2ε = 2r·sinδ/(1+r²)，AR = cot ε，tan 2τ = 2r·cosδ/(1−r²)</view>
+    <view class="tp-formula-line">PLF = ⟨(E·û)²⟩ / ⟨|E|²⟩ = (cos²ψ + r²sin²ψ + r·sin2ψ·cosδ) / (1+r²)</view>
+    <view class="tp-formula-line">互易（线极化对）：C = cos²(ψA−ψB)，S21 = S12</view>
+    <view class="tp-formula-cond">适用条件：沿 +z（出屏）传播的均匀平面波；旋向按 IEEE 沿传播方向定义（sinδ&gt;0 左旋，画面为迎波视角故左旋呈顺时针）；判别阈值 |ε|&lt;3° 记线极化、|ε|&gt;42° 记圆极化；PLF 公式针对线极化接收天线、为时间平均量；互易要求线性、各向同性、无源介质（Balanis §4.4、§2.12.2）。</view>
+  </view>
+
   <!-- 说明 -->
-  <view class="pr-note rise">
+  <view class="tp-note rise">
     <view class="kicker">核心概念</view>
-    <view class="pr-note-text">{{noteText}}</view>
+    <view class="tp-note-text">{{noteText}}</view>
   </view>
 
 </view>

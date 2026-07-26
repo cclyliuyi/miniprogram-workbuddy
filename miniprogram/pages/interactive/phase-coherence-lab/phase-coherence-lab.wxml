@@ -1,58 +1,87 @@
 <!-- pages/interactive/phase-coherence-lab/phase-coherence-lab.wxml —— 相位相干 -->
-<view class="screen pc">
+<view class="screen tp-page">
 
-  <view class="pc-head rise">
+  <view class="tp-head rise">
     <view class="kicker">PHASE COHERENCE LAB</view>
-    <view class="pc-title display">相位相干</view>
-    <view class="pc-sub">相量叠加 · 阵列扫描 · 等光程聚焦</view>
+    <view class="tp-title display">相位相干</view>
+    <view class="tp-sub">相量叠加 · 阵列扫描 · 相位误差与 Ruze 公式</view>
   </view>
 
   <!-- 主画布 -->
-  <view class="pc-canvas-wrap rise">
-    <view class="pc-sub-plot">{{modeLabel}}</view>
-    <canvas type="2d" id="mainCanvas" class="pc-canvas"></canvas>
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">{{modeLabel}}</view>
+    <canvas type="2d" id="mainCanvas" class="tp-canvas"></canvas>
   </view>
 
   <!-- 方向图画布 -->
-  <view class="pc-canvas-wrap rise">
-    <view class="pc-sub-plot">方向图：相位把能量推向某个角度</view>
-    <canvas type="2d" id="patternCanvas" class="pc-canvas-wide"></canvas>
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">方向图 |AF(θ)|（dB）：相位把能量推向某个角度</view>
+    <canvas type="2d" id="patternCanvas" class="tp-canvas-short"></canvas>
   </view>
 
   <!-- 模式切换 -->
-  <view class="pc-section rise">
+  <view class="tp-section rise">
     <view class="kicker">实验模式</view>
-    <view class="pc-btns">
-      <view class="pc-btn {{S.mode==='phasor' ? 'active' : ''}}" bindtap="setPhasor">相量叠加</view>
-      <view class="pc-btn {{S.mode==='array' ? 'active' : ''}}" bindtap="setArray">阵列扫描</view>
-      <view class="pc-btn {{S.mode==='focus' ? 'active' : ''}}" bindtap="setFocus">等光程聚焦</view>
+    <view class="tp-btns">
+      <view class="tp-btn {{S.mode==='phasor' ? 'active' : ''}}" data-m="phasor" bindtap="setMode">相量叠加</view>
+      <view class="tp-btn {{S.mode==='array' ? 'active' : ''}}" data-m="array" bindtap="setMode">阵列扫描</view>
+      <view class="tp-btn {{S.mode==='focus' ? 'active' : ''}}" data-m="focus" bindtap="setMode">相位误差</view>
     </view>
   </view>
 
   <!-- 参数 -->
-  <view class="pc-section rise">
+  <view class="tp-section rise">
     <view class="kicker">参数</view>
-    <view class="pc-slider-row">
-      <text class="pc-slider-label">相位差 β</text>
-      <slider class="pc-slider" min="-180" max="180" step="1" value="{{S.phase}}"
-        bindchange="onPhase" show-value />
+    <view class="tp-slider-row" wx:if="{{S.mode!=='focus'}}">
+      <text class="tp-slider-label">相位差 β</text>
+      <slider class="tp-slider" min="-180" max="180" step="1" value="{{S.phase}}"
+        bindchanging="onPhase" bindchange="onPhase" />
+      <text class="tp-slider-val">{{S.phase}}°</text>
     </view>
-    <view class="pc-slider-row">
-      <text class="pc-slider-label">源间距 d/λ</text>
-      <slider class="pc-slider" min="20" max="120" step="1" value="{{S.spacing}}"
-        bindchange="onSpacing" show-value />
+    <view class="tp-slider-row" wx:if="{{S.mode==='focus'}}">
+      <text class="tp-slider-label">误差 RMS δ</text>
+      <slider class="tp-slider" min="0" max="120" step="1" value="{{S.err}}"
+        bindchanging="onErr" bindchange="onErr" />
+      <text class="tp-slider-val">{{S.err}}°</text>
     </view>
-    <view class="pc-slider-row">
-      <text class="pc-slider-label">源数量 N</text>
-      <slider class="pc-slider" min="2" max="12" step="1" value="{{S.count}}"
-        bindchange="onCount" show-value />
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">源间距 d/λ</text>
+      <slider class="tp-slider" min="20" max="120" step="1" value="{{S.spacing}}"
+        bindchanging="onSpacing" bindchange="onSpacing" />
+      <text class="tp-slider-val">{{S.spacing / 100}} λ</text>
+    </view>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">源数量 N</text>
+      <slider class="tp-slider" min="2" max="12" step="1" value="{{S.count}}"
+        bindchanging="onCount" bindchange="onCount" />
+      <text class="tp-slider-val">{{S.count}} 元</text>
     </view>
   </view>
 
+  <!-- 读数 -->
+  <view class="tp-section pop" wx:if="{{stats.length}}">
+    <view class="kicker">读数</view>
+    <view class="tp-stats-grid">
+      <view class="tp-stat" wx:for="{{stats}}" wx:key="label">
+        <view class="tp-stat-label">{{item.label}}</view>
+        <view class="tp-stat-value {{item.cls}}">{{item.value}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 公式注脚 -->
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">所用公式</view>
+    <view class="tp-formula-line">AF(θ) = |Σₙ e^(j·n·ψ)|/N，ψ = 2π(d/λ)·sinθ + β</view>
+    <view class="tp-formula-line">sinθ₀ = −β/(2π·d/λ)　·　HPBW ≈ 0.886·λ/(N·d)　·　栅瓣判据 d/λ &lt; 1/(1+|sinθ₀|)</view>
+    <view class="tp-formula-line">Ruze：G/G₀ = exp(−δ²)，δ = 口径相位误差 RMS（rad）</view>
+    <view class="tp-formula-cond">适用条件：均匀幅度线阵、各向同性单元；HPBW 为宽边大 N 近似；首副瓣 −13.3 dB 为均匀加权大 N 值；Ruze 假设误差零均值、空间不相关且较小。相位误差模式使用固定的零均值单位 RMS 误差样本 × δ。</view>
+  </view>
+
   <!-- 说明 -->
-  <view class="pc-note rise">
+  <view class="tp-note rise">
     <view class="kicker">核心概念</view>
-    <view class="pc-note-text">{{noteText}}</view>
+    <view class="tp-note-text">{{noteText}}</view>
   </view>
 
 </view>

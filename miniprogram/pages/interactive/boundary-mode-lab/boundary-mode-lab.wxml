@@ -1,53 +1,77 @@
 <!-- pages/interactive/boundary-mode-lab/boundary-mode-lab.wxml —— 边界模式 -->
-<view class="screen bm">
+<view class="screen tp-page">
 
-  <view class="bm-head rise">
+  <view class="tp-head rise">
     <view class="kicker">BOUNDARY &amp; MODES LAB</view>
-    <view class="bm-title display">边界模式</view>
-    <view class="bm-sub">边界条件 · 本征模式 · 格林函数 · 对称性</view>
+    <view class="tp-title display">边界模式</view>
+    <view class="tp-sub">边界条件 · 本征模式 · 格林函数 · 对称性</view>
   </view>
 
   <!-- 场分布画布 -->
-  <view class="bm-canvas-wrap rise">
-    <view class="bm-sub-plot">{{modeLabel}}</view>
-    <canvas type="2d" id="fieldCanvas" class="bm-canvas-sq"></canvas>
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">{{modeLabel}}</view>
+    <canvas type="2d" id="fieldCanvas" class="tp-canvas-tall"></canvas>
   </view>
 
   <!-- 模式切换 -->
-  <view class="bm-section rise">
+  <view class="tp-section rise">
     <view class="kicker">实验模式</view>
-    <view class="bm-btns">
-      <view class="bm-btn {{S.mode==='boundary' ? 'active' : ''}}" bindtap="setBoundary">边界条件</view>
-      <view class="bm-btn {{S.mode==='mode' ? 'active' : ''}}" bindtap="setMode">模式筛选</view>
-      <view class="bm-btn {{S.mode==='green' ? 'active' : ''}}" bindtap="setGreen">格林函数</view>
-      <view class="bm-btn {{S.mode==='symmetry' ? 'active' : ''}}" bindtap="setSymmetry">对称性约束</view>
+    <view class="tp-btns">
+      <view class="tp-btn {{S.mode==='boundary' ? 'active' : ''}}" data-m="boundary" bindtap="setMode">边界条件</view>
+      <view class="tp-btn {{S.mode==='mode' ? 'active' : ''}}" data-m="mode" bindtap="setMode">模式筛选</view>
+      <view class="tp-btn {{S.mode==='green' ? 'active' : ''}}" data-m="green" bindtap="setMode">格林函数</view>
+      <view class="tp-btn {{S.mode==='symmetry' ? 'active' : ''}}" data-m="symmetry" bindtap="setMode">对称性约束</view>
     </view>
   </view>
 
-  <!-- 参数 -->
-  <view class="bm-section rise">
+  <!-- 参数（按模式条件渲染：无效滑杆不显示） -->
+  <view class="tp-section rise">
     <view class="kicker">参数</view>
-    <view class="bm-slider-row">
-      <text class="bm-slider-label">模式 m</text>
-      <slider class="bm-slider" min="1" max="5" step="1" value="{{S.m}}"
-        bindchange="onM" show-value />
+    <view wx:if="{{S.mode==='boundary'}}" class="tp-note-text">本模式无可调参数——边界本身就是"参数"：它决定了哪些场被允许存在。</view>
+    <block wx:if="{{S.mode==='mode' || S.mode==='symmetry'}}">
+      <view class="tp-slider-row">
+        <text class="tp-slider-label">模式阶数 m</text>
+        <slider class="tp-slider" min="1" max="5" step="1" value="{{S.m}}"
+          bindchanging="onM" bindchange="onM" />
+        <text class="tp-slider-val">m = {{S.m}}</text>
+      </view>
+      <view class="tp-slider-row">
+        <text class="tp-slider-label">模式阶数 n</text>
+        <slider class="tp-slider" min="1" max="5" step="1" value="{{S.n}}"
+          bindchanging="onN" bindchange="onN" />
+        <text class="tp-slider-val">n = {{S.n}}</text>
+      </view>
+    </block>
+    <view wx:if="{{S.mode==='green'}}" class="tp-slider-row">
+      <text class="tp-slider-label">点源位置 x₀</text>
+      <slider class="tp-slider" min="10" max="90" step="1" value="{{S.source}}"
+        bindchanging="onSource" bindchange="onSource" />
+      <text class="tp-slider-val">{{S.source / 100}} a</text>
     </view>
-    <view class="bm-slider-row">
-      <text class="bm-slider-label">模式 n</text>
-      <slider class="bm-slider" min="1" max="5" step="1" value="{{S.n}}"
-        bindchange="onN" show-value />
+  </view>
+
+  <!-- 读数 -->
+  <view class="tp-section pop" wx:if="{{stats.length}}">
+    <view class="kicker">读数</view>
+    <view class="tp-stats-grid">
+      <view class="tp-stat tp-stat-wide" wx:for="{{stats}}" wx:key="label">
+        <view class="tp-stat-label">{{item.label}}</view>
+        <view class="tp-stat-value {{item.cls}}">{{item.value}}</view>
+      </view>
     </view>
-    <view class="bm-slider-row">
-      <text class="bm-slider-label">点源位置</text>
-      <slider class="bm-slider" min="10" max="90" step="1" value="{{S.source}}"
-        bindchange="onSource" show-value />
-    </view>
+  </view>
+
+  <!-- 公式注脚（随模式切换） -->
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">所用公式</view>
+    <view class="tp-formula-line" wx:for="{{formula.lines}}" wx:key="*this">{{item}}</view>
+    <view class="tp-formula-cond">{{formula.cond}}</view>
   </view>
 
   <!-- 说明 -->
-  <view class="bm-note rise">
+  <view class="tp-note rise">
     <view class="kicker">核心概念</view>
-    <view class="bm-note-text">{{noteText}}</view>
+    <view class="tp-note-text">{{noteText}}</view>
   </view>
 
 </view>

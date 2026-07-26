@@ -1,18 +1,36 @@
 // pages/interactive/polarization-reciprocity-lab/polarization-reciprocity-lab.js —— 极化与互易实验室
-// 3种模式：极化椭圆 / 接收投影 / 收发互易
-// 电场端点：{x: cos(t), y: ratio·cos(t+δ)}
+// 三种模式：极化椭圆 / 接收投影（时间平均 PLF）/ 收发互易（S21=S12 数值验证）
+// 物理模型（真实公式，见 utils/rf-math.js；Balanis《Antenna Theory》4th §4.4、§2.12.2）：
+//   瞬时场：Ex = E₁cos(ωt)，Ey = E₂cos(ωt+δ)，r = E₂/E₁
+//   椭圆长短轴/倾角/轴比：rf.polarizationEllipse（sin2ε = 2r·sinδ/(1+r²)，AR = cotε）
+//   旋向：波沿 +z（出屏）传播，sinδ>0 → 左旋 LH，sinδ<0 → 右旋 RH（IEEE 约定）
+//   时间平均 PLF = ⟨(E·û)²⟩/⟨|E|²⟩ = (cos²ψ + r²sin²ψ + r·sin2ψ·cosδ)/(1+r²)
+//   互易（线极化对）：C = cos²(ψA−ψB)，双向独立计算数值相等 → S21 = S12
 
 const haptic = require('../../../utils/haptic')
+const rf = require('../../../utils/rf-math')
+const lc = require('../../../utils/lab-canvas')
+const { THEME } = require('../../../utils/lab-theme')
 
 const MODE_INFO = {
-  ellipse: { label: '电场端点轨迹：幅度比 + 相位差', note: '线、圆、椭圆极化都来自两个正交分量的幅度和相位差。' },
-  match: { label: '接收投影：极化失配就是矢量投影损耗', note: '接收损耗可以先看成电场矢量投影问题。投影到接收天线方向才有功率。' },
-  reciprocity: { label: '互易：同一极化基下收发角色可以交换', note: '互易性让收发模型可交换，但不代表任何极化都能互相接收。' },
+  ellipse: {
+    label: '电场端点轨迹：幅度比 r 与相位差 δ 决定极化态',
+    note: '线、圆、椭圆极化都来自两个正交分量的幅度比和相位差：δ=0/±180° 时无论 r 多大都是线极化；r=1 且 δ=±90° 才是圆极化；其余为椭圆极化。椭圆率角 ε 把三者放到同一把尺上：sin2ε = 2r·sinδ/(1+r²)，AR = cotε。',
+  },
+  match: {
+    label: '接收投影：有意义的读数是时间平均 PLF',
+    note: '线极化接收天线只"收下"电场在其取向 û 上的分量。瞬时投影随 ωt 摆动（画面上的青绿线段），有物理意义的是时间平均功率比 PLF = ⟨(E·û)²⟩/⟨|E|²⟩：线极化对线极化失配角 ψ 给出 cos²ψ；圆极化波被线极化天线接收恒为 1/2（−3 dB）。',
+  },
+  reciprocity: {
+    label: '互易：A→B 与 B→A 耦合严格相等（S21 = S12）',
+    note: '把两副线极化天线转到任意取向 ψA、ψB，正反两个方向的极化耦合都是 cos²(ψA−ψB)，数值完全相同——这是洛伦兹互易定理的体现：线性、各向同性介质中 S21 = S12，同一副天线的发射方向图与接收方向图也因此相同。',
+  },
 }
 
 Page({
   data: {
-    S: { mode: 'ellipse', ratio: 75, phase: 90, angle: 25 },
+    S: { mode: 'ellipse', ratio: 75, phase: 90, angle: 25, angleB: -20 },
+    ratioTxt: '0.75',
     modeLabel: MODE_INFO.ellipse.label,
     noteText: MODE_INFO.ellipse.note,
     stats: null,
@@ -20,155 +38,226 @@ Page({
 
   _t: 0,
   _timer: null,
+  _cv: null,
 
-  onLoad() { this.updateStats(); this.draw() },
-  onReady() { this.updateStats(); this.draw() },
-  onShow() { this._startAnim() },
+  onLoad() { this.updateStats() },
+  onReady() { this.updateStats() },
+  onShow() { this._cv = null; this._startAnim() },
   onHide() { this._stopAnim() },
   onUnload() { this._stopAnim() },
 
   _startAnim() {
     if (this._timer) return
-    this._timer = setInterval(() => {
-      this._t += 0.08
-      this.draw()
-    }, 50)
+    this._timer = setInterval(() => { this._t += 0.06; this.draw() }, 50)
   },
   _stopAnim() { if (this._timer) { clearInterval(this._timer); this._timer = null } },
 
   // ═══ 事件 ═══
-  onRatio(e) { this.setData({ 'S.ratio': e.detail.value }, () => { this.updateStats(); this.draw() }) },
-  onPhase(e) { this.setData({ 'S.phase': e.detail.value }, () => { this.updateStats(); this.draw() }) },
-  onAngle(e) { this.setData({ 'S.angle': e.detail.value }, () => { this.updateStats(); this.draw() }) },
-  setEllipse() { haptic.light(); this._setMode('ellipse') },
-  setMatch() { haptic.light(); this._setMode('match') },
-  setReciprocity() { haptic.light(); this._setMode('reciprocity') },
-  _setMode(m) {
-    this.setData({ 'S.mode': m, modeLabel: MODE_INFO[m].label, noteText: MODE_INFO[m].note }, () => this.draw())
+  onRatio(e) { this.setData({ 'S.ratio': e.detail.value }, () => this.updateStats()) },
+  onPhase(e) { this.setData({ 'S.phase': e.detail.value }, () => this.updateStats()) },
+  onAngle(e) { this.setData({ 'S.angle': e.detail.value }, () => this.updateStats()) },
+  onAngleB(e) { this.setData({ 'S.angleB': e.detail.value }, () => this.updateStats()) },
+  setMode(e) {
+    haptic.light()
+    const m = e.currentTarget.dataset.m
+    if (!MODE_INFO[m]) return
+    this.setData({
+      'S.mode': m, modeLabel: MODE_INFO[m].label, noteText: MODE_INFO[m].note,
+    }, () => this.updateStats())
   },
 
-  // ═══ 物理 ═══
+  // ═══ 物理（无魔法系数）═══
   vals() {
     const S = this.data.S
     return {
       ratio: S.ratio / 100,
       delta: S.phase * Math.PI / 180,
-      deltaDeg: S.phase,
-      angle: S.angle * Math.PI / 180,
-      angleDeg: S.angle,
+      psi: S.angle * Math.PI / 180,
+      psiB: S.angleB * Math.PI / 180,
+      deltaDeg: S.phase, psiDeg: S.angle, psiBDeg: S.angleB,
     }
   },
 
-  fieldPoint(v, t, scale) {
+  _phys(v) {
+    // 椭圆参数（Balanis §4.4）：长短轴、倾角 tan2τ = 2r·cosδ/(1−r²)、轴比
+    const pe = rf.polarizationEllipse(1, v.ratio, v.delta)
+    const epsDeg = Math.atan2(pe.minor, pe.major) * 180 / Math.PI // 椭圆率角 |ε| ∈ [0°,45°]
+    let type = '椭圆极化'
+    if (epsDeg < 3) type = '线极化'          // 判别阈值见公式注脚
+    else if (epsDeg > 42) type = '圆极化'
+    const lh = Math.sin(v.delta) > 0          // +z 出屏：sinδ>0 → LH（IEEE）
+    const hand = type === '线极化' ? '—' : (lh ? '左旋 LH' : '右旋 RH')
+    // 时间平均 PLF（线极化接收天线，取向 ψ）
+    const r = v.ratio
+    const cp = Math.cos(v.psi), sp = Math.sin(v.psi)
+    const plf = (cp * cp + r * r * sp * sp + r * Math.sin(2 * v.psi) * Math.cos(v.delta)) / (1 + r * r)
+    // 互易：双向耦合各自独立计算（数值必然相等 → S21=S12）
+    const dAB = (v.psiDeg - v.psiBDeg) * Math.PI / 180
+    const cAB = Math.pow(Math.cos(dAB), 2)
+    const cBA = Math.pow(Math.cos(-dAB), 2)
+    const dpsiDeg = Math.abs(v.psiDeg - v.psiBDeg)
+    const dpsiFold = dpsiDeg > 90 ? 180 - dpsiDeg : dpsiDeg
     return {
-      x: scale * Math.cos(t),
-      y: scale * v.ratio * Math.cos(t + v.delta),
+      pe, epsDeg, type, hand, lh,
+      tauDeg: pe.tilt * 180 / Math.PI,
+      arDb: pe.arDb,
+      plf: Math.min(1, Math.max(0, plf)),
+      dpsiDeg, dpsiFold, cAB, cBA,
     }
   },
+
+  _db(x) { return x > 1e-4 ? (10 * Math.log10(x)).toFixed(1) + ' dB' : '≤ −40 dB' },
 
   updateStats() {
     const v = this.vals()
-    // 极化类型判断
-    let type
-    const circularity = Math.abs(v.ratio - 1) + Math.abs(Math.abs(v.deltaDeg) - 90) / 90
-    if (v.ratio < 0.05 || v.ratio > 20) type = '线极化'
-    else if (circularity < 0.25) type = '圆极化'
-    else type = '椭圆极化'
-
-    // 投影比例
-    const p = this.fieldPoint(v, this._t, 100)
-    const ux = Math.cos(v.angle), uy = Math.sin(v.angle)
-    const proj = Math.abs(p.x * ux + p.y * uy) / Math.max(1, Math.hypot(p.x, p.y))
-
-    this.setData({ stats: { type, proj: proj.toFixed(2) } })
-  },
-
-  // ═══ Canvas ═══
-  _queryCanvas(callback) {
-    const q = wx.createSelectorQuery().in(this)
-    q.select('#mainCanvas').fields({ node: true, size: true }).exec((res) => {
-      if (res && res[0] && res[0].node) {
-        const canvas = res[0].node
-        const ctx = canvas.getContext('2d')
-        const dpr = wx.getWindowInfo().pixelRatio
-        const w = res[0].width
-        const h = res[0].height
-        canvas.width = Math.max(1, Math.floor(w * dpr))
-        canvas.height = Math.max(1, Math.floor(h * dpr))
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-        callback(ctx, w, h)
-      }
+    const d = this._phys(v)
+    this.setData({
+      ratioTxt: v.ratio.toFixed(2),
+      stats: {
+        type: d.type,
+        hand: d.hand,
+        ar: isFinite(d.arDb) ? d.arDb.toFixed(1) + ' dB' : '∞',
+        tau: d.type === '圆极化' ? '—' : d.tauDeg.toFixed(1) + '°',
+        plf: d.plf.toFixed(3) + '（' + this._db(d.plf) + '）',
+        dpsi: d.dpsiDeg.toFixed(0) + '°',
+        cAB: this._db(d.cAB),
+        cBA: this._db(d.cBA),
+      },
     })
+    this.draw()
   },
 
-  _arrow(ctx, x1, y1, x2, y2, color, width) {
-    const a = Math.atan2(y2 - y1, x2 - x1)
-    ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = width || 2
-    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke()
-    ctx.beginPath()
-    ctx.moveTo(x2, y2)
-    ctx.lineTo(x2 - 10 * Math.cos(a - 0.45), y2 - 10 * Math.sin(a - 0.45))
-    ctx.lineTo(x2 - 10 * Math.cos(a + 0.45), y2 - 10 * Math.sin(a + 0.45))
-    ctx.closePath(); ctx.fill()
-  },
-
+  // ═══ 绘制 ═══
   draw() {
-    this._queryCanvas((ctx, w, h) => {
-      const S = this.data.S
-      const v = this.vals()
-      ctx.fillStyle = '#090d16'; ctx.fillRect(0, 0, w, h)
-
-      const cx = w / 2, cy = h / 2, sc = Math.min(w, h) * 0.3
-
-      if (S.mode === 'ellipse' || S.mode === 'match') {
-        // 坐标轴
-        this._arrow(ctx, cx - sc - 30, cy, cx + sc + 30, cy, '#253044', 1)
-        this._arrow(ctx, cx, cy + sc + 30, cx, cy - sc - 30, '#253044', 1)
-
-        // 极化椭圆
-        ctx.beginPath()
-        for (let i = 0; i <= 360; i++) {
-          const p = this.fieldPoint(v, i * Math.PI * 2 / 360, sc)
-          const x = cx + p.x, y = cy - p.y
-          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y)
-        }
-        ctx.strokeStyle = '#65e4b1'; ctx.lineWidth = 3; ctx.stroke()
-
-        // 当前电场矢量
-        const p = this.fieldPoint(v, this._t, sc)
-        this._arrow(ctx, cx, cy, cx + p.x, cy - p.y, '#ffd166', 4)
-
-        ctx.fillStyle = '#7ca0ff'; ctx.font = '12px sans-serif'; ctx.textAlign = 'left'
-        ctx.fillText('Ex', cx + sc + 10, cy + 4)
-        ctx.fillText('Ey', cx + 4, cy - sc - 10)
-
-        if (S.mode === 'match') {
-          // 接收天线方向线
-          const ux = Math.cos(v.angle), uy = Math.sin(v.angle)
-          this._arrow(ctx, cx - ux * (sc + 20), cy + uy * (sc + 20), cx + ux * (sc + 20), cy - uy * (sc + 20), '#7ca0ff', 3)
-          // 投影
-          const proj = p.x * ux + p.y * uy
-          this._arrow(ctx, cx, cy, cx + ux * proj, cy - uy * proj, '#65e4b1', 5)
-        }
-      } else if (S.mode === 'reciprocity') {
-        const a = { x: cx - 80, y: cy }, b = { x: cx + 80, y: cy }
-        // 天线框
-        ctx.fillStyle = 'rgba(13,20,34,0.96)'; ctx.strokeStyle = '#253044'; ctx.lineWidth = 1
-        ctx.fillRect(a.x - 35, a.y - 55, 70, 110); ctx.strokeRect(a.x - 35, a.y - 55, 70, 110)
-        ctx.fillRect(b.x - 35, b.y - 55, 70, 110); ctx.strokeRect(b.x - 35, b.y - 55, 70, 110)
-
-        const ux = Math.cos(v.angle), uy = Math.sin(v.angle)
-        this._arrow(ctx, a.x - ux * 36, a.y + uy * 36, a.x + ux * 36, a.y - uy * 36, '#7ca0ff', 4)
-        this._arrow(ctx, b.x - ux * 36, b.y + uy * 36, b.x + ux * 36, b.y - uy * 36, '#65e4b1', 4)
-        this._arrow(ctx, a.x + 44, a.y - 20, b.x - 44, b.y - 20, '#ffd166', 3)
-        this._arrow(ctx, b.x - 44, b.y + 20, a.x + 44, a.y + 20, '#ffd166', 3)
-
-        ctx.fillStyle = '#7ca0ff'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center'
-        ctx.fillText('发射', a.x, a.y + 78)
-        ctx.fillStyle = '#65e4b1'
-        ctx.fillText('接收', b.x, b.y + 78)
-      }
+    if (this._cv) { this._render(this._cv.ctx, this._cv.w, this._cv.h); return }
+    lc.mount(this, '#mainCanvas', (ctx, w, h) => {
+      this._cv = { ctx, w, h }
+      this._render(ctx, w, h)
     })
+  },
+
+  _render(ctx, w, h) {
+    lc.clear(ctx, w, h)
+    const v = this.vals()
+    const d = this._phys(v)
+    if (this.data.S.mode === 'reciprocity') this._drawRecip(ctx, w, h, v, d)
+    else this._drawEllipse(ctx, w, h, v, d, this.data.S.mode === 'match')
+  },
+
+  // ── 模式 1/2：极化椭圆（等比坐标，含旋向与瞬时投影）──
+  _drawEllipse(ctx, w, h, v, d, showMatch) {
+    const L = Math.min(w - 116, h - 58)          // 等比方形绘图区：圆极化必须画成圆
+    const box = { x: (w - L) / 2, y: 10, w: L, h: L }
+    const p = lc.plot(ctx, box, [-1.8, 1.8], [-1.8, 1.8])
+    p.axes({
+      xTicks: [-1, 0, 1], yTicks: [-1, 0, 1],
+      xLabel: 'Ex/E₁（归一化）', yLabel: 'Ey/E₁',
+    })
+    p.guideX(0); p.guideY(0)
+
+    const pt = (t) => ({ x: Math.cos(t), y: v.ratio * Math.cos(t + v.delta) })
+
+    // 长轴方向（倾角 τ，圆极化无定义）
+    if (d.type !== '圆极化') {
+      const mx = d.pe.major * Math.cos(d.pe.tilt), my = d.pe.major * Math.sin(d.pe.tilt)
+      ctx.save(); ctx.setLineDash([4, 4]); ctx.lineWidth = 1; ctx.strokeStyle = THEME.gridStrong
+      ctx.beginPath(); ctx.moveTo(p.X(-mx), p.Y(-my)); ctx.lineTo(p.X(mx), p.Y(my)); ctx.stroke()
+      ctx.restore()
+      lc.label(ctx, 'τ=' + d.tauDeg.toFixed(0) + '°', p.X(mx) + 4, p.Y(my) - 4, {
+        color: THEME.muted, font: THEME.fontTick,
+      })
+    }
+
+    // 端点轨迹（极化椭圆）
+    const xs = [], ys = []
+    for (let i = 0; i <= 180; i++) {
+      const q = pt(Math.PI * 2 * i / 180); xs.push(q.x); ys.push(q.y)
+    }
+    p.line(xs, ys, THEME.accent, 2)
+
+    // 旋向：沿时间方向的小箭头 + 文字标注
+    if (d.type !== '线极化') {
+      ;[0.8, 0.8 + Math.PI].forEach((t0) => {
+        const a = pt(t0), b = pt(t0 + 0.26)
+        lc.arrow(ctx, p.X(a.x), p.Y(a.y), p.X(b.x), p.Y(b.y), THEME.accent, 2)
+      })
+      lc.label(ctx, d.hand + (d.lh ? '（屏上顺时针）' : '（屏上逆时针）'),
+        box.x + 2, box.y + 12, { color: THEME.inkSoft, font: THEME.fontLabel })
+    }
+    lc.label(ctx, 'AR=' + (isFinite(d.arDb) ? d.arDb.toFixed(1) + ' dB' : '∞'),
+      box.x + box.w, box.y + 12, { align: 'right', color: THEME.ink, font: THEME.fontTitle })
+
+    // 瞬时电场矢量 E(t)（动画）
+    const q = pt(this._t)
+    lc.arrow(ctx, p.X(0), p.Y(0), p.X(q.x), p.Y(q.y), THEME.gold, 2.5)
+
+    const items = [{ name: '轨迹', color: THEME.accent }, { name: 'E(t)', color: THEME.gold }]
+    if (showMatch) {
+      // 接收天线取向 û
+      const ux = Math.cos(v.psi), uy = Math.sin(v.psi)
+      lc.arrow(ctx, p.X(-1.7 * ux), p.Y(-1.7 * uy), p.X(1.7 * ux), p.Y(1.7 * uy), THEME.indigo, 2)
+      lc.label(ctx, 'ψ=' + v.psiDeg + '°', p.X(1.45 * ux) + 6, p.Y(1.45 * uy) - 6, {
+        color: THEME.indigo, font: THEME.fontLabel,
+      })
+      // 瞬时投影（青绿，与赤陶轨迹区分）——仅作动画演示
+      const s = q.x * ux + q.y * uy
+      ctx.strokeStyle = THEME.teal; ctx.lineWidth = 4; ctx.lineCap = 'round'
+      ctx.beginPath(); ctx.moveTo(p.X(0), p.Y(0)); ctx.lineTo(p.X(s * ux), p.Y(s * uy)); ctx.stroke()
+      lc.dot(ctx, p.X(s * ux), p.Y(s * uy), THEME.teal, 3.5)
+      // 数字读数用时间平均 PLF
+      lc.label(ctx, 'PLF=' + d.plf.toFixed(2) + '（时间平均）', box.x + box.w, box.y + 27, {
+        align: 'right', color: THEME.teal, font: THEME.fontLabel,
+      })
+      items.push({ name: 'û 方向', color: THEME.indigo }, { name: '瞬时投影', color: THEME.teal })
+    }
+    lc.legend(ctx, items, 14, h - 10)
+  },
+
+  // ── 模式 3：收发互易（独立取向 + 双向耦合数值验证 + cos²Δψ 曲线）──
+  _drawRecip(ctx, w, h, v, d) {
+    const ay = h * 0.19
+    const Ax = w * 0.24, Bx = w * 0.76
+    // 双向链路箭头（金色）+ 各自独立计算的耦合读数
+    lc.arrow(ctx, Ax + 42, ay - 9, Bx - 42, ay - 9, THEME.gold, 1.5)
+    lc.arrow(ctx, Bx - 42, ay + 9, Ax + 42, ay + 9, THEME.gold, 1.5)
+    const mid = (Ax + Bx) / 2
+    lc.label(ctx, 'A→B  ' + this._db(d.cAB), mid, ay - 15, {
+      align: 'center', color: THEME.ink, font: THEME.fontLabel,
+    })
+    lc.label(ctx, 'B→A  ' + this._db(d.cBA), mid, ay + 24, {
+      align: 'center', color: THEME.ink, font: THEME.fontLabel,
+    })
+    // 两副线极化天线，取向角独立可调
+    const ant = (cx, psi, color, name) => {
+      const dx = 26 * Math.cos(psi), dy = 26 * Math.sin(psi)
+      ctx.strokeStyle = color; ctx.lineWidth = 3.5; ctx.lineCap = 'round'
+      ctx.beginPath(); ctx.moveTo(cx - dx, ay + dy); ctx.lineTo(cx + dx, ay - dy); ctx.stroke()
+      lc.dot(ctx, cx, ay, color, 3)
+      lc.label(ctx, name, cx, ay + 40, { align: 'center', color, font: THEME.fontLabel })
+    }
+    ant(Ax, v.psi, THEME.indigo, 'A · ψA=' + v.psiDeg + '°')
+    ant(Bx, v.psiB, THEME.teal, 'B · ψB=' + v.psiBDeg + '°')
+    lc.label(ctx, '双向数值相等 → S21 = S12（洛伦兹互易）', w / 2, ay + 58, {
+      align: 'center', color: THEME.muted, font: THEME.fontNote,
+    })
+
+    // 耦合曲线 C(Δψ) = cos²Δψ（随两个取向角实时变化）
+    const box = { x: 56, y: h * 0.50, w: w - 76, h: h * 0.32 }
+    const p = lc.plot(ctx, box, [0, 90], [0, 1])
+    p.axes({
+      xTicks: [0, 30, 60, 90], yTicks: [0, 0.5, 1],
+      xLabel: 'Δψ（°）', yLabel: '极化耦合 C（线性）',
+    })
+    const xs = [], ys = []
+    for (let i = 0; i <= 90; i++) { xs.push(i); ys.push(Math.pow(Math.cos(i * Math.PI / 180), 2)) }
+    p.line(xs, ys, THEME.teal, 2)
+    p.guideX(d.dpsiFold)
+    p.dot(d.dpsiFold, d.cAB, THEME.teal)
+    lc.label(ctx, 'C = cos²Δψ', p.X(14), p.Y(Math.pow(Math.cos(14 * Math.PI / 180), 2)) - 8, {
+      color: THEME.teal, font: THEME.fontLabel,
+    })
+    lc.label(ctx, 'Δψ=' + d.dpsiFold.toFixed(0) + '° → C=' + d.cAB.toFixed(3),
+      box.x + box.w, box.y - 6, { align: 'right', color: THEME.ink, font: THEME.fontTitle })
   },
 
   onShareAppMessage() {
