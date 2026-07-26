@@ -32,6 +32,7 @@ Page({
   plotW: 0,
   plotH: 0,
   dpr: 1,
+  _vecPool: null,  // 对象池：13 个矢量箭头（线段+端点球）
 
   onReady() {
     this.initThree();
@@ -169,23 +170,32 @@ Page({
   updateVectors() {
     const THREE = this.THREE;
     if (!THREE) return;
-    this.clearGroup(this.vecGroup);
 
-    const matE = new THREE.LineBasicMaterial({ color: 0xf0e6d6, transparent: true, opacity: 0.7 });
-    const dotMat = new THREE.MeshBasicMaterial({ color: 0xf0e6d6 });
+    // 对象池：首次创建 13 组（线段 + 端点球），之后只更新位置
+    if (!this._vecPool) {
+      this._vecPool = [];
+      const matE = new THREE.LineBasicMaterial({ color: 0xf0e6d6, transparent: true, opacity: 0.7 });
+      const dotMat = new THREE.MeshBasicMaterial({ color: 0xf0e6d6 });
+      for (let k = 0; k < 13; k++) {
+        const lineGeo = new THREE.BufferGeometry();
+        lineGeo.addAttribute('position', new THREE.Float32BufferAttribute([0,0,0, 0,0,0], 3));
+        const line = new THREE.Line(lineGeo, matE.clone());
+        const dot = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 8), dotMat.clone());
+        this.vecGroup.add(line, dot);
+        this._vecPool.push({ line, dot });
+      }
+    }
 
     for (let k = 0; k < 13; k++) {
       const z = -1.5 + k * 0.25;
       const e = this.E(z);
-      const o = new THREE.Vector3(0, 0, z);
-      const tip = new THREE.Vector3(e.x * 0.42, e.y * 0.42, z);
-
-      this.addLine([o, tip], matE, this.vecGroup);
-
-      // 端点球
-      const dot = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 8), dotMat);
-      dot.position.copy(tip);
-      this.vecGroup.add(dot);
+      const tipX = e.x * 0.42, tipY = e.y * 0.42;
+      const { line, dot } = this._vecPool[k];
+      const posAttr = line.geometry.attributes.position;
+      posAttr.setXYZ(0, 0, 0, z);
+      posAttr.setXYZ(1, tipX, tipY, z);
+      posAttr.needsUpdate = true;
+      dot.position.set(tipX, tipY, z);
     }
   },
 
@@ -334,7 +344,7 @@ Page({
       const r = res[0];
       const canvas = r.node;
       const ctx = canvas.getContext('2d');
-      const dpr = wx.getSystemInfoSync().pixelRatio || 2;
+      const dpr = wx.getWindowInfo().pixelRatio || 2;
       canvas.width = r.width * dpr;
       canvas.height = r.height * dpr;
       ctx.scale(dpr, dpr);

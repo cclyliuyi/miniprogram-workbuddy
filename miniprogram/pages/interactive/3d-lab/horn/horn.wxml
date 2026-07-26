@@ -1,34 +1,40 @@
 <!-- pages/interactive/3d-lab/horn/horn.wxml —— 喇叭天线 3D -->
 <view class="screen lab3d">
 
-  <view class="lab3d-head rise">
-    <view class="kicker">3D HORN APERTURE · PHASE ERROR MAP</view>
-    <view class="lab3d-title display">喇叭天线</view>
-    <view class="lab3d-sub">口径尺寸 · 张角 · 相位误差 · E/H 面方向图</view>
-  </view>
-
-  <view class="lab3d-canvas-wrap rise">
-    <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
+  <!-- 3D 画布占满上半屏 -->
+  <view class="lab3d-canvas-wrap lab3d-canvas-full rise">
+    <canvas type="webgl" id="three-canvas" class="lab3d-canvas lab3d-canvas-tall"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
     <view wx:if="{{!glReady}}" class="lab3d-skel">
       <view class="lab3d-skel-ring"></view>
       <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
     </view>
     <view class="lab3d-hint {{showHint ? '' : 'fade'}}">单指旋转 · 双指缩放 · 双击复位</view>
+    <!-- 读数浮层（右上角） -->
+    <view class="lab3d-stats-float">
+      <view class="lab3d-stat-float"><text class="lab3d-sf-val num">{{gain}}</text><text class="lab3d-sf-name">增益</text></view>
+      <view class="lab3d-stat-float"><text class="lab3d-sf-val num">{{hpbw}}</text><text class="lab3d-sf-name">HPBW</text></view>
+      <view class="lab3d-stat-float"><text class="lab3d-sf-val num">{{phase}}</text><text class="lab3d-sf-name">相位误差</text></view>
+    </view>
   </view>
 
-  <view class="lab3d-section rise">
-    <view class="kicker">几何尺寸</view>
-    <view class="lab3d-row"><text class="lab3d-label">口径 A/λ</text><text class="lab3d-val">{{aVal}}</text></view>
-    <slider min="20" max="160" step="2" value="{{aSlider}}" bindchanging="onAChanging" bindchange="onA" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-row"><text class="lab3d-label">轴向长度 R/λ</text><text class="lab3d-val">{{lVal}}</text></view>
-    <slider min="20" max="240" step="2" value="{{lSlider}}" bindchanging="onRChanging" bindchange="onR" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-row"><text class="lab3d-label">照明边缘电平</text><text class="lab3d-val">{{tapVal}}</text></view>
-    <slider min="0" max="24" step="1" value="{{tapSlider}}" bindchanging="onTapChanging" bindchange="onTap" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+  <!-- 参数控制区（底部浮层抽屉） -->
+  <view class="lab3d-drawer">
+    <view class="lab3d-drawer-handle"></view>
+    <view class="lab3d-section lab3d-section-flat">
+      <view class="kicker">几何尺寸</view>
+      <view class="lab3d-row"><text class="lab3d-label">口径 A/λ</text><text class="lab3d-val">{{aVal}}</text></view>
+      <slider min="20" max="160" step="2" value="{{aSlider}}" bindchanging="onAChanging" bindchange="onA" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+      <view class="lab3d-row"><text class="lab3d-label">轴向长度 R/λ</text><text class="lab3d-val">{{lVal}}</text></view>
+      <slider min="20" max="240" step="2" value="{{lSlider}}" bindchanging="onRChanging" bindchange="onR" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+      <view class="lab3d-row"><text class="lab3d-label">照明边缘电平</text><text class="lab3d-val">{{tapVal}}</text></view>
+      <slider min="0" max="24" step="1" value="{{tapSlider}}" bindchanging="onTapChanging" bindchange="onTap" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+    </view>
   </view>
 
+  <!-- 下方详细内容（滚动可见） -->
   <view class="lab3d-stats pop">
-    <view class="kicker lab3d-stats-title">读数</view>
+    <view class="kicker lab3d-stats-title">详细读数</view>
     <view class="lab3d-stats-grid">
       <view class="lab3d-stat"><view class="lab3d-stat-value num">{{phase}}</view><view class="lab3d-stat-name">边缘相位误差</view></view>
       <view class="lab3d-stat"><view class="lab3d-stat-value num">{{gain}}</view><view class="lab3d-stat-name">估计增益</view></view>

@@ -36,6 +36,7 @@ Page({
   plotW: 0,
   plotH: 0,
   dpr: 1,
+  _chargePool: null,  // 对象池：预创建 18 个球体，每帧只更新位置
 
   onReady() {
     this.initThree();
@@ -114,13 +115,34 @@ Page({
 
   clearGroup(g) { stage.clearGroup(g); },
 
+  // 创建文字标注 Sprite
+  makeLabel(text, x, y, z, scale) {
+    const THREE = this.THREE;
+    const canvas = wx.createOffscreenCanvas({ type: '2d', width: 256, height: 64 });
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'rgba(0,0,0,0)';
+    ctx.fillRect(0, 0, 256, 64);
+    ctx.font = 'bold 28px sans-serif';
+    ctx.fillStyle = 'rgba(246,217,168,0.92)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 128, 32);
+    const tex = new THREE.CanvasTexture(canvas);
+    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
+    const sprite = new THREE.Sprite(mat);
+    sprite.position.set(x, y, z);
+    sprite.scale.set((scale || 0.4) * 4, (scale || 0.4), 1);
+    return sprite;
+  },
+
   layout() {
     const THREE = this.THREE;
     const S = this.state;
 
     this.clearGroup(this.fieldGroup);
     this.clearGroup(this.patGroup);
-    this.clearGroup(this.chargeGroup);
+    this.clearGroup(this.chargeGroup);  // 清除旧池 mesh
+    this._chargePool = null;  // 重置池引用，下次 updateCharges 会重建
 
     if (this.loopMesh) {
       this.root.remove(this.loopMesh);
@@ -129,45 +151,59 @@ Page({
 
     const R = 0.48 + S.a * 1.5;
 
-    // 环（降 metalness 补偿无 envMap + 微暖自发光）
+    // 环（Phong 材质：高光反射代替 envMap）
     this.loopMesh = new THREE.Mesh(
-      new THREE.TorusGeometry(R, 0.018, 14, 96),
-      new THREE.MeshStandardMaterial({
-        color: 0xffc45f, metalness: 0.45, roughness: 0.30,
-        emissive: 0x241606, emissiveIntensity: 0.35,
+      new THREE.TorusGeometry(R, 0.022, 16, 96),
+      new THREE.MeshPhongMaterial({
+        color: 0xffc45f, specular: 0xf6d9a8, shininess: 48,
+        emissive: 0x241606, emissiveIntensity: 0.3,
       })
     );
     this.root.add(this.loopMesh);
 
-    // 近区磁场闭合线
-    const fieldMat = new THREE.LineBasicMaterial({ color: 0x6c88e8, transparent: true, opacity: 0.48 });
-    for (let k = 0; k < 8; k++) {
-      const z = (-0.55 + k * 0.16);
+    // 近区磁场闭合线（偶极子形态：从环内穿出、外部回绕）
+    for (let k = 0; k < 10; k++) {
+      const phi = k / 10 * Math.PI * 2;
+      const spread = 0.28 + 0.12 * Math.sin(k * 1.3);
       const pts = [];
-      for (let i = 0; i <= 96; i++) {
-        const a = i / 96 * Math.PI * 2;
+      for (let i = 0; i <= 64; i++) {
+        const t = i / 64 * Math.PI * 2;
+        // 偶极子磁力线参数方程（在环平面内）
+        const rr = R * 0.55 * (1 + 0.6 * Math.cos(t));
+        const localX = rr * Math.cos(t) * spread;
+        const localZ = rr * Math.sin(t) * 0.7;
         pts.push(new THREE.Vector3(
-          Math.cos(a) * (R * 0.7 + 0.18 * Math.cos(z * 5)),
-          Math.sin(a) * (R * 0.7 + 0.18 * Math.cos(z * 5)),
-          z * 0.55
+          Math.cos(phi) * localX,
+          Math.sin(phi) * localX,
+          localZ
         ));
       }
-      this.fieldGroup.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts), fieldMat));
+      const opacity = 0.32 + 0.18 * Math.abs(Math.cos(phi));
+      const fieldMat = new THREE.LineBasicMaterial({
+        color: 0x6c88e8, transparent: true, opacity: opacity
+      });
+      this.fieldGroup.add(new THREE.LineLoop(
+        new THREE.BufferGeometry().setFromPoints(pts), fieldMat));
     }
 
-    // sin²θ 功率方向图 (甜甜圈)
-    const pos = [], idx = [];
-    const nt = 40, np = 80;
+    // sin²θ 功率方向图 (甜甜圈)——渐变色 + 描边
+    const pos = [], col = [], idx = [];
+    const nt = 48, np = 96;
     for (let i = 0; i <= nt; i++) {
       const th = i / nt * Math.PI;
-      const rr = 0.86 * Math.sin(th) * Math.sin(th);
+      const sinTh = Math.sin(th);
+      const rr = 0.86 * sinTh * sinTh;
+      // 渐变色：轴向(θ=0,π)深蓝 → 环面(θ=π/2)暖金
+      const t = sinTh * sinTh; // 0=轴向, 1=环面
+      const c = new THREE.Color().setHSL(0.62 - 0.50 * t, 0.72, 0.35 + 0.25 * t);
       for (let j = 0; j <= np; j++) {
         const ph = j / np * Math.PI * 2;
         pos.push(
-          rr * Math.sin(th) * Math.cos(ph),
-          rr * Math.sin(th) * Math.sin(ph),
+          rr * sinTh * Math.cos(ph),
+          rr * sinTh * Math.sin(ph),
           rr * Math.cos(th)
         );
+        col.push(c.r, c.g, c.b);
       }
     }
     for (let i = 0; i < nt; i++) {
@@ -180,35 +216,57 @@ Page({
       }
     }
 
-    // ⚠️ r108: addAttribute 不是 setAttribute
     const geo = new THREE.BufferGeometry();
     geo.addAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.addAttribute('color', new THREE.Float32BufferAttribute(col, 3));
     geo.setIndex(idx);
     geo.computeVertexNormals();
 
-    this.patGroup.add(new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
-      color: 0xffffff, transparent: true, opacity: 0.16, side: THREE.DoubleSide
+    this.patGroup.add(new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
+      vertexColors: true, transparent: true, opacity: 0.38,
+      side: THREE.DoubleSide, specular: 0x334466, shininess: 12,
     })));
+
+    // 方向图边缘描边（环面最大处 θ=π/2 的圆）
+    const rimPts = [];
+    for (let j = 0; j <= 96; j++) {
+      const ph = j / 96 * Math.PI * 2;
+      rimPts.push(new THREE.Vector3(0.86 * Math.cos(ph), 0.86 * Math.sin(ph), 0));
+    }
+    this.patGroup.add(new THREE.LineLoop(
+      new THREE.BufferGeometry().setFromPoints(rimPts),
+      new THREE.LineBasicMaterial({ color: 0xf6d9a8, transparent: true, opacity: 0.7 })
+    ));
+
+    // 文字标注
+    this.patGroup.add(this.makeLabel('sin²θ 方向图', 0, 0, 0.95, 0.3));
+    this.fieldGroup.add(this.makeLabel('磁力线', R * 0.7, 0, 0.4, 0.26));
   },
 
   updateCharges() {
     const THREE = this.THREE;
     const S = this.state;
-    this.clearGroup(this.chargeGroup);
-
     const R = 0.48 + S.a * 1.5;
-    const posMat = new THREE.MeshBasicMaterial({ color: 0xff8a5b });
-    const negMat = new THREE.MeshBasicMaterial({ color: 0x5f8bff });
+
+    // 对象池：首次创建 18 个球体，之后只更新位置/缩放/颜色
+    if (!this._chargePool) {
+      this._chargePool = [];
+      const posMat = new THREE.MeshBasicMaterial({ color: 0xff8a5b });
+      const negMat = new THREE.MeshBasicMaterial({ color: 0x5f8bff });
+      for (let i = 0; i < 18; i++) {
+        const m = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 8), posMat.clone());
+        this.chargeGroup.add(m);
+        this._chargePool.push(m);
+      }
+    }
 
     for (let i = 0; i < 18; i++) {
       const a = i / 18 * Math.PI * 2 + S.t;
       const amp = 0.5 + 0.5 * Math.sin(i * 0.7 + S.t);
-      const m = new THREE.Mesh(
-        new THREE.SphereGeometry(0.025 + 0.012 * amp, 8, 8),
-        amp > 0.5 ? posMat : negMat
-      );
+      const m = this._chargePool[i];
       m.position.set(Math.cos(a) * R, Math.sin(a) * R, 0.03 * Math.sin(S.t + i));
-      this.chargeGroup.add(m);
+      m.scale.setScalar(1 + 0.48 * amp);
+      m.material.color.setHex(amp > 0.5 ? 0xff8a5b : 0x5f8bff);
     }
   },
 
@@ -311,7 +369,7 @@ Page({
       const r = res[0];
       const canvas = r.node;
       const ctx = canvas.getContext('2d');
-      const dpr = wx.getSystemInfoSync().pixelRatio || 2;
+      const dpr = wx.getWindowInfo().pixelRatio || 2;
       canvas.width = r.width * dpr;
       canvas.height = r.height * dpr;
       ctx.scale(dpr, dpr);

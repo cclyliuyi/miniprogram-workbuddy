@@ -1,34 +1,40 @@
 <!-- pages/interactive/3d-lab/microstrip/microstrip.wxml —— 微带贴片天线 -->
 <view class="screen lab3d">
 
-  <view class="lab3d-head rise">
-    <view class="kicker">3D PATCH LAYOUT · TM10 EDGE FIELDS</view>
-    <view class="lab3d-title display">微带贴片天线</view>
-    <view class="lab3d-sub">一阶尺寸设计 · 馈点匹配 · S11 参数</view>
-  </view>
-
-  <view class="lab3d-canvas-wrap rise">
-    <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
+  <!-- 3D 画布占满上半屏 -->
+  <view class="lab3d-canvas-wrap lab3d-canvas-full rise">
+    <canvas type="webgl" id="three-canvas" class="lab3d-canvas lab3d-canvas-tall"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
     <view wx:if="{{!glReady}}" class="lab3d-skel">
       <view class="lab3d-skel-ring"></view>
       <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
     </view>
     <view class="lab3d-hint {{showHint ? '' : 'fade'}}">单指旋转 · 双指缩放 · 双击复位</view>
+    <!-- 读数浮层 -->
+    <view class="lab3d-stats-float">
+      <view class="lab3d-stat-float"><text class="lab3d-sf-val num">{{W}}</text><text class="lab3d-sf-name">W</text></view>
+      <view class="lab3d-stat-float"><text class="lab3d-sf-val num">{{L}}</text><text class="lab3d-sf-name">L</text></view>
+      <view class="lab3d-stat-float"><text class="lab3d-sf-val num">{{smin}}</text><text class="lab3d-sf-name">S11</text></view>
+    </view>
   </view>
 
-  <view class="lab3d-section rise">
-    <view class="kicker">设计参数</view>
-    <view class="lab3d-row"><text class="lab3d-label">工作频率 f₀</text><text class="lab3d-val">{{fVal}}</text></view>
-    <slider min="80" max="1200" step="5" value="{{fSlider}}" bindchanging="onFChanging" bindchange="onF" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-row"><text class="lab3d-label">介电常数 εᵣ</text><text class="lab3d-val">{{erVal}}</text></view>
-    <slider min="20" max="120" step="1" value="{{erSlider}}" bindchanging="onErChanging" bindchange="onEr" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-row"><text class="lab3d-label">基板厚度 h</text><text class="lab3d-val">{{hVal}}</text></view>
-    <slider min="20" max="400" step="5" value="{{hSlider}}" bindchanging="onHChanging" bindchange="onH" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-row"><text class="lab3d-label">馈点内凹 y₀/L</text><text class="lab3d-val">{{insetVal}}</text></view>
-    <slider min="0" max="48" step="1" value="{{insetSlider}}" bindchanging="onInsetChanging" bindchange="onInset" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+  <!-- 参数控制区（底部浮层抽屉） -->
+  <view class="lab3d-drawer">
+    <view class="lab3d-drawer-handle"></view>
+    <view class="lab3d-section lab3d-section-flat">
+      <view class="kicker">设计参数</view>
+      <view class="lab3d-row"><text class="lab3d-label">工作频率 f₀</text><text class="lab3d-val">{{fVal}}</text></view>
+      <slider min="80" max="1200" step="5" value="{{fSlider}}" bindchanging="onFChanging" bindchange="onF" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+      <view class="lab3d-row"><text class="lab3d-label">介电常数 εᵣ</text><text class="lab3d-val">{{erVal}}</text></view>
+      <slider min="20" max="120" step="1" value="{{erSlider}}" bindchanging="onErChanging" bindchange="onEr" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+      <view class="lab3d-row"><text class="lab3d-label">基板厚度 h</text><text class="lab3d-val">{{hVal}}</text></view>
+      <slider min="20" max="400" step="5" value="{{hSlider}}" bindchanging="onHChanging" bindchange="onH" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+      <view class="lab3d-row"><text class="lab3d-label">馈点内凹 y₀/L</text><text class="lab3d-val">{{insetVal}}</text></view>
+      <slider min="0" max="48" step="1" value="{{insetSlider}}" bindchanging="onInsetChanging" bindchange="onInset" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+    </view>
   </view>
 
+  <!-- 详细读数 -->
   <view class="lab3d-stats pop">
     <view class="kicker lab3d-stats-title">尺寸与端口读数</view>
     <view class="lab3d-stats-grid">

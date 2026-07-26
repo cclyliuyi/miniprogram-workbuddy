@@ -1,49 +1,50 @@
 <!-- pages/interactive/3d-lab/parabolic/parabolic.wxml —— 抛物面反射器 -->
 <view class="screen lab3d">
 
-  <view class="lab3d-head rise">
-    <view class="kicker">PARABOLIC REFLECTOR · RAY TRACING</view>
-    <view class="lab3d-title display">抛物面反射天线</view>
-    <view class="lab3d-sub">焦点 · 离焦 · 口面相位 · 射线追踪</view>
-  </view>
-
-  <view class="lab3d-canvas-wrap rise">
-    <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
+  <!-- 3D 画布占满上半屏 -->
+  <view class="lab3d-canvas-wrap lab3d-canvas-full rise">
+    <canvas type="webgl" id="three-canvas" class="lab3d-canvas lab3d-canvas-tall"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
     <view wx:if="{{!glReady}}" class="lab3d-skel">
       <view class="lab3d-skel-ring"></view>
       <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
     </view>
     <view class="lab3d-hint {{showHint ? '' : 'fade'}}">单指旋转 · 双指缩放 · 双击复位</view>
+    <!-- 读数浮层 -->
+    <view class="lab3d-stats-float">
+      <view class="lab3d-stat-float"><text class="lab3d-sf-val num">{{focal}}</text><text class="lab3d-sf-name">焦距</text></view>
+      <view class="lab3d-stat-float"><text class="lab3d-sf-val num">{{gain}}</text><text class="lab3d-sf-name">增益</text></view>
+    </view>
   </view>
 
-  <view class="lab3d-section rise">
-    <view class="kicker">几何参数</view>
-    <view class="lab3d-row"><text class="lab3d-label">焦径比 f/D</text><text class="lab3d-val">{{fdVal}}</text></view>
-    <slider min="25" max="100" step="1" value="{{fdSlider}}" bindchanging="onFdChanging" bindchange="onFd" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-row"><text class="lab3d-label">射线数</text><text class="lab3d-val">{{rayVal}}</text></view>
-    <slider min="7" max="45" step="2" value="{{raySlider}}" bindchanging="onRaysChanging" bindchange="onRays" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-row"><text class="lab3d-label">轴向离焦 Δ/f</text><text class="lab3d-val">{{dzVal}}</text></view>
-    <slider min="-42" max="42" step="1" value="{{dzSlider}}" bindchanging="onDzChanging" bindchange="onDz" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-  </view>
-
-  <view class="lab3d-section rise">
-    <view class="kicker">显示</view>
-    <view class="lab3d-toggles">
-      <view class="lab3d-toggle {{showIn?'on':''}}" bindtap="onTogIn">
-        <text class="lab3d-toggle-dot"></text><text class="lab3d-toggle-text">入射射线</text>
-      </view>
-      <view class="lab3d-toggle {{showOut?'on':''}}" bindtap="onTogOut">
-        <text class="lab3d-toggle-dot"></text><text class="lab3d-toggle-text">反射射线</text>
-      </view>
-      <view class="lab3d-toggle {{showPhase?'on':''}}" bindtap="onTogPhase">
-        <text class="lab3d-toggle-dot"></text><text class="lab3d-toggle-text">口面相位色图</text>
+  <!-- 参数控制区（底部浮层抽屉） -->
+  <view class="lab3d-drawer">
+    <view class="lab3d-drawer-handle"></view>
+    <view class="lab3d-section lab3d-section-flat">
+      <view class="kicker">几何参数</view>
+      <view class="lab3d-row"><text class="lab3d-label">焦径比 f/D</text><text class="lab3d-val">{{fdVal}}</text></view>
+      <slider min="25" max="100" step="1" value="{{fdSlider}}" bindchanging="onFdChanging" bindchange="onFd" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+      <view class="lab3d-row"><text class="lab3d-label">射线数</text><text class="lab3d-val">{{rayVal}}</text></view>
+      <slider min="7" max="45" step="2" value="{{raySlider}}" bindchanging="onRaysChanging" bindchange="onRays" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+      <view class="lab3d-row"><text class="lab3d-label">轴向离焦 Δ/f</text><text class="lab3d-val">{{dzVal}}</text></view>
+      <slider min="-42" max="42" step="1" value="{{dzSlider}}" bindchanging="onDzChanging" bindchange="onDz" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+      <view class="lab3d-toggles" style="margin-top:12rpx">
+        <view class="lab3d-toggle {{showIn?'on':''}}" bindtap="onTogIn">
+          <text class="lab3d-toggle-dot"></text><text class="lab3d-toggle-text">入射射线</text>
+        </view>
+        <view class="lab3d-toggle {{showOut?'on':''}}" bindtap="onTogOut">
+          <text class="lab3d-toggle-dot"></text><text class="lab3d-toggle-text">反射射线</text>
+        </view>
+        <view class="lab3d-toggle {{showPhase?'on':''}}" bindtap="onTogPhase">
+          <text class="lab3d-toggle-dot"></text><text class="lab3d-toggle-text">口面相位色图</text>
+        </view>
       </view>
     </view>
   </view>
 
+  <!-- 详细读数 -->
   <view class="lab3d-stats pop">
-    <view class="kicker lab3d-stats-title">读数</view>
+    <view class="kicker lab3d-stats-title">详细读数</view>
     <view class="lab3d-stats-grid">
       <view class="lab3d-stat"><view class="lab3d-stat-value num">{{focal}}</view><view class="lab3d-stat-name">焦距 f/λ</view></view>
       <view class="lab3d-stat"><view class="lab3d-stat-value num">{{theta}}</view><view class="lab3d-stat-name">半张角</view></view>

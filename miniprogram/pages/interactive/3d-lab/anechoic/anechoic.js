@@ -507,11 +507,11 @@ Page({
     const w = this.plotW, h = this.plotH;
     const cx = w / 2, cy = h / 2;
     const R = Math.min(w, h) * 0.38;
-    // 浅色背景，与整体暖色调一致
-    pg.fillStyle = '#fbf9f4';
+    // 深色背景，与其他 3D 模块 2D 图一致
+    pg.fillStyle = '#1c2130';
     pg.fillRect(0, 0, w, h);
 
-    pg.strokeStyle = '#d8d2c4';
+    pg.strokeStyle = '#313a55';
     for (const r of [0.25, 0.5, 0.75, 1]) {
       pg.beginPath(); pg.arc(cx, cy, R * r, 0, Math.PI * 2); pg.stroke();
     }

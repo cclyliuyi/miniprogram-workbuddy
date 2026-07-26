@@ -1,43 +1,45 @@
 <!-- pages/interactive/3d-lab/anechoic/anechoic.wxml —— 微波暗室 -->
 <view class="screen lab3d">
 
-  <view class="lab3d-head rise">
-    <view class="kicker">ANECHOIC CHAMBER · AUT AZIMUTH SCAN</view>
-    <view class="lab3d-title display">虚拟天线暗室</view>
-    <view class="lab3d-sub">标准喇叭 · AUT 转台 · 方向图采集 · R ≥ 2D²/λ</view>
-  </view>
-
-  <view class="lab3d-canvas-wrap rise">
-    <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
+  <!-- 3D 画布占满上半屏 -->
+  <view class="lab3d-canvas-wrap lab3d-canvas-full rise">
+    <canvas type="webgl" id="three-canvas" class="lab3d-canvas lab3d-canvas-tall"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
     <view wx:if="{{!glReady}}" class="lab3d-skel">
       <view class="lab3d-skel-ring"></view>
       <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
     </view>
     <view class="lab3d-hint {{showHint ? '' : 'fade'}}">单指旋转 · 双指缩放 · 双击复位</view>
-  </view>
-
-  <view class="lab3d-section rise">
-    <view class="kicker">被测天线 AUT</view>
-    <view class="lab3d-btns">
-      <view class="lab3d-btn {{aut==='horn'?'on':''}}" data-a="horn" bindtap="onAut">标准喇叭</view>
-      <view class="lab3d-btn {{aut==='dipole'?'on':''}}" data-a="dipole" bindtap="onAut">偶极子</view>
-      <view class="lab3d-btn {{aut==='array'?'on':''}}" data-a="array" bindtap="onAut">小阵列</view>
+    <!-- 读数浮层 -->
+    <view class="lab3d-stats-float">
+      <view class="lab3d-stat-float"><text class="lab3d-sf-val num">{{pwr}}</text><text class="lab3d-sf-name">电平</text></view>
+      <view class="lab3d-stat-float"><text class="lab3d-sf-val num">{{samples}}</text><text class="lab3d-sf-name">采样</text></view>
     </view>
   </view>
 
-  <view class="lab3d-section rise">
-    <view class="kicker">转台控制</view>
-    <view class="lab3d-row"><text class="lab3d-label">方位角 φ</text><text class="lab3d-val">{{angVal}}</text></view>
-    <slider min="0" max="359" step="1" value="{{angSlider}}" bindchanging="onAngChanging" bindchange="onAng" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-row"><text class="lab3d-label">采样步进</text><text class="lab3d-val">{{stepVal}}</text></view>
-    <slider min="1" max="15" step="1" value="{{stepSlider}}" bindchanging="onStepChanging" bindchange="onStep" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-btns" style="margin-top:12rpx">
-      <view class="lab3d-btn {{scanning?'on':''}}" bindtap="onScan">{{scanText}}</view>
-      <view class="lab3d-btn" bindtap="onClear">清空</view>
+  <!-- 参数控制区（底部浮层抽屉） -->
+  <view class="lab3d-drawer">
+    <view class="lab3d-drawer-handle"></view>
+    <view class="lab3d-section lab3d-section-flat">
+      <view class="kicker">被测天线 AUT</view>
+      <view class="lab3d-btns">
+        <view class="lab3d-btn {{aut==='horn'?'on':''}}" data-a="horn" bindtap="onAut">标准喇叭</view>
+        <view class="lab3d-btn {{aut==='dipole'?'on':''}}" data-a="dipole" bindtap="onAut">偶极子</view>
+        <view class="lab3d-btn {{aut==='array'?'on':''}}" data-a="array" bindtap="onAut">小阵列</view>
+      </view>
+      <view class="kicker" style="margin-top:16rpx">转台控制</view>
+      <view class="lab3d-row"><text class="lab3d-label">方位角 φ</text><text class="lab3d-val">{{angVal}}</text></view>
+      <slider min="0" max="359" step="1" value="{{angSlider}}" bindchanging="onAngChanging" bindchange="onAng" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+      <view class="lab3d-row"><text class="lab3d-label">采样步进</text><text class="lab3d-val">{{stepVal}}</text></view>
+      <slider min="1" max="15" step="1" value="{{stepSlider}}" bindchanging="onStepChanging" bindchange="onStep" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+      <view class="lab3d-btns" style="margin-top:12rpx">
+        <view class="lab3d-btn {{scanning?'on':''}}" bindtap="onScan">{{scanText}}</view>
+        <view class="lab3d-btn" bindtap="onClear">清空</view>
+      </view>
     </view>
   </view>
 
+  <!-- 详细读数 -->
   <view class="lab3d-stats pop">
     <view class="kicker lab3d-stats-title">测量读数</view>
     <view class="lab3d-stats-grid">

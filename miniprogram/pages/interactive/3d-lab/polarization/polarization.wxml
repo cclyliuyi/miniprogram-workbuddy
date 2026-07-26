@@ -1,21 +1,51 @@
 <!-- pages/interactive/3d-lab/polarization/polarization.wxml —— 极化椭圆 3D -->
 <view class="screen pol3d">
 
-  <view class="lab3d-head rise">
-    <view class="kicker">POLARIZATION · 3D TRAVELING WAVE</view>
-    <view class="lab3d-title display">极化椭圆</view>
-    <view class="lab3d-sub">3D 行进波 · Ex / Ey 分量 · 线/圆/椭圆极化</view>
-  </view>
-
-  <!-- 3D Canvas -->
-  <view class="lab3d-canvas-wrap rise">
-    <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
+  <!-- 3D 画布占满上半屏 -->
+  <view class="lab3d-canvas-wrap lab3d-canvas-full rise">
+    <canvas type="webgl" id="three-canvas" class="lab3d-canvas lab3d-canvas-tall"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
     <view wx:if="{{!glReady}}" class="lab3d-skel">
       <view class="lab3d-skel-ring"></view>
       <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
     </view>
     <view class="lab3d-hint {{showHint ? '' : 'fade'}}">红=Ex · 蓝=Ey · 白=E 矢量 · 双击复位</view>
+    <!-- 读数浮层 -->
+    <view class="lab3d-stats-float" wx:if="{{params}}">
+      <view class="lab3d-stat-float"><text class="lab3d-sf-val">{{params.type}}</text><text class="lab3d-sf-name">类型</text></view>
+      <view class="lab3d-stat-float"><text class="lab3d-sf-val num">{{params.ar}}</text><text class="lab3d-sf-name">轴比</text></view>
+    </view>
+  </view>
+
+  <!-- 参数控制区（底部浮层抽屉） -->
+  <view class="lab3d-drawer">
+    <view class="lab3d-drawer-handle"></view>
+    <view class="lab3d-section lab3d-section-flat">
+      <view class="kicker">预设</view>
+      <view class="pol3d-preset-btns">
+        <view class="pol3d-preset {{S.preset==='linear' ? 'active' : ''}}" bindtap="setLinear">线极化</view>
+        <view class="pol3d-preset {{S.preset==='rhcp' ? 'active' : ''}}" bindtap="setRHCP">右旋圆</view>
+        <view class="pol3d-preset {{S.preset==='lhcp' ? 'active' : ''}}" bindtap="setLHCP">左旋圆</view>
+        <view class="pol3d-preset {{S.preset==='ellipse' ? 'active' : ''}}" bindtap="setEllipse">椭圆</view>
+      </view>
+      <view class="kicker" style="margin-top:16rpx">场分量参数</view>
+      <view class="pol3d-slider-row">
+        <text class="lab3d-label">Ex 幅度</text>
+        <slider class="pol3d-slider" min="0" max="1" step="0.01" value="{{S.ex}}"
+          bindchanging="onExChanging" bindchange="onEx" show-value activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+      </view>
+      <view class="pol3d-slider-row">
+        <text class="lab3d-label">Ey 幅度</text>
+        <slider class="pol3d-slider" min="0" max="1" step="0.01" value="{{S.ey}}"
+          bindchanging="onEyChanging" bindchange="onEy" show-value activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+      </view>
+      <view class="pol3d-slider-row">
+        <text class="lab3d-label">相位差 δ</text>
+        <slider class="pol3d-slider" min="-180" max="180" step="1" value="{{S.del}}"
+          bindchanging="onDelChanging" bindchange="onDel" show-value activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+        <text class="pol3d-unit">°</text>
+      </view>
+    </view>
   </view>
 
   <!-- 端面极化椭圆 -->
@@ -24,58 +54,14 @@
     <canvas type="2d" id="ellipse" class="lab3d-2d"></canvas>
   </view>
 
-  <!-- 预设 -->
-  <view class="lab3d-section rise">
-    <view class="kicker">预设</view>
-    <view class="pol3d-preset-btns">
-      <view class="pol3d-preset {{S.preset==='linear' ? 'active' : ''}}" bindtap="setLinear">线极化</view>
-      <view class="pol3d-preset {{S.preset==='rhcp' ? 'active' : ''}}" bindtap="setRHCP">右旋圆</view>
-      <view class="pol3d-preset {{S.preset==='lhcp' ? 'active' : ''}}" bindtap="setLHCP">左旋圆</view>
-      <view class="pol3d-preset {{S.preset==='ellipse' ? 'active' : ''}}" bindtap="setEllipse">椭圆</view>
-    </view>
-  </view>
-
-  <!-- 参数滑块 -->
-  <view class="lab3d-section rise">
-    <view class="kicker">场分量参数</view>
-    <view class="pol3d-slider-row">
-      <text class="lab3d-label">Ex 幅度</text>
-      <slider class="pol3d-slider" min="0" max="1" step="0.01" value="{{S.ex}}"
-        bindchanging="onExChanging" bindchange="onEx" show-value activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    </view>
-    <view class="pol3d-slider-row">
-      <text class="lab3d-label">Ey 幅度</text>
-      <slider class="pol3d-slider" min="0" max="1" step="0.01" value="{{S.ey}}"
-        bindchanging="onEyChanging" bindchange="onEy" show-value activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    </view>
-    <view class="pol3d-slider-row">
-      <text class="lab3d-label">相位差 δ</text>
-      <slider class="pol3d-slider" min="-180" max="180" step="1" value="{{S.del}}"
-        bindchanging="onDelChanging" bindchange="onDel" show-value activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-      <text class="pol3d-unit">°</text>
-    </view>
-  </view>
-
-  <!-- 读数 -->
+  <!-- 详细读数 -->
   <view class="lab3d-stats pop" wx:if="{{params}}">
     <view class="kicker lab3d-stats-title">极化读数</view>
     <view class="lab3d-stats-grid">
-      <view class="lab3d-stat">
-        <view class="lab3d-stat-value">{{params.type}}</view>
-        <view class="lab3d-stat-name">类型</view>
-      </view>
-      <view class="lab3d-stat">
-        <view class="lab3d-stat-value num">{{params.ar}}</view>
-        <view class="lab3d-stat-name">轴比 AR</view>
-      </view>
-      <view class="lab3d-stat">
-        <view class="lab3d-stat-value num">{{params.tilt}}°</view>
-        <view class="lab3d-stat-name">倾角 ψ</view>
-      </view>
-      <view class="lab3d-stat">
-        <view class="lab3d-stat-value">{{params.sense}}</view>
-        <view class="lab3d-stat-name">旋向</view>
-      </view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value">{{params.type}}</view><view class="lab3d-stat-name">类型</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{params.ar}}</view><view class="lab3d-stat-name">轴比 AR</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{params.tilt}}°</view><view class="lab3d-stat-name">倾角 ψ</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value">{{params.sense}}</view><view class="lab3d-stat-name">旋向</view></view>
     </view>
   </view>
 

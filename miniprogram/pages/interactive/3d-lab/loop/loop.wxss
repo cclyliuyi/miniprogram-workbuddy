@@ -149,6 +149,77 @@
   letter-spacing: 3rpx;
 }
 
+/* ── 浮层布局（画布全宽 + 底部抽屉） ── */
+.lab3d-canvas-full {
+  margin: 0;
+  border-radius: 0;
+  border: none;
+  height: 62vh;
+  min-height: 520rpx;
+}
+.lab3d-canvas-tall {
+  width: 100%;
+  height: 100%;
+}
+
+/* 读数浮层（右上角） */
+.lab3d-stats-float {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  display: flex;
+  gap: 16rpx;
+  z-index: 3;
+}
+.lab3d-stat-float {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(22, 26, 38, 0.72);
+  backdrop-filter: blur(6px);
+  border-radius: 12rpx;
+  padding: 10rpx 16rpx;
+  border: 1rpx solid rgba(212, 173, 126, 0.18);
+}
+.lab3d-sf-val {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #f6d9a8;
+  font-variant-numeric: tabular-nums;
+}
+.lab3d-sf-name {
+  font-size: 18rpx;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 2rpx;
+}
+
+/* 底部抽屉（参数控制区） */
+.lab3d-drawer {
+  position: relative;
+  margin: -32rpx 12rpx 20rpx;
+  padding: 12rpx 28rpx 24rpx;
+  background: var(--card);
+  border-radius: 24rpx 24rpx 20rpx 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 -4rpx 24rpx rgba(22, 26, 38, 0.12);
+  z-index: 4;
+}
+.lab3d-drawer-handle {
+  width: 64rpx;
+  height: 8rpx;
+  border-radius: 4rpx;
+  background: var(--line);
+  margin: 0 auto 16rpx;
+}
+.lab3d-section-flat {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
 /* 无障碍：减弱动画时骨架环静止、提示不淡出 */
 @media (prefers-reduced-motion: reduce) {
   .lab3d-skel-ring { animation: none; }

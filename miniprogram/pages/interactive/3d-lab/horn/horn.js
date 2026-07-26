@@ -67,6 +67,7 @@ Page({
         const controls = new THREE.OrbitControls(camera, canvas);
         controls.enableDamping = true;
         controls.autoRotateSpeed = 1.0;
+        controls.maxDistance = 6;
         this.controls = controls;
 
         this.buildStage = null;   // 舞台已模块化
@@ -83,6 +84,7 @@ Page({
 
         this.renderAll();
         this.startAnim();
+        if (this.controls && this.controls.syncFromCamera) this.controls.syncFromCamera();
         stage.ready(this);   // 撤骨架屏 + 提示淡出 + 闲置自转
       } catch (err) {
         console.error('[horn] initThree error:', err);
@@ -119,70 +121,148 @@ Page({
   },
 
   // ═══════════════ 几何搭建 ═══════════════
+  
+  // 创建文字标注 Sprite
+  makeLabel(text, x, y, z, scale) {
+    const THREE = this.THREE;
+    const canvas = wx.createOffscreenCanvas({ type: '2d', width: 256, height: 64 });
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'rgba(0,0,0,0)';
+    ctx.fillRect(0, 0, 256, 64);
+    ctx.font = 'bold 28px sans-serif';
+    ctx.fillStyle = 'rgba(246,217,168,0.92)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, 128, 32);
+    const tex = new THREE.CanvasTexture(canvas);
+    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
+    const sprite = new THREE.Sprite(mat);
+    sprite.position.set(x, y, z);
+    sprite.scale.set((scale || 0.4) * 4, (scale || 0.4), 1);
+    return sprite;
+  },
+  
+  // 用 TubeGeometry 做加粗轮廓线
+  makeTube(points, radius, color, opacity) {
+    const THREE = this.THREE;
+    const curve = new THREE.CatmullRomCurve3(points);
+    const geo = new THREE.TubeGeometry(curve, points.length * 4, radius, 6, false);
+    const mat = new THREE.MeshBasicMaterial({
+      color: color, transparent: true, opacity: opacity || 0.7,
+    });
+    return new THREE.Mesh(geo, mat);
+  },
+  
   layout3d(m) {
     const THREE = this.THREE;
     const S = this.state;
     this.clearGroup(this.hornGroup);
     this.clearGroup(this.phaseGroup);
     this.clearGroup(this.waveGroup);
-
+  
     const s = 0.12;
     const A = S.A * s, R = S.R * s, th = 0.26 * s;
     const ap = A, thr = Math.max(0.42 * s, ap * 0.18);
     const z0 = -R / 2, z1 = R / 2;
-
-    // ── 喇叭壁（双调暖铜：降 metalness 补偿无 envMap，微自发光托底）──
-    const pts = [
-      [-thr / 2, -thr / 2, z0], [thr / 2, -thr / 2, z0],
-      [thr / 2, thr / 2, z0], [-thr / 2, thr / 2, z0],
-      [-ap / 2, -ap / 2, z1], [ap / 2, -ap / 2, z1],
-      [ap / 2, ap / 2, z1], [-ap / 2, ap / 2, z1]
-    ].map(p => new THREE.Vector3(p[0], p[1], p[2]));
-
-    const faces = [[0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7]];
-    const posArr = [];
-    faces.forEach(f => {
-      const [a, b, c, d] = f;
-      [[a, b, c], [a, c, d]].forEach(t => t.forEach(i => {
-        posArr.push(pts[i].x, pts[i].y, pts[i].z);
-      }));
-    });
-
-    // ⚠️ r108: addAttribute
-    const geo = new THREE.BufferGeometry();
-    geo.addAttribute('position', new THREE.Float32BufferAttribute(posArr, 3));
-    geo.computeVertexNormals();
-    const metal = new THREE.MeshStandardMaterial({
-      color: COL.copper, metalness: 0.45, roughness: 0.30,
-      emissive: 0x241408, emissiveIntensity: 0.35,
+  
+    // ── 喇叭壁：用 LatheGeometry 生成旋转体（方形截面近似 → 4段圆弧拼合）──
+    // 外轮廓：从喉部到口径的渐变曲线
+    const profile = [];
+    const SEG_PROFILE = 16;
+    for (let i = 0; i <= SEG_PROFILE; i++) {
+      const t = i / SEG_PROFILE;
+      const z = z0 + t * (z1 - z0);
+      // 喇叭张开曲线：指数渐变（更像真实喇叭）
+      const halfW = thr / 2 + (ap / 2 - thr / 2) * Math.pow(t, 1.35);
+      profile.push(new THREE.Vector2(halfW, z));
+    }
+    // 用 4 段 LatheGeometry 拼方形喇叭（每段 90°）
+    const hornMat = new THREE.MeshPhongMaterial({
+      color: COL.copper,
+      specular: 0xf6d9a8,
+      shininess: 42,
+      emissive: 0x241408,
+      emissiveIntensity: 0.3,
       side: THREE.DoubleSide,
     });
-    this.hornGroup.add(new THREE.Mesh(geo, metal));
-
-    // 四条棱线高光（勾勒轮廓，深色底上的"勾边"）
-    const edgeLines = [];
-    [0, 1, 2, 3].forEach(i => { edgeLines.push(pts[i], pts[i + 4]); });
-    this.hornGroup.add(new THREE.LineSegments(
-      new THREE.BufferGeometry().setFromPoints(edgeLines),
-      new THREE.LineBasicMaterial({ color: COL.copperHi, transparent: true, opacity: 0.5 })
-    ));
-
+  
+    // 生成方形喇叭壁：4 个面，每面用参数化曲面
+    const SEG_W = 12; // 每面宽度分段
+    for (let face = 0; face < 4; face++) {
+      const posArr = [];
+      const idxArr = [];
+      for (let iz = 0; iz <= SEG_PROFILE; iz++) {
+        const t = iz / SEG_PROFILE;
+        const z = z0 + t * (z1 - z0);
+        const halfW = thr / 2 + (ap / 2 - thr / 2) * Math.pow(t, 1.35);
+        for (let iw = 0; iw <= SEG_W; iw++) {
+          const w = -halfW + 2 * halfW * iw / SEG_W;
+          let x, y;
+          if (face === 0) { x = w; y = halfW; }
+          else if (face === 1) { x = halfW; y = -w; }
+          else if (face === 2) { x = -w; y = -halfW; }
+          else { x = -halfW; y = w; }
+          posArr.push(x, y, z);
+        }
+      }
+      for (let iz = 0; iz < SEG_PROFILE; iz++) {
+        for (let iw = 0; iw < SEG_W; iw++) {
+          const a = iz * (SEG_W + 1) + iw;
+          const b = a + 1;
+          const c = a + (SEG_W + 1);
+          const d = c + 1;
+          idxArr.push(a, c, b, b, c, d);
+        }
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.addAttribute('position', new THREE.Float32BufferAttribute(posArr, 3));
+      geo.setIndex(idxArr);
+      geo.computeVertexNormals();
+      this.hornGroup.add(new THREE.Mesh(geo, hornMat));
+    }
+  
+    // 四条棱线高光（TubeGeometry 加粗，深色底上的“勾边”）
+    for (let edge = 0; edge < 4; edge++) {
+      const pts = [];
+      for (let i = 0; i <= 20; i++) {
+        const t = i / 20;
+        const z = z0 + t * (z1 - z0);
+        const halfW = thr / 2 + (ap / 2 - thr / 2) * Math.pow(t, 1.35);
+        let x, y;
+        if (edge === 0) { x = halfW; y = halfW; }
+        else if (edge === 1) { x = halfW; y = -halfW; }
+        else if (edge === 2) { x = -halfW; y = -halfW; }
+        else { x = -halfW; y = halfW; }
+        pts.push(new THREE.Vector3(x, y, z));
+      }
+      this.hornGroup.add(this.makeTube(pts, 0.006, COL.copperHi, 0.65));
+    }
+  
     // ── 喉部 ──
     const throat = new THREE.Mesh(
-      new THREE.BoxGeometry(thr * 0.82, thr * 0.82, th),
-      new THREE.MeshStandardMaterial({ color: COL.throat, metalness: 0.5, roughness: 0.4 })
+      new THREE.CylinderGeometry(thr * 0.42, thr * 0.42, th, 24),
+      new THREE.MeshPhongMaterial({ color: COL.throat, specular: 0x8899bb, shininess: 30 })
     );
+    throat.rotation.x = Math.PI / 2;
     throat.position.z = z0 - th * 0.55;
     this.hornGroup.add(throat);
-
-    // ── 口径边框（提亮）──
-    const rimPts = [pts[4], pts[5], pts[6], pts[7]];
-    const rimGeo = new THREE.BufferGeometry().setFromPoints(rimPts);
-    this.hornGroup.add(new THREE.LineLoop(rimGeo, new THREE.LineBasicMaterial({
-      color: COL.copperHi, transparent: true, opacity: 0.9
-    })));
-
-    // ── 口径相位：点云 → 连续色面 ──
+  
+    // ── 口径边框（TubeGeometry 加粗）──
+    const rimPts = [];
+    const rimHalf = ap / 2;
+    const rimSeg = 48;
+    for (let i = 0; i <= rimSeg; i++) {
+      const t = i / rimSeg * 4;
+      let x, y;
+      if (t < 1) { x = -rimHalf + 2 * rimHalf * t; y = rimHalf; }
+      else if (t < 2) { x = rimHalf; y = rimHalf - 2 * rimHalf * (t - 1); }
+      else if (t < 3) { x = rimHalf - 2 * rimHalf * (t - 2); y = -rimHalf; }
+      else { x = -rimHalf; y = -rimHalf + 2 * rimHalf * (t - 3); }
+      rimPts.push(new THREE.Vector3(x, y, z1));
+    }
+    this.hornGroup.add(this.makeTube(rimPts, 0.008, COL.copperHi, 0.9));
+  
+    // ── 口径相位：连续色面（PlaneGeometry + vertexColors）──
     const SEG = 29;
     const pg = new THREE.PlaneBufferGeometry(ap, ap, SEG, SEG);
     const ppos = pg.getAttribute('position');
@@ -201,7 +281,7 @@ Page({
     }));
     aperture.position.z = z1 + 0.012;
     this.phaseGroup.add(aperture);
-
+  
     // ── 等相位波前：加色混合 + 纵深衰减（发光感）──
     for (let k = 0; k < 8; k++) {
       const z = z1 + 0.18 + k * 0.11;
@@ -213,7 +293,7 @@ Page({
           Math.cos(a) * rx, Math.sin(a) * rx, z + 0.022 * Math.sin(a * 2 + this.state.ph)
         ));
       }
-      const baseOp = 0.50 - k * 0.045;  // 越远越淡
+      const baseOp = 0.50 - k * 0.045;
       const wmat = new THREE.LineBasicMaterial({
         color: COL.wave, transparent: true, opacity: baseOp,
         blending: THREE.AdditiveBlending, depthWrite: false,
@@ -222,12 +302,18 @@ Page({
       this.waveGroup.add(new THREE.LineLoop(
         new THREE.BufferGeometry().setFromPoints(pts2), wmat));
     }
-
+  
+    // ── 文字标注 ──
+    this.hornGroup.add(this.makeLabel('口径', 0, ap / 2 + 0.08, z1, 0.32));
+    this.hornGroup.add(this.makeLabel('喉部', 0, thr / 2 + 0.06, z0 - th, 0.28));
+    this.waveGroup.add(this.makeLabel('波前', ap * 0.5, ap * 0.5, z1 + 0.55, 0.26));
+  
     // 相机只在首次定位；之后用户视角不被参数修改打断
     if (!this._camInit) {
       this.camera.position.set(ap * 0.85, ap * 0.65, R * 0.85);
       this.camera.updateProjectionMatrix();
       this.controls.target.set(0, 0, 0);
+      this.controls.syncFromCamera();
       this.controls.update();
       this._home = stage.saveHome(this.controls);
       this._camInit = true;
@@ -244,14 +330,16 @@ Page({
       if (this.root) this.root.rotation.y = 0.08 * Math.sin(this.state.ph * 0.16);
       if (this.waveGroup) {
         this.waveGroup.children.forEach((l, i) => {
-          const b = l.material.userData.baseOp || 0.3;
+          if (!l.material.userData.baseOp) return;  // 跳过 Sprite 标签
+          const b = l.material.userData.baseOp;
           l.material.opacity = b * (0.55 + 0.45 * Math.sin(this.state.ph + i * 0.5) ** 2);
         });
       }
       this.controls.update();
       this.renderer.render(this.scene, this.camera);
     };
-    tick();
+    // 首帧异步：等待 _camInit 中 syncFromCamera 完成后再渲染
+    this.animId = this.canvasNode.requestAnimationFrame(tick);
   },
 
   stopAnim() {

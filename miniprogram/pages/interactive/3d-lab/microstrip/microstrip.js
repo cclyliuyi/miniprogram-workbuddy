@@ -64,6 +64,7 @@ Page({
       controls.enableDamping = true;
       controls.dampingFactor = 0.08;
       controls.autoRotateSpeed = 1.0;
+      controls.maxDistance = 12;
       controls.target.set(0, 0.08, 0);
       this.controls = controls;
 
@@ -105,6 +106,7 @@ Page({
 
       this.renderAll();
       this.startAnim();
+      if (this.controls && this.controls.syncFromCamera) this.controls.syncFromCamera();
       stage.ready(this);
     });
   },
@@ -243,6 +245,7 @@ Page({
       this.camera.near = 0.01; this.camera.far = 200;
       this.camera.updateProjectionMatrix();
       this.controls.target.set(0, 0.03, 0);
+      this.controls.syncFromCamera();
       this.controls.update();
       this._home = stage.saveHome(this.controls);
       this._camInit = true;
@@ -271,7 +274,8 @@ Page({
       this.controls.update();
       this.renderer.render(this.scene, this.camera);
     };
-    tick();
+    // 首帧异步：等待 _camInit 中 syncFromCamera 完成后再渲染
+    this.animId = this.canvasNode.requestAnimationFrame(tick);
   },
 
   stopAnim() {
@@ -327,7 +331,7 @@ Page({
       const r = res[0];
       const canvas = r.node;
       const ctx = canvas.getContext('2d');
-      const dpr = wx.getSystemInfoSync().pixelRatio || 2;
+      const dpr = wx.getWindowInfo().pixelRatio || 2;
       canvas.width = r.width * dpr;
       canvas.height = r.height * dpr;
       ctx.scale(dpr, dpr);

@@ -60,6 +60,7 @@ Page({
       const controls = new THREE.OrbitControls(camera, canvas);
       controls.enableDamping = true;
       controls.autoRotateSpeed = 1.0;
+      controls.maxDistance = 14;
       this.controls = controls;
 
       // 深空暖金舞台 + 三灯（盘面半径 3λ，地面按比例放大）
@@ -77,6 +78,7 @@ Page({
 
       this.renderAll();
       this.startAnim();
+      if (this.controls && this.controls.syncFromCamera) this.controls.syncFromCamera();
       stage.ready(this);
     });
   },
@@ -228,6 +230,7 @@ Page({
       this.controls.target.set(0, 0, m.F * 0.28);
       this.camera.near = 0.01; this.camera.far = 200;
       this.camera.updateProjectionMatrix();
+      this.controls.syncFromCamera();
       this.controls.update();
       this._home = stage.saveHome(this.controls);
       this._camInit = true;
@@ -243,7 +246,8 @@ Page({
       this.controls.update();
       this.renderer.render(this.scene, this.camera);
     };
-    tick();
+    // 首帧异步：等待 _camInit 中 syncFromCamera 完成后再渲染
+    this.animId = this.canvasNode.requestAnimationFrame(tick);
   },
 
   stopAnim() {
@@ -285,7 +289,9 @@ Page({
       gain: m.gain.toFixed(1) + ' dBi',
     });
     this.drawPlot(m, err);
-    const key = JSON.stringify(this.state);
+    // 用几何参数 + 显示开关做 key（射线是条件创建的，切换必须重建）
+    const st = this.state;
+    const key = st.fd + '|' + st.rays + '|' + st.dz + '|' + st.show.in + '|' + st.show.out + '|' + st.show.phase;
     if (key !== this.lastKey) {
       this.layout3d(m, err);
       this.lastKey = key;
@@ -299,7 +305,7 @@ Page({
       const r = res[0];
       const canvas = r.node;
       const ctx = canvas.getContext('2d');
-      const dpr = wx.getSystemInfoSync().pixelRatio || 2;
+      const dpr = wx.getWindowInfo().pixelRatio || 2;
       canvas.width = r.width * dpr;
       canvas.height = r.height * dpr;
       ctx.scale(dpr, dpr);

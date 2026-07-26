@@ -35,6 +35,12 @@ function registerOrbitControls(THREE) {
       this._offset.sub(this.target);
 
       this._spherical.setFromVector3(this._offset);
+      // 防护：相机在原点时 radius=0 / phi=NaN，给安全默认值
+      if (!this._spherical.radius || this._spherical.radius < 1e-6) {
+        this._spherical.set(3.5, Math.PI / 3, Math.PI / 4);
+      }
+      if (isNaN(this._spherical.phi)) this._spherical.phi = Math.PI / 3;
+      if (isNaN(this._spherical.theta)) this._spherical.theta = Math.PI / 4;
       this._targetSpherical.copy(this._spherical);
 
       // 参数
@@ -49,7 +55,7 @@ function registerOrbitControls(THREE) {
 
       // 旋转灵敏度
       this.rotateSpeed = 0.006;
-      this.zoomSpeed = 0.08;
+      this.zoomSpeed = 1.0;
 
       // 自动旋转
       this.autoRotate = false;
@@ -109,12 +115,14 @@ function registerOrbitControls(THREE) {
         const dx = touches[1].clientX - touches[0].clientX;
         const dy = touches[1].clientY - touches[0].clientY;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const delta = dist - this._touchState.dist;
-
-        this._targetSpherical.radius *= (1 + delta * this.zoomSpeed * 0.01);
-        this._targetSpherical.radius = Math.max(this.minDistance,
-          Math.min(this.maxDistance, this._targetSpherical.radius));
-
+        const prevDist = this._touchState.dist;
+        if (prevDist > 0) {
+          // 比例缩放：手指距离变化比，体验更自然
+          const scale = prevDist / dist;
+          this._targetSpherical.radius *= Math.pow(scale, this.zoomSpeed);
+          this._targetSpherical.radius = Math.max(this.minDistance,
+            Math.min(this.maxDistance, this._targetSpherical.radius));
+        }
         this._touchState.dist = dist;
       }
     }
@@ -122,8 +130,18 @@ function registerOrbitControls(THREE) {
     /**
      * 处理 touchend 事件
      */
-    onTouchEnd() {
-      this._touchState = null;
+    onTouchEnd(e) {
+      const touches = e.touches || [];
+      if (touches.length === 1) {
+        // 双指→单指：平滑过渡到旋转模式
+        this._touchState = {
+          mode: 'rotate',
+          x: touches[0].clientX,
+          y: touches[0].clientY,
+        };
+      } else {
+        this._touchState = null;
+      }
     }
 
     /**
@@ -158,6 +176,24 @@ function registerOrbitControls(THREE) {
       this._touchState = null;
       this.camera = null;
       this.canvas = null;
+    }
+
+    /**
+     * 从外部设置的 camera.position 重新同步内部球面坐标
+     * 用于页面代码在 _camInit 中动态计算相机位置后调用
+     */
+    syncFromCamera() {
+      this._offset.copy(this.camera.position).sub(this.target);
+      this._spherical.setFromVector3(this._offset);
+      if (!this._spherical.radius || this._spherical.radius < 1e-6) {
+        this._spherical.set(3.5, Math.PI / 3, Math.PI / 4);
+      }
+      if (isNaN(this._spherical.phi)) this._spherical.phi = Math.PI / 3;
+      if (isNaN(this._spherical.theta)) this._spherical.theta = Math.PI / 4;
+      // 钳制到合法范围
+      this._spherical.radius = Math.max(this.minDistance, Math.min(this.maxDistance, this._spherical.radius));
+      this._spherical.phi = Math.max(this.minPolarAngle, Math.min(this.maxPolarAngle, this._spherical.phi));
+      this._targetSpherical.copy(this._spherical);
     }
 
     /**

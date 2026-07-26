@@ -15,6 +15,10 @@ Page({
   camera: null, quadMesh: null, uniforms: null,
   animId: null,
   state: { playing: true, speed: 1.0, scale: 3.0, normalize: true, showZones: true, fieldMode: 'both', time: 0 },
+  // 触摸交互状态
+  _touch: { mode: null, x: 0, y: 0, dist: 0 },
+  _offset: { x: 0, y: 0 },  // 平移偏移（波长单位）
+  _lastTap: 0,
 
   onReady() { this.initThree(); },
   onUnload() { this.dispose(); },
@@ -57,6 +61,7 @@ Page({
         'uniform float uScale;',
         'uniform float uNorm;',
         'uniform float uMode;',
+        'uniform vec2 uOffset;',
         'const float PI=3.14159265359;',
         'const float TAU=6.28318530718;',
         'vec3 field_color(float v){',
@@ -73,7 +78,7 @@ Page({
         '  vec2 fc=gl_FragCoord.xy;',
         '  vec2 ctr=uRes*0.5;',
         '  float ppl=uRes.y*0.5/uScale;',
-        '  vec2 w=(fc-ctr)/ppl;',
+        '  vec2 w=(fc-ctr)/ppl + uOffset;',
         '  float x=w.x,z=w.y;',
         '  float r=length(w);',
         '  float armLen=0.25,armW=0.012;',
@@ -115,6 +120,7 @@ Page({
         uScale: { value: this.state.scale },
         uNorm: { value: 1.0 },
         uMode: { value: 0.0 },
+        uOffset: { value: new THREE.Vector2(0, 0) },
       };
       this.uniforms = uniforms;
 
@@ -159,9 +165,65 @@ Page({
     if (this.renderer) { this.renderer.dispose(); this.renderer = null; }
   },
 
-  onTouchStart(e) {},
-  onTouchMove(e) {},
-  onTouchEnd(e) {},
+  onTouchStart(e) {
+    const touches = e.touches;
+    if (touches.length === 1) {
+      this._touch.mode = 'pan';
+      this._touch.x = touches[0].clientX;
+      this._touch.y = touches[0].clientY;
+      // 双击检测
+      const now = Date.now();
+      if (now - this._lastTap < 300) {
+        // 双击复位
+        this._offset.x = 0; this._offset.y = 0;
+        this.state.scale = 3.0;
+        if (this.uniforms) {
+          this.uniforms.uOffset.value.set(0, 0);
+          this.uniforms.uScale.value = 3.0;
+        }
+        this.setData({ sclSlider: 30, sclVal: '3.0 λ' });
+      }
+      this._lastTap = now;
+    } else if (touches.length === 2) {
+      this._touch.mode = 'zoom';
+      const dx = touches[1].clientX - touches[0].clientX;
+      const dy = touches[1].clientY - touches[0].clientY;
+      this._touch.dist = Math.sqrt(dx * dx + dy * dy);
+    }
+  },
+
+  onTouchMove(e) {
+    const touches = e.touches;
+    if (this._touch.mode === 'pan' && touches.length === 1) {
+      const dx = touches[0].clientX - this._touch.x;
+      const dy = touches[0].clientY - this._touch.y;
+      this._touch.x = touches[0].clientX;
+      this._touch.y = touches[0].clientY;
+      // 像素 → 波长偏移（touch 是 CSS 像素，canvas.height 是设备像素）
+      const canvas = this.canvasNode;
+      if (!canvas) return;
+      const dpr = wx.getWindowInfo().pixelRatio || 2;
+      const ppl = (canvas.height / 2) / this.state.scale;
+      this._offset.x -= dx * dpr / ppl;
+      this._offset.y += dy * dpr / ppl;
+      if (this.uniforms) this.uniforms.uOffset.value.set(this._offset.x, this._offset.y);
+    } else if (this._touch.mode === 'zoom' && touches.length === 2) {
+      const dx = touches[1].clientX - touches[0].clientX;
+      const dy = touches[1].clientY - touches[0].clientY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (this._touch.dist > 0) {
+        const ratio = this._touch.dist / dist;
+        this.state.scale = Math.max(0.8, Math.min(12, this.state.scale * ratio));
+        if (this.uniforms) this.uniforms.uScale.value = this.state.scale;
+        this.setData({ sclSlider: Math.round(this.state.scale * 10), sclVal: this.state.scale.toFixed(1) + ' λ' });
+      }
+      this._touch.dist = dist;
+    }
+  },
+
+  onTouchEnd(e) {
+    if (e.touches.length === 0) this._touch.mode = null;
+  },
 
   onPlay() {
     this.state.playing = !this.state.playing;

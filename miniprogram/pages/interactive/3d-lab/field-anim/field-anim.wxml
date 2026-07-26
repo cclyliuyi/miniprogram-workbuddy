@@ -1,54 +1,43 @@
 <!-- pages/interactive/3d-lab/field-anim/field-anim.wxml —— 电偶极子辐射动画 -->
 <view class="screen lab3d">
 
-  <view class="lab3d-head rise">
-    <view class="kicker">OSCILLATING DIPOLE · NEAR/FAR FIELD</view>
-    <view class="lab3d-title display">电偶极子辐射</view>
-    <view class="lab3d-sub">近场 → 远场过渡 · E 面截面 · 推迟时间</view>
-  </view>
-
-  <view class="lab3d-canvas-wrap rise">
-    <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
+  <!-- 3D 画布占满上半屏 -->
+  <view class="lab3d-canvas-wrap lab3d-canvas-full rise">
+    <canvas type="webgl" id="three-canvas" class="lab3d-canvas lab3d-canvas-tall"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
     <view wx:if="{{!glReady}}" class="lab3d-skel">
       <view class="lab3d-skel-ring"></view>
       <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
     </view>
+    <view class="lab3d-hint {{showHint ? '' : 'fade'}}">单指平移 · 双指缩放 · 双击复位</view>
   </view>
 
-  <!-- 播放控制 -->
-  <view class="lab3d-section rise">
-    <view class="kicker">播放控制</view>
-    <view class="lab3d-btns">
-      <view class="lab3d-btn {{playing?'on':''}}" bindtap="onPlay">{{playText}}</view>
-    </view>
-    <view class="lab3d-row" style="margin-top:12rpx">
-      <text class="lab3d-label">播放速度</text>
-      <text class="lab3d-val">{{spdVal}}</text>
-    </view>
-    <slider min="1" max="30" step="1" value="{{spdSlider}}" bindchange="onSpd" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-row">
-      <text class="lab3d-label">视野范围</text>
-      <text class="lab3d-val">{{sclVal}}</text>
-    </view>
-    <slider min="10" max="80" step="5" value="{{sclSlider}}" bindchanging="onSclChanging" bindchange="onScl" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-  </view>
-
-  <!-- 显示控制 -->
-  <view class="lab3d-section rise">
-    <view class="kicker">显示控制</view>
-    <view class="lab3d-toggles">
-      <view class="lab3d-toggle {{normalize?'on':''}}" bindtap="onNorm">
-        <text class="lab3d-toggle-dot"></text><text class="lab3d-toggle-text">振幅补偿（×r）</text>
+  <!-- 参数控制区（底部浮层抽屉） -->
+  <view class="lab3d-drawer">
+    <view class="lab3d-drawer-handle"></view>
+    <view class="lab3d-section lab3d-section-flat">
+      <view class="kicker">播放控制</view>
+      <view class="lab3d-btns">
+        <view class="lab3d-btn {{playing?'on':''}}" bindtap="onPlay">{{playText}}</view>
       </view>
-      <view class="lab3d-toggle {{showZones?'on':''}}" bindtap="onZones">
-        <text class="lab3d-toggle-dot"></text><text class="lab3d-toggle-text">场区边界</text>
+      <view class="lab3d-row" style="margin-top:12rpx"><text class="lab3d-label">播放速度</text><text class="lab3d-val">{{spdVal}}</text></view>
+      <slider min="1" max="30" step="1" value="{{spdSlider}}" bindchange="onSpd" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+      <view class="lab3d-row"><text class="lab3d-label">视野范围</text><text class="lab3d-val">{{sclVal}}</text></view>
+      <slider min="10" max="80" step="5" value="{{sclSlider}}" bindchanging="onSclChanging" bindchange="onScl" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+      <view class="kicker" style="margin-top:16rpx">显示控制</view>
+      <view class="lab3d-toggles">
+        <view class="lab3d-toggle {{normalize?'on':''}}" bindtap="onNorm">
+          <text class="lab3d-toggle-dot"></text><text class="lab3d-toggle-text">振幅补偿（×r）</text>
+        </view>
+        <view class="lab3d-toggle {{showZones?'on':''}}" bindtap="onZones">
+          <text class="lab3d-toggle-dot"></text><text class="lab3d-toggle-text">场区边界</text>
+        </view>
       </view>
-    </view>
-    <view class="lab3d-btns" style="margin-top:12rpx">
-      <view class="lab3d-btn {{fieldMode==='near'?'on':''}}" data-m="near" bindtap="onMode">仅近场</view>
-      <view class="lab3d-btn {{fieldMode==='far'?'on':''}}" data-m="far" bindtap="onMode">仅远场</view>
-      <view class="lab3d-btn {{fieldMode==='both'?'on':''}}" data-m="both" bindtap="onMode">近+远</view>
+      <view class="lab3d-btns" style="margin-top:12rpx">
+        <view class="lab3d-btn {{fieldMode==='near'?'on':''}}" data-m="near" bindtap="onMode">仅近场</view>
+        <view class="lab3d-btn {{fieldMode==='far'?'on':''}}" data-m="far" bindtap="onMode">仅远场</view>
+        <view class="lab3d-btn {{fieldMode==='both'?'on':''}}" data-m="both" bindtap="onMode">近+远</view>
+      </view>
     </view>
   </view>
 

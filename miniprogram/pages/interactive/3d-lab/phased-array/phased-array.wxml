@@ -1,62 +1,47 @@
 <!-- pages/interactive/3d-lab/phased-array/phased-array.wxml —— 相控阵 3D -->
 <view class="screen pa3d">
 
-  <view class="lab3d-head rise">
-    <view class="kicker">PHASED ARRAY · 3D BEAM STEERING</view>
-    <view class="lab3d-title display">相控阵扫描</view>
-    <view class="lab3d-sub">3D 方向图 · 渐进相移 β · 栅瓣锥环</view>
-  </view>
-
-  <!-- 3D Canvas -->
-  <view class="lab3d-canvas-wrap rise">
-    <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
+  <!-- 3D 画布占满上半屏 -->
+  <view class="lab3d-canvas-wrap lab3d-canvas-full rise">
+    <canvas type="webgl" id="three-canvas" class="lab3d-canvas lab3d-canvas-tall"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
     <view wx:if="{{!glReady}}" class="lab3d-skel">
       <view class="lab3d-skel-ring"></view>
       <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
     </view>
     <view class="lab3d-hint {{showHint ? '' : 'fade'}}">双击复位 · 绿环=主瓣 · 红环=栅瓣</view>
-  </view>
-
-  <!-- 阵列配置 -->
-  <view class="lab3d-section rise">
-    <view class="kicker">阵列配置</view>
-    <view class="pa3d-row">
-      <text class="lab3d-label">阵元数 N</text>
-      <text class="lab3d-val">{{S.N}}</text>
-    </view>
-    <slider min="2" max="24" step="1" value="{{S.N}}" bindchanging="onNChanging" bindchange="onN" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="pa3d-row">
-      <text class="lab3d-label">间距 d/λ</text>
-      <text class="lab3d-val">{{S.d}}</text>
-    </view>
-    <slider min="0.1" max="1.5" step="0.01" value="{{S.d}}" bindchanging="onDChanging" bindchange="onD" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-  </view>
-
-  <!-- 波束扫描 -->
-  <view class="lab3d-section rise">
-    <view class="kicker">波束扫描 ★</view>
-    <view class="pa3d-row">
-      <text class="lab3d-label">渐进相移 β</text>
-      <text class="lab3d-val pa3d-accent">{{S.beta}}°</text>
-    </view>
-    <slider min="-180" max="180" step="1" value="{{S.beta}}" bindchanging="onBetaChanging" bindchange="onBeta" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="pa3d-preset-btns">
-      <view class="pa3d-preset {{S.beta > 60 ? 'active' : ''}}" bindtap="setEndfireBack">端射 ←</view>
-      <view class="pa3d-preset {{S.beta === 0 ? 'active' : ''}}" bindtap="setBroadside">边射</view>
-      <view class="pa3d-preset {{S.beta < -60 ? 'active' : ''}}" bindtap="setEndfireFwd">端射 →</view>
-    </view>
-    <view class="pa3d-scan-toggle" bindtap="toggleScan">
-      <view class="pa3d-scan-btn {{scanOn ? 'on' : ''}}">自动扫描动画 {{scanOn ? '●' : '○'}}</view>
+    <!-- 读数浮层 -->
+    <view class="lab3d-stats-float" wx:if="{{stats}}">
+      <view class="lab3d-stat-float"><text class="lab3d-sf-val num">{{stats.theta}}°</text><text class="lab3d-sf-name">波束指向</text></view>
+      <view class="lab3d-stat-float"><text class="lab3d-sf-val num">{{stats.dbi}}</text><text class="lab3d-sf-name">方向性</text></view>
     </view>
   </view>
 
-  <!-- 阵元因子 -->
-  <view class="lab3d-section rise">
-    <view class="kicker">阵元因子</view>
-    <view class="pa3d-preset-btns">
-      <view class="pa3d-preset {{S.el === 'iso' ? 'active' : ''}}" bindtap="setIso">各向同性</view>
-      <view class="pa3d-preset {{S.el === 'dipole' ? 'active' : ''}}" bindtap="setDipole">半波偶极子</view>
+  <!-- 参数控制区（底部浮层抽屉） -->
+  <view class="lab3d-drawer">
+    <view class="lab3d-drawer-handle"></view>
+    <view class="lab3d-section lab3d-section-flat">
+      <view class="kicker">阵列配置</view>
+      <view class="pa3d-row"><text class="lab3d-label">阵元数 N</text><text class="lab3d-val">{{S.N}}</text></view>
+      <slider min="2" max="24" step="1" value="{{S.N}}" bindchanging="onNChanging" bindchange="onN" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+      <view class="pa3d-row"><text class="lab3d-label">间距 d/λ</text><text class="lab3d-val">{{S.d}}</text></view>
+      <slider min="0.1" max="1.5" step="0.01" value="{{S.d}}" bindchanging="onDChanging" bindchange="onD" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+      <view class="kicker" style="margin-top:16rpx">波束扫描 ★</view>
+      <view class="pa3d-row"><text class="lab3d-label">渐进相移 β</text><text class="lab3d-val pa3d-accent">{{S.beta}}°</text></view>
+      <slider min="-180" max="180" step="1" value="{{S.beta}}" bindchanging="onBetaChanging" bindchange="onBeta" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+      <view class="pa3d-preset-btns">
+        <view class="pa3d-preset {{S.beta > 60 ? 'active' : ''}}" bindtap="setEndfireBack">端射 ←</view>
+        <view class="pa3d-preset {{S.beta === 0 ? 'active' : ''}}" bindtap="setBroadside">边射</view>
+        <view class="pa3d-preset {{S.beta < -60 ? 'active' : ''}}" bindtap="setEndfireFwd">端射 →</view>
+      </view>
+      <view class="pa3d-scan-toggle" bindtap="toggleScan">
+        <view class="pa3d-scan-btn {{scanOn ? 'on' : ''}}">自动扫描动画 {{scanOn ? '●' : '○'}}</view>
+      </view>
+      <view class="kicker" style="margin-top:16rpx">阵元因子</view>
+      <view class="pa3d-preset-btns">
+        <view class="pa3d-preset {{S.el === 'iso' ? 'active' : ''}}" bindtap="setIso">各向同性</view>
+        <view class="pa3d-preset {{S.el === 'dipole' ? 'active' : ''}}" bindtap="setDipole">半波偶极子</view>
+      </view>
     </view>
   </view>
 
@@ -64,22 +49,10 @@
   <view class="lab3d-stats pop" wx:if="{{stats}}">
     <view class="kicker lab3d-stats-title">阵列参数</view>
     <view class="lab3d-stats-grid">
-      <view class="lab3d-stat">
-        <view class="lab3d-stat-value num">{{stats.theta}}°</view>
-        <view class="lab3d-stat-name">波束指向 θ₀</view>
-      </view>
-      <view class="lab3d-stat">
-        <view class="lab3d-stat-value num">{{stats.dbi}}</view>
-        <view class="lab3d-stat-name">方向性 dBi</view>
-      </view>
-      <view class="lab3d-stat">
-        <view class="lab3d-stat-value num">{{stats.hpbw}}°</view>
-        <view class="lab3d-stat-name">HPBW</view>
-      </view>
-      <view class="lab3d-stat">
-        <view class="lab3d-stat-value num">{{stats.sll}} dB</view>
-        <view class="lab3d-stat-name">副瓣电平</view>
-      </view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{stats.theta}}°</view><view class="lab3d-stat-name">波束指向 θ₀</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{stats.dbi}}</view><view class="lab3d-stat-name">方向性 dBi</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{stats.hpbw}}°</view><view class="lab3d-stat-name">HPBW</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{stats.sll}} dB</view><view class="lab3d-stat-name">副瓣电平</view></view>
     </view>
     <view class="pa3d-grating-warn" wx:if="{{stats.grating > 0}}">
       ⚠ 检测到 {{stats.grating}} 个栅瓣 — 阵元间距过大，能量泄漏到非预期方向。减小 d/λ 可消除。
