@@ -1,90 +1,89 @@
-<!-- pages/interactive/synthesis/synthesis.wxml —— 方向图综合 -->
-<view class="screen sy">
+<!-- pages/interactive/synthesis/synthesis.wxml —— 线阵方向图综合 -->
+<view class="screen tp-page">
 
-  <view class="sy-head rise">
+  <view class="tp-head rise">
     <view class="kicker">ARRAY SYNTHESIS</view>
-    <view class="sy-title display">阵列综合</view>
-    <view class="sy-sub">线阵加权 · 阵因子 vs 方向角</view>
+    <view class="tp-title display">阵列综合</view>
+    <view class="tp-sub">线阵加权 · 阵因子 vs 方向角</view>
   </view>
 
-  <!-- 方向图 Canvas -->
-  <view class="sy-canvas-wrap rise">
-    <canvas type="2d" id="patternCanvas" class="sy-canvas-wide"></canvas>
+  <!-- 方向图 -->
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">归一化阵因子方向图 · {{wLabel}}加权</view>
+    <canvas type="2d" id="patternCanvas" class="tp-canvas"></canvas>
   </view>
 
   <!-- 加权系数柱状图 -->
-  <view class="sy-canvas-wrap rise">
-    <view class="sy-sub-plot">加权系数 wₙ</view>
-    <canvas type="2d" id="weightsCanvas" class="sy-canvas-wide"></canvas>
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">加权系数 wₙ（按最大值归一化）</view>
+    <canvas type="2d" id="weightsCanvas" class="tp-canvas-short"></canvas>
   </view>
 
   <!-- 参数控制 -->
-  <view class="sy-section rise">
+  <view class="tp-section rise">
     <view class="kicker">阵列参数</view>
-
-    <view class="sy-slider-row">
-      <text class="sy-slider-label">阵元数 N</text>
-      <slider class="sy-slider" min="2" max="32" step="1" value="{{S.N}}"
-        bindchange="onN" show-value />
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">阵元数 N</text>
+      <slider class="tp-slider" min="2" max="32" step="1" value="{{S.N}}"
+        bindchanging="onN" bindchange="onN" />
+      <text class="tp-slider-val">{{S.N}} 元</text>
     </view>
-
-    <view class="sy-slider-row">
-      <text class="sy-slider-label">间距 d/λ</text>
-      <slider class="sy-slider" min="0.1" max="1" step="0.05" value="{{S.d}}"
-        bindchange="onD" show-value />
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">间距 d/λ</text>
+      <slider class="tp-slider" min="0.1" max="1" step="0.05" value="{{S.d}}"
+        bindchanging="onD" bindchange="onD" />
+      <text class="tp-slider-val">{{S.d}} λ</text>
     </view>
-
-    <view class="sy-slider-row" wx:if="{{S.w === 'chebyshev'}}">
-      <text class="sy-slider-label">旁瓣电平 SLL</text>
-      <slider class="sy-slider" min="-50" max="-10" step="1" value="{{S.sll}}"
-        bindchange="onSll" show-value />
-      <text class="sy-slider-unit">dB</text>
+    <view class="tp-slider-row" wx:if="{{S.w === 'chebyshev'}}">
+      <text class="tp-slider-label">目标旁瓣 SLL</text>
+      <slider class="tp-slider" min="-50" max="-10" step="1" value="{{S.sll}}"
+        bindchanging="onSll" bindchange="onSll" />
+      <text class="tp-slider-val">{{S.sll}} dB</text>
     </view>
   </view>
 
-  <!-- 加权类型选择 -->
-  <view class="sy-section rise">
+  <!-- 加权方式 -->
+  <view class="tp-section rise">
     <view class="kicker">加权方式</view>
-    <view class="sy-weight-btns">
-      <view class="sy-w {{S.w === 'uniform' ? 'active' : ''}}" bindtap="setUniform">均匀</view>
-      <view class="sy-w {{S.w === 'cosine' ? 'active' : ''}}" bindtap="setCosine">余弦</view>
-      <view class="sy-w {{S.w === 'hamming' ? 'active' : ''}}" bindtap="setHamming">汉明</view>
-      <view class="sy-w {{S.w === 'chebyshev' ? 'active' : ''}}" bindtap="setChebyshev">切比雪夫</view>
+    <view class="tp-btns">
+      <view class="tp-btn {{S.w === 'uniform' ? 'active' : ''}}" data-w="uniform" bindtap="setWeight">均匀</view>
+      <view class="tp-btn {{S.w === 'cosine' ? 'active' : ''}}" data-w="cosine" bindtap="setWeight">余弦</view>
+      <view class="tp-btn {{S.w === 'hamming' ? 'active' : ''}}" data-w="hamming" bindtap="setWeight">汉明</view>
+      <view class="tp-btn {{S.w === 'chebyshev' ? 'active' : ''}}" data-w="chebyshev" bindtap="setWeight">切比雪夫</view>
     </view>
   </view>
 
-  <!-- 统计信息 -->
-  <view class="sy-stats pop" wx:if="{{stats}}">
-    <view class="kicker sy-stats-title">方向图参数</view>
-    <view class="sy-stats-grid">
-      <view class="sy-stat">
-        <view class="sy-stat-label">HPBW</view>
-        <view class="sy-stat-value num">{{stats.hpbw}}°</view>
+  <!-- 读数 -->
+  <view class="tp-section pop" wx:if="{{stats}}">
+    <view class="kicker">方向图参数</view>
+    <view class="tp-stats-grid">
+      <view class="tp-stat">
+        <view class="tp-stat-label">半功率波束宽 HPBW</view>
+        <view class="tp-stat-value tp-c-gold">{{stats.hpbw}}</view>
       </view>
-      <view class="sy-stat">
-        <view class="sy-stat-label">最大旁瓣</view>
-        <view class="sy-stat-value num">{{stats.sll}} dB</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">最大旁瓣 SLL（实测）</view>
+        <view class="tp-stat-value tp-c-teal">{{stats.sll}}</view>
       </view>
-      <view class="sy-stat">
-        <view class="sy-stat-label">指向性 D</view>
-        <view class="sy-stat-value num">{{stats.directivity}} dB</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">指向性 D₀（数值积分）</view>
+        <view class="tp-stat-value tp-c-accent">{{stats.d0}}</view>
       </view>
-      <view class="sy-stat">
-        <view class="sy-stat-label">效率 η</view>
-        <view class="sy-stat-value num">{{stats.efficiency}}</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">锥削效率 ηₜ（口径效率）</view>
+        <view class="tp-stat-value tp-c-indigo">{{stats.eff}}</view>
       </view>
     </view>
   </view>
 
-  <!-- 公式说明 -->
-  <view class="sy-formula-note rise">
-    <view class="kicker">阵因子公式</view>
-    <view class="sy-formula-item">AF(θ) = Σ wₙ · e^{j2πd(n−m)sinθ}</view>
-    <view class="sy-formula-item">m = (N−1)/2  （阵列中心）</view>
-    <view class="sy-formula-item">均匀：wₙ = 1</view>
-    <view class="sy-formula-item">余弦：wₙ = cos[π(n−m)/N]</view>
-    <view class="sy-formula-item">汉明：wₙ = 0.54 + 0.46cos[2π(n−m)/N]</view>
-    <view class="sy-formula-item">切比雪夫：Dolph 方法（等旁瓣）</view>
+  <!-- 公式注脚 -->
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">所用公式</view>
+    <view class="tp-formula-line">AF(θ) = Σ wₙ·e^{j2π(d/λ)(n−m)sinθ}，m = (N−1)/2</view>
+    <view class="tp-formula-line">余弦：wₙ = cos[π(n−m)/(N−1)]　汉明：wₙ = 0.54 + 0.46cos[2π(n−m)/(N−1)]</view>
+    <view class="tp-formula-line">切比雪夫：wₙ = IDFT[T₍N₋₁₎(x₀cos(πk/N))]，x₀ = cosh[acosh(R)/(N−1)]，R = 10^(|SLL|/20)</view>
+    <view class="tp-formula-line">D₀ = 2 / ∫|AFₙ(θ)|²cosθ dθ　·　ηₜ = (Σ|wₙ|)² / (N·Σwₙ²)</view>
+    <view class="tp-formula-cond">适用条件：侧射线阵（未加扫描相位）、各向同性阵元；窗函数取对称约定（分母 N−1，余弦端点归零、汉明端点 0.08）；D₀ 按线阵绕轴对称数值积分，对任意 d/λ 有效（含栅瓣）；ηₜ 是口径锥削效率，非辐射效率；主瓣宽于 ±90° 找不到 −3dB 点时 HPBW 显示 —；扫描阵不出栅瓣需 d/λ &lt; 1/(1+|sinθ₀|)。</view>
   </view>
 
 </view>

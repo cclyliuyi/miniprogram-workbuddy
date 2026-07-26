@@ -1,116 +1,94 @@
 <!-- pages/interactive/smith-chart/smith-chart.wxml —— 交互式 Smith 圆图 -->
-<view class="screen sc">
+<view class="screen tp-page">
 
-  <view class="sc-head rise">
+  <view class="tp-head rise">
     <view class="kicker">SMITH CHART</view>
-    <view class="sc-title display">阻抗圆图</view>
-    <view class="sc-sub">点击圆图任意位置 · 实时求解 Γ 和 Z</view>
+    <view class="tp-title display">阻抗圆图</view>
+    <view class="tp-sub">触摸 / 拖动圆图任意位置 · 实时求解 Γ 与 Z</view>
   </view>
 
-  <!-- Smith 圆图 Canvas -->
-  <view class="sc-canvas-wrap rise">
+  <!-- Smith 圆图 -->
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">Smith 圆图 · 外环为波长刻度（朝发生器）</view>
     <canvas
       type="2d"
       id="smithCanvas"
       class="sc-canvas"
-      bindtap="onCanvasTap"
+      bindtouchstart="onCanvasTouch"
       bindtouchmove="onCanvasMove"></canvas>
   </view>
 
   <!-- 输入区 -->
-  <view class="sc-section rise">
+  <view class="tp-section rise">
     <view class="kicker">归一化阻抗输入</view>
-    <view class="sc-field-row">
-      <view class="sc-field-half">
-        <text class="sc-label">参考阻抗 Z₀</text>
-        <input class="sc-input num" type="digit" value="{{z0}}" bindinput="onZ0" />
-        <text class="sc-hint">Ω（通常 50Ω）</text>
-      </view>
-      <view class="sc-field-half">
-        <text class="sc-label">频率 f（可选）</text>
-        <input class="sc-input num" type="digit" value="{{freq}}" bindinput="onFreq" />
-        <text class="sc-hint">MHz — 计算电长度</text>
-      </view>
+    <view class="tp-input-row">
+      <text class="tp-input-label">参考阻抗 Z₀ (Ω)</text>
+      <input class="tp-input num" type="digit" value="{{z0}}" bindinput="onZ0" />
     </view>
-    <view class="sc-field-row">
-      <view class="sc-field-half">
-        <text class="sc-label">归一化电阻 r</text>
-        <input class="sc-input num" type="digit" value="{{zR}}" bindinput="onZR" />
-      </view>
-      <view class="sc-field-half">
-        <text class="sc-label">归一化电抗 x</text>
-        <input class="sc-input num" type="digit" value="{{zX}}" bindinput="onZX" />
-      </view>
+    <view class="tp-input-row">
+      <text class="tp-input-label">归一化电阻 r</text>
+      <input class="tp-input num" type="text" value="{{zR}}" bindinput="onZR" />
     </view>
-    <view class="sc-quick-btns">
-      <view class="sc-quick" bindtap="setMatch">匹配 1+j0</view>
-      <view class="sc-quick" bindtap="setOpen">开路 ∞</view>
-      <view class="sc-quick" bindtap="setShort">短路 0</view>
-      <view class="sc-quick" bindtap="setExample">示例 0.5+j1</view>
-      <view class="sc-quick" bindtap="setExample2">容性 0.8−j0.6</view>
+    <view class="tp-input-row">
+      <text class="tp-input-label">归一化电抗 x</text>
+      <input class="tp-input num" type="text" value="{{zX}}" bindinput="onZX" />
+    </view>
+    <view class="tp-btns sc-btns">
+      <view class="tp-btn" bindtap="setMatch">匹配 1+j0</view>
+      <view class="tp-btn" bindtap="setShort">短路 Γ=−1</view>
+      <view class="tp-btn" bindtap="setOpen">开路 Γ=+1</view>
+      <view class="tp-btn" bindtap="setExample">感性 0.5+j1</view>
+      <view class="tp-btn" bindtap="setExample2">容性 0.8−j0.6</view>
+      <view class="tp-btn {{showY ? 'active' : ''}}" bindtap="toggleY">导纳网格</view>
     </view>
   </view>
 
   <!-- 结果 -->
-  <view class="sc-results pop" wx:if="{{gamma}}">
-    <view class="kicker sc-results-title">反射与驻波参数</view>
-    <view class="sc-result-grid">
-      <view class="sc-rc">
-        <view class="sc-rc-label">|Γ|</view>
-        <view class="sc-rc-value num">{{gamma}}</view>
+  <view class="tp-section pop" wx:if="{{res}}">
+    <view class="kicker">反射与驻波参数</view>
+    <view class="tp-stats-grid">
+      <view class="tp-stat">
+        <view class="tp-stat-label">|Γ| ∠Γ</view>
+        <view class="tp-stat-value tp-c-accent">{{res.gamma}} ∠{{res.gammaDeg}}°</view>
       </view>
-      <view class="sc-rc">
-        <view class="sc-rc-label">∠Γ</view>
-        <view class="sc-rc-value num">{{gammaDeg}}°</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">SWR</view>
+        <view class="tp-stat-value tp-c-accent">{{res.swr}}</view>
       </view>
-      <view class="sc-rc">
-        <view class="sc-rc-label">SWR</view>
-        <view class="sc-rc-value num sc-highlight">{{swr}}</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">回波损耗 RL</view>
+        <view class="tp-stat-value">{{res.rl}}</view>
       </view>
-      <view class="sc-rc">
-        <view class="sc-rc-label">回波损耗</view>
-        <view class="sc-rc-value num">{{returnLoss}} dB</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">失配损耗 ML</view>
+        <view class="tp-stat-value">{{res.ml}}</view>
       </view>
-      <view class="sc-rc">
-        <view class="sc-rc-label">失配损耗</view>
-        <view class="sc-rc-value num">{{mismatchLoss}} dB</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">节点 Q = |x/r|</view>
+        <view class="tp-stat-value">{{res.q}}</view>
       </view>
-      <view class="sc-rc">
-        <view class="sc-rc-label">Q 值</view>
-        <view class="sc-rc-value num">{{qValue}}</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">Γ（复数）</view>
+        <view class="tp-stat-value">{{res.gammaC}}</view>
       </view>
-    </view>
-
-    <view class="sc-impedance-display">
-      <view class="sc-imp-label">实际阻抗 Z</view>
-      <view class="sc-imp-val">
-        Z = <text class="num sc-highlight">{{realImpedance}}</text> + j<text class="num sc-highlight">{{imagImpedance}}</text> Ω
+      <view class="tp-stat tp-stat-wide">
+        <view class="tp-stat-label">实际阻抗 Z = z·Z₀</view>
+        <view class="tp-stat-value tp-c-teal">{{res.zStr}}</view>
       </view>
-    </view>
-
-    <view class="sc-impedance-display">
-      <view class="sc-imp-label">Γ 复数</view>
-      <view class="sc-imp-val">
-        Γ = <text class="num">{{gammaRe}}</text> + j<text class="num">{{gammaIm}}</text>
-      </view>
-    </view>
-
-    <view class="sc-impedance-display" wx:if="{{zLdisplay}}">
-      <view class="sc-imp-label">导纳 Y（归一化）</view>
-      <view class="sc-imp-val">
-        Y = <text class="num">{{yG}}</text> + j<text class="num">{{yB}}</text>
+      <view class="tp-stat tp-stat-wide">
+        <view class="tp-stat-label">归一化导纳 y = g + jb</view>
+        <view class="tp-stat-value tp-c-indigo">{{res.yStr}}</view>
       </view>
     </view>
   </view>
 
-  <!-- 公式说明 -->
-  <view class="sc-formula-note rise">
-    <view class="kicker">关键公式</view>
-    <view class="sc-formula-item">Γ = (Z − Z₀) / (Z + Z₀)</view>
-    <view class="sc-formula-item">SWR = (1 + |Γ|) / (1 − |Γ|)</view>
-    <view class="sc-formula-item">回波损耗 RL = −20log|Γ|</view>
-    <view class="sc-formula-item">失配损耗 ML = −10log(1 − |Γ|²)</view>
-    <view class="sc-formula-item">Y = 1/Z → 归一化 y = g + jb</view>
+  <!-- 公式注脚 -->
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">所用公式</view>
+    <view class="tp-formula-line">Γ = (z−1)/(z+1)，z = Z/Z₀　·　SWR = (1+|Γ|)/(1−|Γ|)</view>
+    <view class="tp-formula-line">RL = −20lg|Γ|　·　ML = −10lg(1−|Γ|²)　·　y = 1/z = (1−Γ)/(1+Γ)</view>
+    <view class="tp-formula-line">等电阻圆：心(r/(1+r), 0)，半径 1/(1+r)　·　等电抗弧：心(1, ±1/x)，半径 1/|x|</view>
+    <view class="tp-formula-cond">适用条件：无源负载（|Γ|≤1）、Z₀ 为实数；短路 Γ=−1、开路 Γ=+1、匹配 Γ=0；节点 Q=|x/r| 对串联阻抗点定义，r=0 时无定义（显示 —）；外环波长刻度 0→0.5λ 朝发生器（顺时针，Γ 相位每 0.5λ 转一周）。</view>
   </view>
 
 </view>

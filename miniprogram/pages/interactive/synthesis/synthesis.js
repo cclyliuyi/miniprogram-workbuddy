@@ -1,365 +1,251 @@
-// pages/interactive/synthesis/synthesis.js —— 方向图综合与加权
-// 核心：
-//   阵因子 AF(θ) = Σ wₙ · e^{j 2π (d/λ)(n-m) sinθ}
-//   m = (N-1)/2
-//   归一化 dB: 20log10(|AF| / |AF|max)
-//   加权方式：uniform / cosine / hamming / chebyshev
-//   Dolph-Chebyshev：用切比雪夫多项式 T_n(x) 计算等旁瓣加权
+// pages/interactive/synthesis/synthesis.js —— 线阵方向图综合（阵因子 · 加权窗）
+// 物理（全部来自 utils/rf-math，无魔法系数）：
+//   阵因子 AF(θ) = Σ wₙ e^{j2π(d/λ)(n−m)sinθ}，m=(N−1)/2，侧射阵（未加扫描相位）
+//   窗权：uniform / cosine / hamming（对称约定，分母 N−1）
+//   Dolph–Chebyshev：rf.chebyshevWeights（频域采样逆 DFT，已数值验证等纹波精确）
+//   指向性 D₀ = 2/∫|AFₙ(θ)|²cosθ dθ（各向同性阵元，数值积分，任意 d/λ 有效）
+//   锥削效率 ηₜ = (Σ|wₙ|)²/(N·Σwₙ²)
 
 const haptic = require('../../../utils/haptic')
+const rf = require('../../../utils/rf-math')
+const lc = require('../../../utils/lab-canvas')
+const { THEME, alpha } = require('../../../utils/lab-theme')
+
+const W_LABELS = { uniform: '均匀', cosine: '余弦', hamming: '汉明', chebyshev: '切比雪夫' }
+const SAMPLES = 721 // 0.25° 步长
 
 Page({
   data: {
-    S: {
-      N: 12,
-      d: 0.5,
-      w: 'uniform',
-      sll: -20, // dB (chebyshev)
-    },
+    S: { N: 12, d: 0.5, w: 'uniform', sll: -20 },
+    wLabel: W_LABELS.uniform,
     stats: null,
   },
 
   onLoad() { this.update() },
   onReady() { this.update() },
 
-  // ═══ 参数 ═══
-  onN(e)   { this.setData({ 'S.N': e.detail.value }, () => this.update()) },
-  onD(e)   { this.setData({ 'S.d': e.detail.value }, () => this.update()) },
-  onSll(e) { this.setData({ 'S.sll': e.detail.value }, () => this.update()) },
-
-  setUniform()   { haptic.light(); this.setData({ 'S.w': 'uniform' },   () => this.update()) },
-  setCosine()    { haptic.light(); this.setData({ 'S.w': 'cosine' },    () => this.update()) },
-  setHamming()   { haptic.light(); this.setData({ 'S.w': 'hamming' },   () => this.update()) },
-  setChebyshev() { haptic.light(); this.setData({ 'S.w': 'chebyshev' }, () => this.update()) },
-
-  // ═══ 计算权值 ═══
-  computeWeights(S) {
-    const N = Math.round(S.N)
-    const m = (N - 1) / 2
-    const w = new Array(N)
-
-    switch (S.w) {
-      case 'uniform':
-        for (let n = 0; n < N; n++) w[n] = 1.0
-        break
-      case 'cosine':
-        for (let n = 0; n < N; n++) w[n] = Math.cos(Math.PI * (n - m) / N)
-        break
-      case 'hamming':
-        for (let n = 0; n < N; n++) w[n] = 0.54 + 0.46 * Math.cos(2 * Math.PI * (n - m) / N)
-        break
-      case 'chebyshev':
-        const cheb = this.chebWeights(N, S.sll)
-        for (let n = 0; n < N; n++) w[n] = cheb[n]
-        break
-    }
-    return w
+  // ═══ 事件（slider：bindchanging 实时 + bindchange 收尾，共用处理器）═══
+  onN(e) { this.setData({ 'S.N': e.detail.value }); this.updateThrottled() },
+  onD(e) {
+    const v = Math.round(e.detail.value * 100) / 100
+    this.setData({ 'S.d': v })
+    this.updateThrottled()
+  },
+  onSll(e) { this.setData({ 'S.sll': e.detail.value }); this.updateThrottled() },
+  setWeight(e) {
+    haptic.light()
+    const w = e.currentTarget.dataset.w || 'uniform'
+    this.setData({ 'S.w': w, wLabel: W_LABELS[w] }, () => this.update())
   },
 
-  // Dolph-Chebyshev 加权
-  // 旁瓣电平 sll_dB → 主旁瓣比 R = 10^(|sll|/20)
-  // x0 = cosh(acosh(R) / (N-1))
-  // 权值 = IFT[T_{N-1}(x0 cos(πn/N))] 的实部
-  chebWeights(N, sll_dB) {
-    const R = Math.pow(10, Math.abs(sll_dB) / 20)
-    const Nm1 = N - 1
-    // x0 = cosh(acosh(R)/(N-1))
-    const acoshR = Math.log(R + Math.sqrt(R * R - 1))
-    const x0 = Math.cosh(acoshR / Nm1)
-
-    // 用频域采样法计算权值
-    // w[n] = (1/N) Σ_{k=0}^{N-1} W[k] e^{j 2π kn/N}
-    // W[k] = (-1)^k T_{N-1}(x0 cos(πk/N))
-    const w = new Array(N)
-    for (let n = 0; n < N; n++) {
-      let re = 0
-      for (let k = 0; k < N; k++) {
-        const xk = x0 * Math.cos(Math.PI * k / N)
-        const Tk = this.chebPoly(Nm1, xk)
-        const phase = 2 * Math.PI * k * n / N
-        const sign = k > Nm1 / 2 || (Nm1 % 2 === 1 && k === Math.round(Nm1 / 2)) ? Math.pow(-1, k) : Math.pow(-1, k)
-        re += sign * Tk * Math.cos(phase)
-      }
-      w[n] = re / N
-    }
-
-    // 归一化使最大权值为 1
-    let maxW = 0
-    for (let i = 0; i < N; i++) if (Math.abs(w[i]) > maxW) maxW = Math.abs(w[i])
-    if (maxW > 0) for (let i = 0; i < N; i++) w[i] /= maxW
-
-    return w
+  // ═══ 物理 ═══
+  _calcWeights(S) {
+    const N = Math.max(2, Math.round(S.N))
+    if (S.w === 'chebyshev') return rf.chebyshevWeights(N, Math.abs(S.sll))
+    return rf.taperWeights(N, S.w)
   },
 
-  // 切比雪夫多项式 T_n(x)
-  // T_0 = 1, T_1 = x, T_{n+1} = 2x T_n - T_{n-1}
-  chebPoly(n, x) {
-    if (n <= 0) return 1
-    if (n === 1) return x
-    let Tnm2 = 1, Tnm1 = x
-    for (let i = 2; i <= n; i++) {
-      const Tn = 2 * x * Tnm1 - Tnm2
-      Tnm2 = Tnm1
-      Tnm1 = Tn
+  // 归一化方向图采样：[{theta(°), mag(0..1), dB}]
+  _calcPattern(w, d) {
+    const pat = new Array(SAMPLES)
+    let maxM = 0
+    for (let i = 0; i < SAMPLES; i++) {
+      const theta = -90 + 180 * i / (SAMPLES - 1)
+      const psi = 2 * Math.PI * d * Math.sin(theta * Math.PI / 180)
+      const mag = rf.afWeighted(w, psi)
+      pat[i] = { theta, mag }
+      if (mag > maxM) maxM = mag
     }
-    return Tnm1
+    for (let i = 0; i < SAMPLES; i++) {
+      const nrm = maxM > 0 ? pat[i].mag / maxM : 0
+      pat[i].mag = nrm
+      pat[i].dB = nrm > 1e-9 ? 20 * Math.log10(nrm) : -180
+    }
+    return pat
   },
 
-  // ═══ 阵因子计算 ═══
-  // AF(θ) = Σ wₙ e^{j 2π (d/λ)(n-m) sinθ}
-  // 返回归一化 dB 方向图
-  computePattern(w, d, N) {
-    const m = (N - 1) / 2
-    const samples = 361 // 0.5° 步长
-    const pattern = new Array(samples)
-
-    let maxAF = 0
-    for (let i = 0; i < samples; i++) {
-      const theta = -90 + (i / (samples - 1)) * 180 // -90° ~ 90°
-      const sinT = Math.sin(theta * Math.PI / 180)
-      let re = 0, im = 0
-      for (let n = 0; n < N; n++) {
-        const phase = 2 * Math.PI * d * (n - m) * sinT
-        re += w[n] * Math.cos(phase)
-        im += w[n] * Math.sin(phase)
+  _calcStats(pat, w) {
+    const N = w.length
+    // 峰值（侧射阵在 θ=0）
+    let pk = 0
+    for (let i = 1; i < pat.length; i++) if (pat[i].mag > pat[pk].mag) pk = i
+    // HPBW：从峰值向两侧找 −3dB 交点（线性内插）；找不到 → null（显示 —）
+    const cross = (dir) => {
+      for (let i = pk; i + dir >= 0 && i + dir < pat.length; i += dir) {
+        const a = pat[i], b = pat[i + dir]
+        if (a.dB >= -3 && b.dB < -3) {
+          return a.theta + (b.theta - a.theta) * (a.dB + 3) / (a.dB - b.dB)
+        }
       }
-      const mag = Math.sqrt(re * re + im * im)
-      pattern[i] = { theta, mag }
-      if (mag > maxAF) maxAF = mag
+      return null
     }
-
-    // 转 dB
-    for (let i = 0; i < samples; i++) {
-      const norm = maxAF > 0 ? pattern[i].mag / maxAF : 0
-      pattern[i].dB = norm > 1e-10 ? 20 * Math.log10(norm) : -100
+    const thR = cross(1), thL = cross(-1)
+    const hpbw = (thL != null && thR != null) ? thR - thL : null
+    // SLL：先找主瓣两侧第一个局部极小（null），零点以外搜全局最大（与主瓣宽度无关）
+    let sll = -Infinity, found = false
+    let i = pk
+    while (i < pat.length - 1 && pat[i + 1].mag <= pat[i].mag) i++
+    if (i < pat.length - 1) {
+      found = true
+      for (let j = i; j < pat.length; j++) if (pat[j].dB > sll) sll = pat[j].dB
     }
-
-    return { pattern, maxAF }
+    i = pk
+    while (i > 0 && pat[i - 1].mag <= pat[i].mag) i--
+    if (i > 0) {
+      found = true
+      for (let j = i; j >= 0; j--) if (pat[j].dB > sll) sll = pat[j].dB
+    }
+    if (!found) sll = null
+    // 指向性：D₀ = 2/∫|AFₙ(θ)|²cosθ dθ（线阵绕轴对称，θ 自侧射向量起，梯形积分）
+    let integ = 0
+    for (let k = 0; k < pat.length - 1; k++) {
+      const t1 = pat[k].theta * Math.PI / 180
+      const t2 = pat[k + 1].theta * Math.PI / 180
+      const f1 = pat[k].mag * pat[k].mag * Math.cos(t1)
+      const f2 = pat[k + 1].mag * pat[k + 1].mag * Math.cos(t2)
+      integ += 0.5 * (f1 + f2) * (t2 - t1)
+    }
+    const d0Db = integ > 0 ? 10 * Math.log10(2 / integ) : 0
+    // 锥削（口径）效率
+    let sw = 0, sw2 = 0
+    for (let n = 0; n < N; n++) { sw += Math.abs(w[n]); sw2 += w[n] * w[n] }
+    const eff = sw2 > 0 ? sw * sw / (N * sw2) : 1
+    return { hpbw, thL, thR, sll, d0Db, eff }
   },
 
-  // ═══ 统计信息 ═══
-  computeStats(pattern, w, N) {
-    // HPBW
-    const mainBeamIdx = pattern.findIndex(p => p.dB >= -3)
-    let hpbw = 0
-    if (mainBeamIdx >= 0) {
-      // 找到主瓣 -3dB 点（正向和负向）
-      const center = Math.floor(pattern.length / 2)
-      let leftIdx = center, rightIdx = center
-      for (let i = center; i >= 0; i--) {
-        if (pattern[i].dB <= -3) { leftIdx = i; break }
-      }
-      for (let i = center; i < pattern.length; i++) {
-        if (pattern[i].dB <= -3) { rightIdx = i; break }
-      }
-      hpbw = pattern[rightIdx].theta - pattern[leftIdx].theta
-    }
-
-    // 最大旁瓣
-    const center = Math.floor(pattern.length / 2)
-    let sllMax = -100
-    // 搜索旁瓣：跳过主瓣区域 (±5° around boresight)
-    for (let i = 0; i < pattern.length; i++) {
-      if (Math.abs(i - center) > 10 && pattern[i].dB > sllMax) {
-        sllMax = pattern[i].dB
-      }
-    }
-
-    // 指向性 ≈ 2 * d * N (均匀加权时近似)
-    let sumW2 = 0
-    for (let i = 0; i < N; i++) sumW2 += w[i] * w[i]
-    let sumW = 0
-    for (let i = 0; i < N; i++) sumW += Math.abs(w[i])
-    const directivity = sumW > 0 ? 20 * Math.log10(Math.abs(sumW) / Math.sqrt(sumW2)) : 0
-    const efficiency = sumW2 > 0 ? (sumW * sumW) / (N * sumW2) : 1
-
-    return {
-      hpbw: hpbw.toFixed(1),
-      sll: sllMax.toFixed(1),
-      directivity: directivity.toFixed(1),
-      efficiency: (efficiency * 100).toFixed(0) + '%',
+  // ═══ 更新（拖动节流 ~30fps）═══
+  updateThrottled() {
+    const now = Date.now()
+    if (now - (this._lastUpd || 0) >= 33) {
+      this._lastUpd = now
+      this.update()
+    } else {
+      clearTimeout(this._updTimer)
+      this._updTimer = setTimeout(() => { this._lastUpd = Date.now(); this.update() }, 40)
     }
   },
 
-  // ═══ 更新 + 绘图 ═══
   update() {
     const S = this.data.S
-    const w = this.computeWeights(S)
-    const N = Math.round(S.N)
-    const { pattern } = this.computePattern(w, S.d, N)
-    const stats = this.computeStats(pattern, w, N)
-    this.setData({ stats })
+    const w = this._calcWeights(S)
+    const pat = this._calcPattern(w, S.d)
+    const st = this._calcStats(pat, w)
     this._weights = w
-    this._pattern = pattern
-    this.drawPattern()
-    this.drawWeights()
+    this._pattern = pat
+    this._st = st
+    this.setData({
+      stats: {
+        hpbw: st.hpbw == null ? '—' : st.hpbw.toFixed(1) + '°',
+        sll: st.sll == null ? '—' : st.sll.toFixed(1) + ' dB',
+        d0: st.d0Db.toFixed(1) + ' dBi',
+        eff: (st.eff * 100).toFixed(0) + '%',
+      },
+    })
+    this.draw()
   },
 
-  // ═══ 绘方向图 ═══
-  drawPattern() {
-    const query = wx.createSelectorQuery()
-    query.select('#patternCanvas')
-      .fields({ node: true, size: true })
-      .exec((res) => {
-        if (!res || !res[0]) return
-        const canvas = res[0].node
-        const ctx = canvas.getContext('2d')
-        const dpr = wx.getWindowInfo().pixelRatio
-        const w = res[0].width, h = res[0].height
-        canvas.width = w * dpr
-        canvas.height = h * dpr
-        ctx.scale(dpr, dpr)
-        this._drawPattern(ctx, w, h)
-      })
+  // ═══ 绘制 ═══
+  draw() {
+    lc.mount(this, '#patternCanvas', (ctx, w, h) => this._drawPattern(ctx, w, h))
+    lc.mount(this, '#weightsCanvas', (ctx, w, h) => this._drawWeights(ctx, w, h))
   },
 
   _drawPattern(ctx, w, h) {
-    ctx.clearRect(0, 0, w, h)
-    const pattern = this._pattern
-    if (!pattern) return
-
-    const padL = 40, padR = 16, padT = 12, padB = 32
-    const plotW = w - padL - padR
-    const plotH = h - padT - padB
-
-    // θ: -90° ~ +90°, dB: -60 ~ 0
-    const dBMin = -60, dBMax = 0
-    const x2px = (theta) => padL + ((theta + 90) / 180) * plotW
-    const y2px = (dB) => padT + ((dBMax - dB) / (dBMax - dBMin)) * plotH
-
-    // 网格
-    ctx.strokeStyle = 'rgba(155,147,132,0.12)'
-    ctx.lineWidth = 0.5
-    ctx.fillStyle = 'rgba(155,147,132,0.6)'
-    ctx.font = '9px sans-serif'
-    // 垂直 (每 30°)
-    ctx.textAlign = 'center'
-    for (let th = -90; th <= 90; th += 30) {
-      const px = x2px(th)
-      ctx.beginPath()
-      ctx.moveTo(px, padT)
-      ctx.lineTo(px, padT + plotH)
-      ctx.stroke()
-      ctx.fillText(th + '°', px, padT + plotH + 14)
+    lc.clear(ctx, w, h)
+    const pat = this._pattern, st = this._st, S = this.data.S
+    if (!pat || !st) return
+    const box = { x: 46, y: 20, w: w - 60, h: h - 58 }
+    const p = lc.plot(ctx, box, [-90, 90], [-60, 0])
+    // 栅瓣危险区（侧射阵：d ≥ λ 时栅瓣进入可见空间，判据 rf.gratingLobeLimit）
+    const glLimit = rf.gratingLobeLimit(0)
+    if (S.d >= glLimit - 1e-9) {
+      const thg = Math.asin(Math.min(1, 1 / S.d)) * 180 / Math.PI
+      p.bandX(Math.max(45, thg - 12), 90)
+      p.bandX(-90, -Math.max(45, thg - 12))
     }
-    // 水平 (每 10 dB)
-    ctx.textAlign = 'right'
-    for (let dB = 0; dB >= dBMin; dB -= 10) {
-      const py = y2px(dB)
-      ctx.beginPath()
-      ctx.moveTo(padL, py)
-      ctx.lineTo(padL + plotW, py)
-      ctx.stroke()
-      ctx.fillText(dB + '', padL - 4, py + 3)
-    }
-
-    // 轴标注
-    ctx.fillStyle = 'rgba(155,147,132,0.8)'
-    ctx.font = '10px sans-serif'
-    ctx.textAlign = 'center'
-    ctx.fillText('θ (deg)', padL + plotW / 2, h - 2)
-    ctx.save()
-    ctx.translate(10, padT + plotH / 2)
-    ctx.rotate(-Math.PI / 2)
-    ctx.fillText('AF (dB)', 0, 0)
-    ctx.restore()
-
-    // 画曲线
-    ctx.strokeStyle = '#b06a4f'
-    ctx.lineWidth = 1.8
-    ctx.beginPath()
-    for (let i = 0; i < pattern.length; i++) {
-      const px = x2px(pattern[i].theta)
-      const dB = Math.max(pattern[i].dB, dBMin)
-      const py = y2px(dB)
-      if (i === 0) ctx.moveTo(px, py)
-      else ctx.lineTo(px, py)
-    }
-    ctx.stroke()
-
-    // 填充
-    ctx.lineTo(x2px(90), padT + plotH)
-    ctx.lineTo(x2px(-90), padT + plotH)
-    ctx.closePath()
-    ctx.fillStyle = 'rgba(176,106,79,0.06)'
-    ctx.fill()
-  },
-
-  // ═══ 绘加权柱状图 ═══
-  drawWeights() {
-    const query = wx.createSelectorQuery()
-    query.select('#weightsCanvas')
-      .fields({ node: true, size: true })
-      .exec((res) => {
-        if (!res || !res[0]) return
-        const canvas = res[0].node
-        const ctx = canvas.getContext('2d')
-        const dpr = wx.getWindowInfo().pixelRatio
-        const w = res[0].width, h = res[0].height
-        canvas.width = w * dpr
-        canvas.height = h * dpr
-        ctx.scale(dpr, dpr)
-        this._drawWeights(ctx, w, h)
+    p.axes({
+      xTicks: [-90, -60, -30, 0, 30, 60, 90],
+      xFmt: (v) => v + '°',
+      yTicks: [-60, -50, -40, -30, -20, -10, 0],
+      xLabel: 'θ（°，自阵法向）',
+      yLabel: '归一化阵因子（dB）',
+    })
+    const xs = pat.map((q) => q.theta)
+    const ys = pat.map((q) => Math.max(-60, q.dB))
+    p.area(xs, ys, THEME.accent, -60)
+    p.line(xs, ys, THEME.accent, 2)
+    lc.label(ctx, 'AF(θ)', p.X(4), p.Y(-1) + 14, { color: THEME.accent, font: THEME.fontLabel })
+    // −3 dB 参考线 + HPBW 竖参考线
+    p.guideY(-3, alpha(THEME.gold, 0.9))
+    lc.label(ctx, '−3 dB', box.x + box.w - 4, p.Y(-3) - 4, {
+      align: 'right', color: THEME.gold, font: THEME.fontTick,
+    })
+    if (st.hpbw != null) {
+      p.guideX(st.thL, alpha(THEME.gold, 0.7))
+      p.guideX(st.thR, alpha(THEME.gold, 0.7))
+      lc.label(ctx, 'HPBW ' + st.hpbw.toFixed(1) + '°', p.X(0), box.y + 12, {
+        align: 'center', color: THEME.gold, font: THEME.fontLabel,
       })
+    }
+    // 实测最大旁瓣水平线
+    if (st.sll != null && st.sll > -58) {
+      p.guideY(st.sll, alpha(THEME.teal, 0.9))
+      lc.label(ctx, 'SLL ' + st.sll.toFixed(1) + ' dB', box.x + 4, p.Y(st.sll) - 4, {
+        color: THEME.teal, font: THEME.fontTick,
+      })
+    }
+    // 栅瓣提示文字
+    if (S.d >= glLimit - 1e-9) {
+      lc.label(ctx, '栅瓣区（d ≥ λ）', box.x + box.w - 4, box.y + 26, {
+        align: 'right', color: THEME.danger, font: THEME.fontLabel,
+      })
+    } else if (S.d > 0.5) {
+      lc.label(ctx, 'd > λ/2：扫描时将出现栅瓣', box.x + box.w - 4, box.y + 26, {
+        align: 'right', color: THEME.muted, font: THEME.fontTick,
+      })
+    }
   },
 
   _drawWeights(ctx, w, h) {
-    ctx.clearRect(0, 0, w, h)
-    const weights = this._weights
-    if (!weights) return
-
-    const N = weights.length
-    const padL = 24, padR = 24, padT = 12, padB = 28
-    const plotW = w - padL - padR
-    const plotH = h - padT - padB
-
-    // 权值范围 0~1.1
-    const wMax = 1.15
-    const barW = plotW / N * 0.7
-    const gap = plotW / N * 0.3
-
-    // 基线
-    const baselineY = padT + plotH
-    ctx.strokeStyle = 'rgba(155,147,132,0.3)'
-    ctx.lineWidth = 0.8
-    ctx.beginPath()
-    ctx.moveTo(padL, baselineY)
-    ctx.lineTo(padL + plotW, baselineY)
-    ctx.stroke()
-
-    // 柱
-    for (let i = 0; i < N; i++) {
-      const x = padL + i * (plotW / N) + gap / 2
-      const barH = (Math.abs(weights[i]) / wMax) * plotH
-      const y = baselineY - barH
-      ctx.fillStyle = weights[i] >= 0 ? 'rgba(176,106,79,0.7)' : 'rgba(122,145,129,0.7)'
-      // 圆角矩形
-      const r = Math.min(barW / 2, 3)
-      ctx.beginPath()
-      ctx.moveTo(x + r, y)
-      ctx.lineTo(x + barW - r, y)
-      ctx.quadraticCurveTo(x + barW, y, x + barW, y + r)
-      ctx.lineTo(x + barW, baselineY)
-      ctx.lineTo(x, baselineY)
-      ctx.lineTo(x, y + r)
-      ctx.quadraticCurveTo(x, y, x + r, y)
-      ctx.closePath()
-      ctx.fill()
+    lc.clear(ctx, w, h)
+    const wts = this._weights
+    if (!wts) return
+    const N = wts.length
+    let wMin = 0
+    for (let n = 0; n < N; n++) if (wts[n] < wMin) wMin = wts[n]
+    const hasNeg = wMin < -1e-6
+    const yMin = hasNeg ? Math.min(-0.3, wMin * 1.15) : 0
+    const box = { x: 46, y: 16, w: w - 60, h: h - 62 }
+    const p = lc.plot(ctx, box, [0.5, N + 0.5], [yMin, 1.08])
+    const step = N > 20 ? 4 : N > 10 ? 2 : 1
+    const xTicks = []
+    for (let n = 1; n <= N; n += step) xTicks.push(n)
+    p.axes({
+      xTicks,
+      xFmt: (v) => String(v),
+      yTicks: hasNeg ? [-1, -0.5, 0, 0.5, 1] : [0, 0.25, 0.5, 0.75, 1],
+      xLabel: '阵元序号 n',
+      yLabel: '权值 wₙ（归一化）',
+    })
+    const y0 = p.Y(0)
+    const bw = Math.max(3, box.w / N * 0.55)
+    for (let n = 0; n < N; n++) {
+      const xc = p.X(n + 1)
+      const yv = p.Y(wts[n])
+      ctx.fillStyle = wts[n] >= 0 ? alpha(THEME.accent, 0.85) : alpha(THEME.indigo, 0.85)
+      ctx.fillRect(xc - bw / 2, Math.min(y0, yv), bw, Math.max(1, Math.abs(yv - y0)))
     }
+    // 零基线
+    ctx.strokeStyle = THEME.axis
+    ctx.lineWidth = 1
+    ctx.beginPath(); ctx.moveTo(box.x, y0); ctx.lineTo(box.x + box.w, y0); ctx.stroke()
+    // 图例（负权 = 反相馈电，仅靠颜色不够）
+    const items = [{ name: '正权', color: THEME.accent }]
+    if (hasNeg) items.push({ name: '负权（反相馈电）', color: THEME.indigo })
+    lc.legend(ctx, items, box.x, h - 8)
+  },
 
-    // 阵元号标注
-    ctx.fillStyle = 'rgba(155,147,132,0.5)'
-    ctx.font = '8px sans-serif'
-    ctx.textAlign = 'center'
-    const labelStep = N > 16 ? Math.ceil(N / 8) : 1
-    for (let i = 0; i < N; i += labelStep) {
-      const x = padL + i * (plotW / N) + (plotW / N) / 2
-      ctx.fillText((i + 1) + '', x, baselineY + 14)
-    }
-
-    // Y 轴标注
-    ctx.textAlign = 'right'
-    ctx.fillText('1.0', padL - 4, padT + 8)
-    ctx.fillText('0', padL - 4, baselineY + 3)
+  onShareAppMessage() {
+    return { title: '阵列综合 · 方向图加权实验', path: '/pages/interactive/synthesis/synthesis' }
   },
 })
