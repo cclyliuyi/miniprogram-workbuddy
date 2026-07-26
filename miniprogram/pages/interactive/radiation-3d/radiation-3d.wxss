@@ -1,40 +1,33 @@
 /* pages/interactive/radiation-3d/radiation-3d.wxss —— 三维辐射方向图 */
-.r3d { padding-top: 20rpx; }
+@import "../../../styles/tool-ui.wxss";
 
-.r3d-head { padding: 20rpx 12rpx 24rpx; }
-.r3d-title { font-size: 44rpx; margin: 8rpx 0 4rpx; }
-.r3d-sub { font-size: 24rpx; color: var(--muted); }
-
-/* ── Canvas ── */
+/* ── WebGL 画布（纸色舞台，scene.background 同为 0xf3efe6）── */
 .r3d-canvas-wrap {
-  margin: 0 12rpx 20rpx;
-  padding: 0;
-  background: linear-gradient(168deg, #454b63 0%, #262b3c 52%, #161a26 100%);
-  border-radius: 20rpx;
-  border: 1rpx solid rgba(212, 173, 126, 0.14);
-  box-shadow: 0 8rpx 32rpx rgba(22, 26, 38, 0.35);
   position: relative;
+  border-radius: 14rpx;
   overflow: hidden;
+  background: var(--paper);
+  border: 1rpx solid var(--line-soft);
 }
 .r3d-canvas {
-  width: 686rpx;
+  width: 100%;
   height: 600rpx;
   display: block;
 }
 .r3d-hint {
   position: absolute;
-  bottom: 16rpx;
+  bottom: 14rpx;
   left: 50%;
   transform: translateX(-50%);
   font-size: 20rpx;
-  color: rgba(255,255,255,.35);
+  color: var(--muted);
   white-space: nowrap;
   transition: opacity 0.6s ease;
 }
 .r3d-hint.fade { opacity: 0; }
 
-/* WebGL 初始化骨架屏 */
-.lab3d-skel {
+/* 初始化骨架屏（纸色，遮住首帧） */
+.r3d-skel {
   position: absolute;
   inset: 0;
   display: flex;
@@ -42,98 +35,59 @@
   align-items: center;
   justify-content: center;
   gap: 20rpx;
-  background: linear-gradient(168deg, #454b63 0%, #262b3c 52%, #161a26 100%);
+  background: var(--paper);
   z-index: 2;
 }
-.lab3d-skel-ring {
+.r3d-skel-ring {
   width: 56rpx;
   height: 56rpx;
   border-radius: 50%;
-  border: 3rpx solid rgba(212, 173, 126, 0.25);
-  border-top-color: rgba(212, 173, 126, 0.9);
-  animation: lab3d-spin 0.9s linear infinite;
+  border: 3rpx solid rgba(184, 92, 56, 0.2);
+  border-top-color: rgba(184, 92, 56, 0.85);
+  animation: r3d-spin 0.9s linear infinite;
 }
-@keyframes lab3d-spin {
+@keyframes r3d-spin {
   to { transform: rotate(360deg); }
 }
-.lab3d-skel-text {
+.r3d-skel-text {
   font-size: 22rpx;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--muted);
   letter-spacing: 3rpx;
 }
 @media (prefers-reduced-motion: reduce) {
-  .lab3d-skel-ring { animation: none; }
+  .r3d-skel-ring { animation: none; }
   .r3d-hint { transition: none; }
 }
 
-/* ── 通用 section ── */
-.r3d-section {
-  margin: 0 12rpx 20rpx;
-  padding: 24rpx 28rpx;
-  background: var(--card);
-  border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.04);
+/* ── 色标（暖色顺序渐变，与曲面顶点色同源 lab-theme ramp）── */
+.r3d-legend { margin-top: 16rpx; padding: 0 8rpx; }
+.r3d-legend-grad {
+  height: 12rpx;
+  border-radius: 6rpx;
+  background: linear-gradient(to right,
+    #f6ece3, #eacdb7, #dcae8d, #cc8d66, #b86a44, #9c4f2f);
 }
-.r3d-section .kicker { margin-bottom: 16rpx; }
-
-/* ── 天线类型按钮 ── */
-.r3d-btns {
+.r3d-legend-ticks {
   display: flex;
-  flex-wrap: wrap;
-  gap: 16rpx;
+  justify-content: space-between;
+  margin-top: 6rpx;
 }
-.r3d-btn {
-  padding: 12rpx 28rpx;
-  border: 1rpx solid var(--line);
-  background: var(--bg-soft);
+.r3d-legend-tick {
+  font-size: 20rpx;
   color: var(--muted);
-  font-size: 26rpx;
-  border-radius: 12rpx;
-  transition: all .2s;
+  font-variant-numeric: tabular-nums;
 }
-.r3d-btn.on {
-  background: rgba(79,140,255,.15);
-  color: #4f8cff;
-  border-color: #4f8cff;
-}
-
-/* ── 方向图类型分段控制 ── */
-.r3d-seg {
-  display: flex;
-  gap: 16rpx;
-}
-.r3d-seg-btn {
-  flex: 1;
+.r3d-legend-cap {
   text-align: center;
-  padding: 14rpx 0;
-  border: 1rpx solid var(--line);
-  background: var(--bg-soft);
+  font-size: 20rpx;
   color: var(--muted);
-  font-size: 26rpx;
-  border-radius: 12rpx;
-}
-.r3d-seg-btn.on {
-  background: rgba(79,140,255,.15);
-  color: #4f8cff;
-  border-color: #4f8cff;
+  margin-top: 4rpx;
 }
 
-/* ── 滑块行 ── */
-.r3d-slider-row {
-  display: flex;
-  align-items: center;
-  padding: 4rpx 0;
-}
-.r3d-slider-label {
-  font-size: 26rpx;
-  color: var(--muted);
-}
-.r3d-slider {
-  margin: 8rpx 0 4rpx;
-}
+/* ── 分区内二级标题间距 ── */
+.r3d-kicker-gap { margin-top: 20rpx; }
 
-/* ── 开关组 ── */
+/* ── 开关组（页面特有控件，取色 var(--accent)）── */
 .r3d-toggles {
   display: flex;
   flex-wrap: wrap;
@@ -150,14 +104,14 @@
   height: 28rpx;
   border-radius: 50%;
   border: 2rpx solid var(--line);
-  background: var(--bg-soft);
+  background: var(--paper);
   display: inline-block;
   position: relative;
-  transition: all .2s;
+  transition: all 0.2s;
 }
 .r3d-toggle.on .r3d-toggle-dot {
-  background: #4f8cff;
-  border-color: #4f8cff;
+  background: var(--accent);
+  border-color: var(--accent);
 }
 .r3d-toggle.on .r3d-toggle-dot::after {
   content: '';
@@ -178,74 +132,10 @@
   color: var(--ink);
 }
 
-/* ── 统计参数 ── */
-.r3d-stats {
-  margin: 0 12rpx 20rpx;
-  padding: 24rpx 28rpx;
-  background: var(--card);
-  border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.04);
-}
-.r3d-stats-title { margin-bottom: 16rpx; }
-.r3d-stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16rpx;
-}
-.r3d-stat {
-  background: var(--bg-soft);
-  padding: 16rpx 20rpx;
-  border-radius: 12rpx;
-  border: 1rpx solid var(--line);
-}
-.r3d-stat-value {
-  font-size: 40rpx;
-  font-weight: 600;
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-}
-.r3d-stat-name {
+/* ── 读数卡内的说明行 ── */
+.r3d-stat-note {
+  margin-top: 14rpx;
   font-size: 22rpx;
   color: var(--muted);
-  margin-top: 4rpx;
-}
-
-/* ── 色标 ── */
-.r3d-legend {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-  margin-top: 20rpx;
-}
-.r3d-legend-lo, .r3d-legend-hi {
-  font-size: 20rpx;
-  color: var(--faint);
-}
-.r3d-legend-grad {
-  flex: 1;
-  height: 8px;
-  border-radius: 4px;
-  background: linear-gradient(to right, #0000ff, #00ffff, #00ff00, #ffff00, #ff0000);
-}
-.r3d-legend-cap {
-  text-align: center;
-  font-size: 20rpx;
-  color: var(--faint);
-  margin-top: 4rpx;
-}
-
-/* ── 提示 ── */
-.r3d-note {
-  margin: 0 12rpx 40rpx;
-  padding: 24rpx 28rpx;
-  background: var(--card);
-  border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-}
-.r3d-note .kicker { margin-bottom: 12rpx; }
-.r3d-note-item {
-  font-size: 24rpx;
-  color: var(--muted);
-  line-height: 1.8;
+  line-height: 1.6;
 }

@@ -1,15 +1,27 @@
-// pages/interactive/3d-lab/traveling-wave/traveling-wave.js —— 行波天线 3D (r108) · 深空暖金 v2
-const { createScopedThreejs } = require('threejs-miniprogram');
+// pages/interactive/3d-lab/traveling-wave/traveling-wave.js —— 行波天线 3D（r108）· 暖纸舞台
+// 物理模型（Balanis《Antenna Theory》4th，Ch.10）：
+//   线上电流（无耗）：I(z′) = e^{−jβz′} + Γ e^{+jβz′}，β = 2π/λ
+//   远场（含线元的元因子 sinΘ，Balanis 10-1a）：
+//     E(θ) ∝ Σ_臂 sinΘ_臂 · ∫₀ᴸ I(z′) e^{jβz′cosΘ_臂} dz′，Θ_臂 = 臂轴与观察方向夹角
+//   纯行波长线主瓣锥角 θmax ≈ arccos(1 − 0.371λ/L)（Balanis 10-4）；轴向为零点
+//   电流驻波比 SWR = (1+|Γ|)/(1−|Γ|)（Pozar 2-41）
 const { registerOrbitControls } = require('../orbit-controls');
 const stage = require('../lab3d-stage');
+const haptic = require('../../../../utils/haptic');
+const lc = require('../../../../utils/lab-canvas');
+const { THEME, alpha } = require('../../../../utils/lab-theme');
+const rf = require('../../../../utils/rf-math');
+
+const ASTEP = 2;                 // 方向图角度步长（°），全圆 180 点
+const WIRE_SCALE = 0.32;         // 场景缩放：1λ = 0.32 单位
 
 Page({
   data: {
     geo: 'line',
-    lSlider: 30, lVal: '3.0',
+    lSlider: 30, lVal: '3.0 λ',
     gSlider: 15, gVal: '0.15',
     angSlider: 35, angVal: '35°',
-    mainAng: '-', fb: '-', ripple: '-', mode: '-',
+    mainAng: '-', fb: '-', swr: '-', mode: '-',
     showHint: true,
     glReady: false,
   },
@@ -19,171 +31,213 @@ Page({
   wireGroup: null, currGroup: null, patternGroup: null,
   animId: null,
   state: { geo: 'line', L: 3, ref: 0.15, ang: 35, t: 0 },
+  _parts: null, _patCache: null,
   plotCtx: null, plotW: 0, plotH: 0,
 
-  onReady() { this.initThree(); this.init2D(); },
+  onReady() {
+    this.initThree();
+    stage.init2D(this, '#plot', (ctx, w, h) => {
+      this.plotCtx = ctx; this.plotW = w; this.plotH = h;
+      this.drawPlot(this.pattern());
+    });
+  },
   onUnload() { this.dispose(); },
   onHide() { this.stopAnim(); stage.clearTimers(this); },
   onShow() { if (this.canvasNode && this.renderer) { this.startAnim(); stage.scheduleIdle(this); } },
 
   initThree() {
-    const sel = this.createSelectorQuery();
-    sel.select('#three-canvas').fields({ node: true, size: true }).exec((res) => {
-      if (!res || !res[0]) return;
-      const r = res[0];
-      const canvas = r.node;
-      if (!canvas) return;
-      const cssW = r.width, cssH = r.height;
-      if (!cssW || !cssH) { setTimeout(() => this.initThree(), 200); return; }
+    stage.initThree(this, '#three-canvas', {
+      cameraPos: [1.8, 1.3, 2.1],
+      onReady: (env) => {
+        const THREE = env.THREE;
+        registerOrbitControls(THREE);
+        this.THREE = THREE;
+        this.canvasNode = env.canvas;
+        this.renderer = env.renderer;
+        this.scene = env.scene;
+        this.camera = env.camera;
 
-      this.canvasNode = canvas;
-      const dpr = wx.getWindowInfo().pixelRatio || 2;
+        const controls = new THREE.OrbitControls(this.camera, env.canvas);
+        controls.enableDamping = true;
+        controls.autoRotateSpeed = 1.0;
+        controls.target.set(0, 0, 0.35);
+        controls.update();
+        this.controls = controls;
+        this._home = stage.saveHome(controls);
 
-      const THREE = createScopedThreejs(canvas);
-      this.THREE = THREE;
-      registerOrbitControls(THREE);
+        const root = new THREE.Group();
+        this.scene.add(root);
+        this.root = root;
+        this.wireGroup = new THREE.Group();
+        this.currGroup = new THREE.Group();
+        this.patternGroup = new THREE.Group();
+        root.add(this.wireGroup, this.currGroup, this.patternGroup);
 
-      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-      renderer.setPixelRatio(Math.min(dpr, 2));
-      renderer.setSize(cssW, cssH, false);
-      renderer.setClearColor(stage.COL.bgEdge, 1);
-      this.renderer = renderer;
-
-      const scene = new THREE.Scene();
-      this.scene = scene;
-      const camera = new THREE.PerspectiveCamera(42, cssW / cssH, 0.01, 200);
-      this.camera = camera;
-
-      const controls = new THREE.OrbitControls(camera, canvas);
-      controls.enableDamping = true;
-      controls.autoRotateSpeed = 1.0;
-      this.controls = controls;
-
-      // 深空暖金舞台 + 三灯（方向图平面在 y=-0.58，地面放其下）
-      stage.buildStage(THREE, scene, { groundY: -0.85 });
-      stage.buildLights(THREE, scene);
-
-      const root = new THREE.Group();
-      scene.add(root);
-      this.root = root;
-
-      this.wireGroup = new THREE.Group();
-      this.currGroup = new THREE.Group();
-      this.patternGroup = new THREE.Group();
-      root.add(this.wireGroup, this.currGroup, this.patternGroup);
-
-      this.renderStatic();
-      this.startAnim();
-      stage.ready(this);
+        this.renderStatic();
+        this.startAnim();
+        stage.ready(this);
+      },
     });
   },
 
-  clearGroup(g) { stage.clearGroup(g); },
-
+  // 臂方向（单位向量，x-z 平面；长线沿 z，V 形对称于 z 轴）
   armDirs() {
-    const THREE = this.THREE;
     const S = this.state;
-    if (S.geo === 'line') return [new THREE.Vector3(0, 0, 1)];
+    if (S.geo === 'line') return [{ x: 0, z: 1 }];
     const a = S.ang * Math.PI / 180;
-    return [
-      new THREE.Vector3(Math.sin(a), 0, Math.cos(a)),
-      new THREE.Vector3(-Math.sin(a), 0, Math.cos(a))
-    ];
+    return [{ x: Math.sin(a), z: Math.cos(a) }, { x: -Math.sin(a), z: Math.cos(a) }];
   },
 
-  current(z) {
+  // 电流相量 I(z′) = e^{−jβz′} + Γe^{+jβz′}（z′ 以 λ 为单位，β=2π；与 t 无关）
+  currentPhasor(z) {
+    const G = this.state.ref;
+    const ph = 2 * Math.PI * z;
+    return { re: Math.cos(ph) * (1 + G), im: Math.sin(ph) * (G - 1) };
+  },
+  // 瞬时电流 Re{I(z′)e^{jωt}}（粒子动画用，含反射项的真实合成波）
+  currentInst(z) {
     const S = this.state;
-    return {
-      re: Math.cos(S.t - 2 * Math.PI * z) + S.ref * Math.cos(S.t + 2 * Math.PI * z),
-      im: Math.sin(S.t - 2 * Math.PI * z) + S.ref * Math.sin(S.t + 2 * Math.PI * z)
-    };
+    return Math.cos(S.t - 2 * Math.PI * z) + S.ref * Math.cos(S.t + 2 * Math.PI * z);
   },
 
+  // 远场幅度：|Σ臂 sinΘ·∫I e^{jβz cosΘ} dz|（梯形积分，采样 ~48 点/λ）
   af(deg) {
     const S = this.state;
     const th = deg * Math.PI / 180;
-    const THREE = this.THREE;
-    const obs = new THREE.Vector3(Math.sin(th), 0, Math.cos(th));
-    let re = 0, im = 0, N = 360;
-    for (const dir of this.armDirs()) {
+    const ox = Math.sin(th), oz = Math.cos(th);
+    const N = Math.min(400, Math.max(32, Math.round(48 * S.L)));
+    let re = 0, im = 0;
+    for (const d of this.armDirs()) {
+      const cosT = d.x * ox + d.z * oz;
+      const sinT = Math.sqrt(Math.max(0, 1 - cosT * cosT));   // 元因子
+      if (sinT < 1e-9) continue;
+      let ar = 0, ai = 0;
       for (let i = 0; i <= N; i++) {
         const z = S.L * i / N;
-        const c = this.current(z);
-        const ph = 2 * Math.PI * z * dir.dot(obs);
-        re += c.re * Math.cos(ph) - c.im * Math.sin(ph);
-        im += c.re * Math.sin(ph) + c.im * Math.cos(ph);
+        const w = (i === 0 || i === N) ? 0.5 : 1;
+        const c = this.currentPhasor(z);
+        const ph = 2 * Math.PI * z * cosT;
+        const cp = Math.cos(ph), sp = Math.sin(ph);
+        ar += w * (c.re * cp - c.im * sp);
+        ai += w * (c.re * sp + c.im * cp);
       }
+      re += sinT * ar;
+      im += sinT * ai;
     }
     return Math.hypot(re, im);
   },
 
+  // 全圆方向图（θ ∈ [−180°,180°)，缓存：t 不影响幅度）
   pattern() {
-    let vals = [], m = 0, main = 0;
-    for (let i = 0; i <= 360; i++) {
-      const deg = -90 + i * 0.5;
-      const v = this.af(deg);
+    const S = this.state;
+    const key = S.geo + '|' + S.L + '|' + S.ref + '|' + S.ang;
+    if (this._patCache && this._patCache.key === key) return this._patCache;
+
+    const n = 360 / ASTEP;
+    const vals = [];
+    let m = 0, mi = 0;
+    for (let i = 0; i < n; i++) {
+      const v = this.af(-180 + i * ASTEP);
       vals.push(v);
-      if (v > m) { m = v; main = deg; }
+      if (v > m) { m = v; mi = i; }
     }
-    return { vals: vals.map(v => v / (m || 1)), main };
+    const mainDeg = -180 + mi * ASTEP;
+    const back = vals[(mi + n / 2) % n];
+    const fbDb = 20 * Math.log10(m / Math.max(back, m * 1e-3));  // ≤60 dB 封顶
+    const p = {
+      key,
+      vals: vals.map((v) => v / (m || 1)),
+      step: ASTEP,
+      main: mainDeg,
+      mainFold: Math.abs(mainDeg) > 180 ? 360 - Math.abs(mainDeg) : Math.abs(mainDeg),
+      fb: fbDb,
+    };
+    this._patCache = p;
+    return p;
   },
 
-  layout() {
+  // ═══ 3D 场景（材质色一律取 stage.THEME3D）═══
+  layout(p) {
     const THREE = this.THREE;
+    if (!THREE) return;
+    const C = stage.THEME3D;
     const S = this.state;
-    this.clearGroup(this.wireGroup);
-    this.clearGroup(this.patternGroup);
+    stage.clearGroup(this.wireGroup);
+    stage.clearGroup(this.patternGroup);
+    stage.clearGroup(this.currGroup);
+    this._parts = null;
 
-    const scale = 0.32;
-    const wireMat = new THREE.LineBasicMaterial({ color: 0xffc45f });
-
-    for (const dir of this.armDirs()) {
-      const pts = [];
-      for (let i = 0; i <= 80; i++) pts.push(dir.clone().multiplyScalar(S.L * scale * i / 80));
+    // 导线 · 赭金
+    const wireMat = new THREE.LineBasicMaterial({ color: C.gold });
+    for (const d of this.armDirs()) {
+      const pts = [
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(d.x * S.L * WIRE_SCALE, 0, d.z * S.L * WIRE_SCALE),
+      ];
       this.wireGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), wireMat));
     }
 
-    const p = this.pattern();
-    const patMat = new THREE.LineBasicMaterial({ color: 0xf0e6d6, transparent: true, opacity: 0.78 });
+    // 方向图切面曲线（x-z 面，与导线同平面）· 赤陶
+    const patMat = new THREE.LineBasicMaterial({ color: C.accent });
     const pts = [];
     p.vals.forEach((v, i) => {
-      const th = (-90 + i * 0.5) * Math.PI / 180;
+      const th = (-180 + i * p.step) * Math.PI / 180;
       const rr = 0.8 * v;
-      pts.push(new THREE.Vector3(Math.sin(th) * rr, -0.58, Math.cos(th) * rr));
+      pts.push(new THREE.Vector3(Math.sin(th) * rr, 0, Math.cos(th) * rr));
     });
-    this.patternGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), patMat));
+    this.patternGroup.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts), patMat));
 
-    // 相机只在首次定位；之后用户视角不被参数修改打断
-    if (!this._camInit) {
-      this.camera.position.set(1.8, 1.3, 2.1);
-      this.controls.target.set(0, 0, 0.35);
-      this.controls.update();
-      this._home = stage.saveHome(this.controls);
-      this._camInit = true;
+    // 长线模式：方向图绕线轴旋成锥面 · 青绿半透明（旋转对称仅对单线成立）
+    if (S.geo === 'line') {
+      const half = [];                             // θ ∈ [0,180°]
+      for (let i = 0; i <= 180 / p.step; i++) half.push(p.vals[(i + 180 / p.step) % p.vals.length]);
+      const nphi = 40, pos = [], idx = [];
+      for (let i = 0; i < half.length; i++) {
+        const th = i * p.step * Math.PI / 180;
+        const rr = 0.8 * half[i];
+        for (let j = 0; j <= nphi; j++) {
+          const ph = j / nphi * Math.PI * 2;
+          pos.push(rr * Math.sin(th) * Math.cos(ph), rr * Math.sin(th) * Math.sin(ph), rr * Math.cos(th));
+        }
+      }
+      for (let i = 0; i < half.length - 1; i++) {
+        for (let j = 0; j < nphi; j++) {
+          const a = i * (nphi + 1) + j, b = a + 1, c = a + (nphi + 1), d = c + 1;
+          idx.push(a, c, b, b, c, d);
+        }
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.addAttribute('position', new THREE.Float32BufferAttribute(pos, 3));  // r108 API
+      geo.setIndex(idx);
+      geo.computeVertexNormals();
+      this.patternGroup.add(new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
+        color: C.teal, transparent: true, opacity: 0.12, side: THREE.DoubleSide,
+      })));
     }
-    this.controls.update();
+
+    // 电流粒子 · 赤陶：预分配（共享几何/材质），动画只改 position/scale
+    const partGeo = new THREE.SphereGeometry(0.022, 8, 8);
+    const partMat = new THREE.MeshBasicMaterial({ color: C.accent });
+    this._parts = [];
+    for (const d of this.armDirs()) {
+      for (let i = 0; i <= 26; i++) {
+        const m = new THREE.Mesh(partGeo, partMat);
+        this.currGroup.add(m);
+        this._parts.push({ m, d, z: S.L * i / 26 });
+      }
+    }
   },
 
+  // 粒子 = 瞬时合成电流 Re{I(z)e^{jωt}}（含反射项）：高度 = 瞬时值，大小 ∝ |瞬时值|
   updateCurrents() {
-    const THREE = this.THREE;
+    if (!this._parts) return;
     const S = this.state;
-    this.clearGroup(this.currGroup);
-
-    const scale = 0.32;
-    const fwdMat = new THREE.MeshBasicMaterial({ color: 0xffc45f });
-    const revMat = new THREE.MeshBasicMaterial({ color: 0x6c88e8 });
-
-    for (const dir of this.armDirs()) {
-      for (let i = 0; i <= 30; i++) {
-        const z = S.L * i / 30;
-        const c = this.current(z);
-        const amp = Math.min(0.055, 0.025 + 0.018 * Math.hypot(c.re, c.im));
-        const mat = c.re >= 0 ? fwdMat : revMat;
-        const s = new THREE.Mesh(new THREE.SphereGeometry(amp, 10, 10), mat);
-        s.position.copy(dir.clone().multiplyScalar(z * scale));
-        s.position.y = 0.08 * Math.sin(S.t - 2 * Math.PI * z);
-        this.currGroup.add(s);
-      }
+    const norm = 1 + S.ref;
+    for (const p of this._parts) {
+      const inst = this.currentInst(p.z) / norm;
+      p.m.position.set(p.d.x * p.z * WIRE_SCALE, 0.09 * inst, p.d.z * p.z * WIRE_SCALE);
+      const sc = 0.55 + 0.75 * Math.abs(inst);
+      p.m.scale.set(sc, sc, sc);
     }
   },
 
@@ -198,14 +252,12 @@ Page({
     };
     tick();
   },
-
   stopAnim() {
     if (this.animId && this.canvasNode) {
       this.canvasNode.cancelAnimationFrame(this.animId);
       this.animId = null;
     }
   },
-
   dispose() {
     this.stopAnim();
     stage.clearTimers(this);
@@ -217,19 +269,21 @@ Page({
   onTouchMove(e) { stage.touchMove(this, e); },
   onTouchEnd(e) { stage.touchEnd(this, e); },
 
+  // ═══ 参数控制 ═══
   onGeo(e) {
+    haptic.light();
     this.state.geo = e.currentTarget.dataset.g;
     this.setData({ geo: this.state.geo });
     this.renderStatic();
   },
   onL(e) {
     this.state.L = e.detail.value / 10;
-    this.setData({ lVal: this.state.L.toFixed(1) });
+    this.setData({ lVal: this.state.L.toFixed(1) + ' λ' });
     this.renderStatic();
   },
   onLChanging(e) {
     this.state.L = e.detail.value / 10;
-    this.setData({ lVal: this.state.L.toFixed(1) });
+    this.setData({ lVal: this.state.L.toFixed(1) + ' λ' });
     stage.throttle(this, 55, function () { this.renderStatic(); });
   },
   onRef(e) {
@@ -245,75 +299,75 @@ Page({
   onAng(e) {
     this.state.ang = e.detail.value;
     this.setData({ angVal: this.state.ang + '°' });
-    this.renderStatic();
+    if (this.state.geo === 'v') this.renderStatic();
   },
   onAngChanging(e) {
     this.state.ang = e.detail.value;
     this.setData({ angVal: this.state.ang + '°' });
-    stage.throttle(this, 55, function () { this.renderStatic(); });
+    if (this.state.geo === 'v') stage.throttle(this, 55, function () { this.renderStatic(); });
   },
 
+  // ═══ 读数 + 重绘（pattern() 带缓存，只算一遍）═══
   renderStatic() {
-    const p = this.pattern();
     const S = this.state;
-    const fb = 20 * Math.log10((this.af(p.main) || 1) / (this.af(p.main + 180) || 0.001));
-    const ripple = (1 + S.ref) / (1 - S.ref);
-    const mode = S.ref < 0.08 ? '近似行波' : S.ref < 0.35 ? '弱驻波' : '驻波明显';
+    const p = this.pattern();
+    const swr = rf.vswrFromGamma(Math.min(S.ref, 0.999));
+    // 分档用 SWR 表述（教学阈值：<1.2 / <2 / ≥2）
+    const mode = swr < 1.2 ? '近似行波' : swr < 2 ? '弱驻波' : '驻波明显';
     this.setData({
-      mainAng: p.main.toFixed(0) + '°',
-      fb: fb.toFixed(1) + ' dB',
-      ripple: ripple.toFixed(1) + ':1',
-      mode: mode,
+      mainAng: p.mainFold.toFixed(0) + '°',
+      fb: p.fb >= 60 ? '>60 dB' : p.fb.toFixed(1) + ' dB',
+      swr: swr.toFixed(2) + ' : 1',
+      mode,
     });
-    this.layout();
+    this.layout(p);
     this.drawPlot(p);
   },
 
-  init2D() {
-    const sel = this.createSelectorQuery();
-    sel.select('#plot').fields({ node: true, size: true }).exec((res) => {
-      if (!res || !res[0]) return;
-      const r = res[0];
-      const canvas = r.node;
-      const ctx = canvas.getContext('2d');
-      const dpr = wx.getSystemInfoSync().pixelRatio || 2;
-      canvas.width = r.width * dpr;
-      canvas.height = r.height * dpr;
-      ctx.scale(dpr, dpr);
-      this.plotCtx = ctx;
-      this.plotW = r.width;
-      this.plotH = r.height;
-      this.drawPlot(this.pattern());
+  // ═══ 2D 全圆极坐标方向图（dB 刻度，θ 自线轴/角平分线起量）═══
+  drawPlot(p) {
+    const ctx = this.plotCtx;
+    if (!ctx || !p) return;
+    const w = this.plotW, h = this.plotH;
+    lc.clear(ctx, w, h);
+    const cx = w / 2, cy = h / 2 + 4;
+    const R = Math.min(w / 2 - 46, h / 2 - 22);
+    const FLOOR = -30;
+
+    lc.polarGrid(ctx, cx, cy, R, { rings: [0, -10, -20, -30], full: true });
+
+    const toXY = (deg, v) => {
+      const db = Math.max(FLOOR, 20 * Math.log10(Math.max(v, 1e-6)));
+      const r = R * (1 - db / FLOOR);
+      const th = deg * Math.PI / 180;
+      return [cx + r * Math.sin(th), cy - r * Math.cos(th)];
+    };
+
+    ctx.beginPath();
+    p.vals.forEach((v, i) => {
+      const xy = toXY(-180 + i * p.step, v);
+      i === 0 ? ctx.moveTo(xy[0], xy[1]) : ctx.lineTo(xy[0], xy[1]);
     });
+    ctx.closePath();
+    ctx.fillStyle = alpha(THEME.accent, 0.10);
+    ctx.fill();
+    ctx.strokeStyle = THEME.accent;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // 主瓣标记
+    const mi = Math.round((p.main + 180) / p.step) % p.vals.length;
+    const mxy = toXY(p.main, p.vals[mi]);
+    lc.dot(ctx, mxy[0], mxy[1], THEME.accent, 3.5);
+    lc.label(ctx, 'θmax=' + p.mainFold.toFixed(0) + '°', mxy[0] + 6, mxy[1] - 6, { color: THEME.accent });
+
+    lc.label(ctx, '0°（线轴/角平分线）', cx, cy - R - 8, { align: 'center', color: THEME.inkSoft });
+    lc.label(ctx, '180°（后向）', cx, cy + R + 14, { align: 'center', color: THEME.muted, font: THEME.fontTick });
+    lc.label(ctx, '径向刻度：dB', cx - R - 6, cy - R - 8, { align: 'left', color: THEME.muted, font: THEME.fontTick });
+    lc.legend(ctx, [{ name: '归一化 |E(θ)|（dB，含元因子 sinΘ）', color: THEME.accent }], 10, h - 12);
   },
 
-  drawPlot(p) {
-    if (!this.plotCtx || !p) return;
-    const pg = this.plotCtx;
-    const w = this.plotW, h = this.plotH;
-    const cx = w / 2, cy = h / 2;
-    const R = Math.min(w, h) * 0.39;
-
-    pg.fillStyle = '#1c2130';
-    pg.fillRect(0, 0, w, h);
-
-    pg.strokeStyle = '#313a55';
-    for (const r of [0.25, 0.5, 0.75, 1]) {
-      pg.beginPath();
-      pg.arc(cx, cy, R * r, 0, Math.PI * 2);
-      pg.stroke();
-    }
-
-    pg.strokeStyle = '#f0e6d6';
-    pg.lineWidth = 2;
-    pg.beginPath();
-    p.vals.forEach((v, i) => {
-      const th = (-90 + i * 0.5) * Math.PI / 180;
-      const rr = R * v;
-      const x = cx + Math.sin(th) * rr;
-      const y = cy - Math.cos(th) * rr;
-      i ? pg.lineTo(x, y) : pg.moveTo(x, y);
-    });
-    pg.stroke();
+  onShareAppMessage() {
+    return { title: '行波天线 3D 实验室', path: '/pages/interactive/3d-lab/traveling-wave/traveling-wave' };
   },
 });

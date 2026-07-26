@@ -1,18 +1,10 @@
-/* 行波天线 — 复用 lab3d 通用样式 */
-@import "../loop/loop.wxss";
+/* 行波天线 —— 公共舞台样式取自 ../lab3d.wxss（内含 tool-ui.wxss） */
+@import "../lab3d.wxss";
 
-.lab3d-btns { display:flex; flex-wrap:wrap; gap:16rpx; }
-.lab3d-btn {
-  padding: 12rpx 28rpx;
-  border: 1rpx solid var(--line);
-  background: var(--bg-soft);
+/* 长线模式下 V 形半角滑块置灰 */
+.tw-dim { opacity: 0.4; }
+.tw-slider-tip {
+  margin-top: 4rpx;
+  font-size: 22rpx;
   color: var(--muted);
-  font-size: 26rpx;
-  border-radius: 12rpx;
-  transition: all .2s;
-}
-.lab3d-btn.on {
-  background: rgba(79,140,255,.15);
-  color: #4f8cff;
-  border-color: #4f8cff;
 }

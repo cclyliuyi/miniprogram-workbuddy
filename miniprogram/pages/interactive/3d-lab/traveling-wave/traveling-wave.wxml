@@ -4,7 +4,7 @@
   <view class="lab3d-head rise">
     <view class="kicker">TRAVELING WAVE · COHERENT RADIATION</view>
     <view class="lab3d-title display">行波天线</view>
-    <view class="lab3d-sub">传播电流 · 反射 · 端射波束 · 相干叠加</view>
+    <view class="lab3d-sub">传播电流 · 反射 · 锥形主瓣 · 相干叠加</view>
   </view>
 
   <view class="lab3d-canvas-wrap rise">
@@ -19,63 +19,72 @@
 
   <view class="lab3d-section rise">
     <view class="kicker">结构</view>
-    <view class="lab3d-btns">
-      <view class="lab3d-btn {{geo==='line'?'on':''}}" data-g="line" bindtap="onGeo">长线</view>
-      <view class="lab3d-btn {{geo==='v'?'on':''}}" data-g="v" bindtap="onGeo">V 形行波</view>
+    <view class="tp-btns">
+      <view class="tp-btn {{geo==='line'?'active':''}}" data-g="line" bindtap="onGeo">长线</view>
+      <view class="tp-btn {{geo==='v'?'active':''}}" data-g="v" bindtap="onGeo">V 形行波</view>
     </view>
   </view>
 
   <view class="lab3d-section rise">
     <view class="kicker">参数</view>
-    <view class="lab3d-row">
-      <text class="lab3d-label">长度 L/λ</text>
-      <text class="lab3d-val">{{lVal}}</text>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">长度 L/λ</text>
+      <slider class="tp-slider" min="5" max="80" step="1" value="{{lSlider}}" bindchanging="onLChanging" bindchange="onL" />
+      <text class="tp-slider-val">{{lVal}}</text>
     </view>
-    <slider min="5" max="80" step="1" value="{{lSlider}}" bindchanging="onLChanging" bindchange="onL" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-row">
-      <text class="lab3d-label">终端反射 |Γ|</text>
-      <text class="lab3d-val">{{gVal}}</text>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">终端反射 |Γ|</text>
+      <slider class="tp-slider" min="0" max="85" step="1" value="{{gSlider}}" bindchanging="onRefChanging" bindchange="onRef" />
+      <text class="tp-slider-val">{{gVal}}</text>
     </view>
-    <slider min="0" max="85" step="1" value="{{gSlider}}" bindchanging="onRefChanging" bindchange="onRef" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-row">
-      <text class="lab3d-label">V 形半角</text>
-      <text class="lab3d-val">{{angVal}}</text>
+    <view class="tp-slider-row {{geo==='line' ? 'tw-dim' : ''}}">
+      <text class="tp-slider-label">V 形半角</text>
+      <slider class="tp-slider" min="10" max="75" step="1" value="{{angSlider}}" disabled="{{geo==='line'}}" bindchanging="onAngChanging" bindchange="onAng" />
+      <text class="tp-slider-val">{{angVal}}</text>
     </view>
-    <slider min="10" max="75" step="1" value="{{angSlider}}" bindchanging="onAngChanging" bindchange="onAng" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+    <view wx:if="{{geo==='line'}}" class="tw-slider-tip">V 形半角仅在「V 形行波」结构下生效</view>
   </view>
 
   <view class="lab3d-stats pop">
     <view class="kicker lab3d-stats-title">读数</view>
     <view class="lab3d-stats-grid">
       <view class="lab3d-stat">
-        <view class="lab3d-stat-value num">{{mainAng}}</view>
-        <view class="lab3d-stat-name">主瓣方向</view>
+        <view class="lab3d-stat-value num tp-c-accent">{{mainAng}}</view>
+        <view class="lab3d-stat-name">主瓣方向 θmax（自线轴）</view>
       </view>
       <view class="lab3d-stat">
-        <view class="lab3d-stat-value num">{{fb}}</view>
-        <view class="lab3d-stat-name">前后比</view>
+        <view class="lab3d-stat-value num tp-c-teal">{{fb}}</view>
+        <view class="lab3d-stat-name">前后比 F/B</view>
       </view>
       <view class="lab3d-stat">
-        <view class="lab3d-stat-value num">{{ripple}}</view>
-        <view class="lab3d-stat-name">电流驻波起伏</view>
+        <view class="lab3d-stat-value num tp-c-indigo">{{swr}}</view>
+        <view class="lab3d-stat-name">电流驻波比 SWR</view>
       </view>
       <view class="lab3d-stat">
         <view class="lab3d-stat-value num">{{mode}}</view>
-        <view class="lab3d-stat-name">辐射特征</view>
+        <view class="lab3d-stat-name">辐射特征（按 SWR 分档）</view>
       </view>
     </view>
   </view>
 
-  <view class="lab3d-section rise">
-    <view class="kicker">远场主截面</view>
-    <canvas type="2d" id="plot" class="lab3d-2d"></canvas>
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">远场方向图 · x–z 主截面（全圆，dB 刻度）</view>
+    <canvas type="2d" id="plot" class="tp-canvas"></canvas>
+  </view>
+
+  <!-- 公式注脚 -->
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">所用公式</view>
+    <view class="tp-formula-line">I(z′) = e^(−jβz′) + Γ·e^(+jβz′)　·　E(θ) ∝ Σ臂 sinΘ·∫₀ᴸ I(z′)e^(jβz′cosΘ)dz′</view>
+    <view class="tp-formula-line">θmax ≈ arccos(1 − 0.371λ/L)（纯行波长线）　·　SWR = (1+|Γ|)/(1−|Γ|)</view>
+    <view class="tp-formula-cond">适用条件：无耗细导线，未计沿线辐射衰减（真实行波幅度沿线递减）；sinΘ 为线元的元因子（Balanis 10-1a）。辐射特征分档为教学约定：SWR&lt;1.2 近似行波、&lt;2 弱驻波、≥2 驻波明显。V 形未按最优张角设计（Balanis 10-13），读数仅供演示。</view>
   </view>
 
   <view class="lab3d-note rise">
     <view class="kicker">原理</view>
-    <view class="lab3d-note-item">匹配终端时电流单向传播，端射方向更容易相干叠加</view>
-    <view class="lab3d-note-item">反射越大，驻波成分越强，方向图起伏越多</view>
-    <view class="lab3d-note-item">橙点 = 行波电流相位 · 蓝点 = 反射分量 · 白色曲线 = 远场方向图</view>
+    <view class="lab3d-note-item">匹配终端时电流单向传播，主瓣压向锥角 θmax 的圆锥面；线轴方向因元因子 sinΘ 为零点</view>
+    <view class="lab3d-note-item">反射越大驻波成分越强，方向图前后趋于对称、起伏增多</view>
+    <view class="lab3d-note-item">赭金直线 = 导线 · 赤陶粒子 = 瞬时合成电流（高度与大小 ∝ 幅度）· 赤陶曲线 = 方向图切面 · 青绿锥面 = 绕线轴旋转的主瓣（长线模式）</view>
   </view>
 
 </view>

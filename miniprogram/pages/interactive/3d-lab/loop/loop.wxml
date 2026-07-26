@@ -20,21 +20,22 @@
   <!-- 参数控制 -->
   <view class="lab3d-section rise">
     <view class="kicker">几何与损耗</view>
-    <view class="lab3d-row">
-      <text class="lab3d-label">半径 a/λ</text>
-      <text class="lab3d-val">{{aVal}}</text>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">半径 a/λ</text>
+      <slider class="tp-slider" min="5" max="50" step="1" value="{{aSlider}}" bindchanging="onAChanging" bindchange="onA" />
+      <text class="tp-slider-val">{{aVal}} λ</text>
     </view>
-    <slider min="10" max="200" step="2" value="{{aSlider}}" bindchanging="onAChanging" bindchange="onA" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-row">
-      <text class="lab3d-label">匝数 N</text>
-      <text class="lab3d-val">{{nVal}}</text>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">匝数 N</text>
+      <slider class="tp-slider" min="1" max="8" step="1" value="{{nSlider}}" bindchanging="onTurnsChanging" bindchange="onTurns" />
+      <text class="tp-slider-val">{{nVal}} 匝</text>
     </view>
-    <slider min="1" max="8" step="1" value="{{nSlider}}" bindchanging="onTurnsChanging" bindchange="onTurns" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-row">
-      <text class="lab3d-label">损耗电阻</text>
-      <text class="lab3d-val">{{lossVal}}</text>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">损耗电阻</text>
+      <slider class="tp-slider" min="1" max="200" step="1" value="{{lossSlider}}" bindchanging="onLossChanging" bindchange="onLoss" />
+      <text class="tp-slider-val">{{lossVal}}</text>
     </view>
-    <slider min="2" max="500" step="2" value="{{lossSlider}}" bindchanging="onLossChanging" bindchange="onLoss" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+    <view wx:if="{{warn}}" class="loop-warn">{{warn}}</view>
   </view>
 
   <!-- 读数 -->
@@ -42,35 +43,49 @@
     <view class="kicker lab3d-stats-title">读数</view>
     <view class="lab3d-stats-grid">
       <view class="lab3d-stat">
-        <view class="lab3d-stat-value num">{{rr}}</view>
-        <view class="lab3d-stat-name">辐射电阻</view>
+        <view class="lab3d-stat-value num tp-c-accent">{{rr}}</view>
+        <view class="lab3d-stat-name">辐射电阻 Rr</view>
       </view>
       <view class="lab3d-stat">
-        <view class="lab3d-stat-value num">{{eta}}</view>
-        <view class="lab3d-stat-name">估计效率</view>
+        <view class="lab3d-stat-value num tp-c-teal">{{eta}}</view>
+        <view class="lab3d-stat-name">辐射效率 η</view>
+      </view>
+      <view class="lab3d-stat">
+        <view class="lab3d-stat-value num tp-c-indigo">{{gain}}</view>
+        <view class="lab3d-stat-name">增益 G = ηD（D = 1.76 dBi）</view>
       </view>
       <view class="lab3d-stat">
         <view class="lab3d-stat-value num">{{area}}</view>
-        <view class="lab3d-stat-name">NA/λ²</view>
-      </view>
-      <view class="lab3d-stat">
-        <view class="lab3d-stat-value num">sin²θ</view>
-        <view class="lab3d-stat-name">功率方向图</view>
+        <view class="lab3d-stat-name">等效面积 N·S/λ²</view>
       </view>
     </view>
   </view>
 
-  <!-- 2D 方向图 -->
-  <view class="lab3d-section rise">
-    <view class="kicker">方向图截面</view>
-    <canvas type="2d" id="plot" class="lab3d-2d"></canvas>
+  <!-- 2D 图一：方向图截面 -->
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">E 面功率方向图 · 10·lg sin²θ（dB，全圆）</view>
+    <canvas type="2d" id="plot" class="tp-canvas"></canvas>
+  </view>
+
+  <!-- 2D 图二：效率曲线 -->
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">辐射效率 η 随 a/λ 变化（随 N、Rloss 实时更新）</view>
+    <canvas type="2d" id="etaPlot" class="tp-canvas-short"></canvas>
+  </view>
+
+  <!-- 公式注脚 -->
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">所用公式</view>
+    <view class="tp-formula-line">Rr = 320π⁴N²(S/λ²)²，S = πa²　·　η = Rr/(Rr+Rloss)</view>
+    <view class="tp-formula-line">D = 1.5（1.76 dBi）　·　G = η·D　·　U(θ) ∝ sin²θ</view>
+    <view class="tp-formula-cond">适用条件：电小环 C = 2πa &lt; 0.1λ（电流沿环等幅同相，Balanis 5-24a）；C 更大时环趋于谐振、方向图翻转，本模型失效。多匝时 Rloss 随匝数与邻近效应增长，此处为手动输入值。</view>
   </view>
 
   <view class="lab3d-note rise">
     <view class="kicker">原理</view>
-    <view class="lab3d-note-item">小环等效为磁偶极子，环轴方向为零点、环面内辐射最大</view>
-    <view class="lab3d-note-item">尺寸很小时，辐射电阻随面积平方下降</view>
-    <view class="lab3d-note-item">黄色 = 环形电流 · 蓝线 = 近区磁场 · 白色甜甜圈 = sin²θ 方向图</view>
+    <view class="lab3d-note-item">小环等效为磁偶极子：环轴方向是零点，环面内辐射最大</view>
+    <view class="lab3d-note-item">尺寸很小时 Rr ∝ (S/λ²)²，效率极低 —— 增益读数把这条因果链讲完整</view>
+    <view class="lab3d-note-item">赤陶圆环 = 载流导线 · 赭金闭合曲线 = 磁偶极子场线（穿过环心的极向环）· 靛蓝粒子 = 等幅同相电流 · 青绿曲面 = sin²θ 方向图</view>
   </view>
 
 </view>

@@ -1,57 +1,75 @@
 <!-- pages/interactive/radiation-3d/radiation-3d.wxml —— 三维辐射方向图 -->
-<view class="screen r3d">
+<view class="screen tp-page">
 
-  <view class="r3d-head rise">
+  <view class="tp-head rise">
     <view class="kicker">3D RADIATION PATTERN</view>
-    <view class="r3d-title display">辐射方向图</view>
-    <view class="r3d-sub">三维可视化 · 天线类型切换 · 方向性 / HPBW / 辐射电阻</view>
+    <view class="tp-title display">辐射方向图</view>
+    <view class="tp-sub">三维可视化 · 方向性 / HPBW / 辐射电阻</view>
   </view>
 
-  <!-- 3D Canvas — catchtouch 阻止事件冒泡，防止页面跟着滚动 -->
-  <view class="r3d-canvas-wrap rise">
-    <canvas type="webgl" id="three-canvas" class="r3d-canvas"
-      catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
-    <view wx:if="{{!glReady}}" class="lab3d-skel">
-      <view class="lab3d-skel-ring"></view>
-      <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
+  <!-- 3D 画布（catchtouch 阻止页面跟随滚动） -->
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">{{captionText}}</view>
+    <view class="r3d-canvas-wrap">
+      <canvas type="webgl" id="three-canvas" class="r3d-canvas"
+        catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
+      <view wx:if="{{!glReady}}" class="r3d-skel">
+        <view class="r3d-skel-ring"></view>
+        <text class="r3d-skel-text">正在初始化 3D 场景…</text>
+      </view>
+      <view class="r3d-hint {{showHint ? '' : 'fade'}}">单指旋转 · 双指缩放 · 双击复位</view>
     </view>
-    <view class="r3d-hint {{showHint ? '' : 'fade'}}">单指旋转 · 双指缩放 · 双击复位</view>
+    <!-- 色标（数值刻度随上色模式切换） -->
+    <view class="r3d-legend">
+      <view class="r3d-legend-grad"></view>
+      <view class="r3d-legend-ticks">
+        <text wx:for="{{legendTicks}}" wx:key="*this" class="r3d-legend-tick">{{item}}</text>
+      </view>
+      <view class="r3d-legend-cap">{{S.cmap === 'db' ? '归一化功率（dB，下限 −40）' : '归一化幅度（线性）'}}</view>
+    </view>
   </view>
 
   <!-- 天线类型 -->
-  <view class="r3d-section rise">
+  <view class="tp-section rise">
     <view class="kicker">天线类型</view>
-    <view class="r3d-btns">
-      <view class="r3d-btn {{S.type==='isotropic'?'on':''}}" data-t="isotropic" bindtap="onType">点源</view>
-      <view class="r3d-btn {{S.type==='short'?'on':''}}" data-t="short" bindtap="onType">短偶极子</view>
-      <view class="r3d-btn {{S.type==='halfwave'?'on':''}}" data-t="halfwave" bindtap="onType">半波偶极子</view>
-      <view class="r3d-btn {{S.type==='fullwave'?'on':''}}" data-t="fullwave" bindtap="onType">全波偶极子</view>
-      <view class="r3d-btn {{S.type==='custom'?'on':''}}" data-t="custom" bindtap="onType">自定义</view>
+    <view class="tp-btns">
+      <view class="tp-btn {{S.type==='isotropic'?'active':''}}" data-t="isotropic" bindtap="onType">点源</view>
+      <view class="tp-btn {{S.type==='short'?'active':''}}" data-t="short" bindtap="onType">短偶极子</view>
+      <view class="tp-btn {{S.type==='halfwave'?'active':''}}" data-t="halfwave" bindtap="onType">半波偶极子</view>
+      <view class="tp-btn {{S.type==='fullwave'?'active':''}}" data-t="fullwave" bindtap="onType">全波偶极子</view>
+      <view class="tp-btn {{S.type==='custom'?'active':''}}" data-t="custom" bindtap="onType">自定义</view>
+    </view>
+    <view class="tp-slider-row" wx:if="{{S.type==='custom'}}">
+      <text class="tp-slider-label">半长度 h/λ</text>
+      <slider class="tp-slider" min="5" max="200" step="1" value="{{hlSlider}}"
+        bindchanging="onHlChanging" bindchange="onHl" />
+      <text class="tp-slider-val">{{hlText}}</text>
     </view>
   </view>
 
-  <!-- 自定义长度 -->
-  <view class="r3d-section rise" wx:if="{{S.type==='custom'}}">
-    <view class="kicker">半长度 h/λ = {{hlText}}</view>
-    <slider class="r3d-slider" min="5" max="200" step="1" value="{{hlSlider}}" bindchanging="onHlChanging" bindchange="onHl" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-  </view>
-
-  <!-- 方向图类型 -->
-  <view class="r3d-section rise">
+  <!-- 方向图类型 / 上色 -->
+  <view class="tp-section rise">
     <view class="kicker">方向图类型</view>
-    <view class="r3d-seg">
-      <view class="r3d-seg-btn {{S.ptype==='power'?'on':''}}" data-p="power" bindtap="onPtype">功率方向图</view>
-      <view class="r3d-seg-btn {{S.ptype==='field'?'on':''}}" data-p="field" bindtap="onPtype">场方向图</view>
+    <view class="tp-btns">
+      <view class="tp-btn {{S.ptype==='power'?'active':''}}" data-p="power" bindtap="onPtype">功率方向图 F²</view>
+      <view class="tp-btn {{S.ptype==='field'?'active':''}}" data-p="field" bindtap="onPtype">场方向图 F</view>
+    </view>
+    <view class="kicker r3d-kicker-gap">曲面上色</view>
+    <view class="tp-btns">
+      <view class="tp-btn {{S.cmap==='db'?'active':''}}" data-c="db" bindtap="onCmap">dB（工程惯例）</view>
+      <view class="tp-btn {{S.cmap==='lin'?'active':''}}" data-c="lin" bindtap="onCmap">线性</view>
     </view>
   </view>
 
   <!-- 显示控制 -->
-  <view class="r3d-section rise">
+  <view class="tp-section rise">
     <view class="kicker">显示控制</view>
-    <view class="r3d-slider-row">
-      <text class="r3d-slider-label">透明度 {{S.opacityText}}</text>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">曲面透明度</text>
+      <slider class="tp-slider" min="15" max="100" step="5" value="{{S.opacityVal}}"
+        bindchanging="onOpacityChanging" bindchange="onOpacity" />
+      <text class="tp-slider-val">{{S.opacityText}}</text>
     </view>
-    <slider class="r3d-slider" min="15" max="100" step="5" value="{{S.opacityVal}}" bindchanging="onOpacityChanging" bindchange="onOpacity" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
     <view class="r3d-toggles">
       <view class="r3d-toggle {{S.rotate?'on':''}}" bindtap="onRotate">
         <text class="r3d-toggle-dot"></text>
@@ -63,7 +81,7 @@
       </view>
       <view class="r3d-toggle {{S.showCuts?'on':''}}" bindtap="onCuts">
         <text class="r3d-toggle-dot"></text>
-        <text class="r3d-toggle-text">切线</text>
+        <text class="r3d-toggle-text">主平面切面</text>
       </view>
       <view class="r3d-toggle {{S.showAnt?'on':''}}" bindtap="onAnt">
         <text class="r3d-toggle-dot"></text>
@@ -72,42 +90,43 @@
     </view>
   </view>
 
-  <!-- 天线参数 -->
-  <view class="r3d-stats pop" wx:if="{{stats}}">
-    <view class="kicker r3d-stats-title">天线参数</view>
-    <view class="r3d-stats-grid">
-      <view class="r3d-stat">
-        <view class="r3d-stat-value num">{{stats.D}}</view>
-        <view class="r3d-stat-name">方向性 D</view>
+  <!-- 读数 -->
+  <view class="tp-section pop" wx:if="{{stats}}">
+    <view class="kicker">天线参数（无耗假设，G = D）</view>
+    <view class="tp-stats-grid">
+      <view class="tp-stat">
+        <view class="tp-stat-label">方向性 D（线性）</view>
+        <view class="tp-stat-value tp-c-accent">{{stats.D}}</view>
       </view>
-      <view class="r3d-stat">
-        <view class="r3d-stat-value num">{{stats.dbi}}</view>
-        <view class="r3d-stat-name">增益 dBi</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">方向性 D (dBi)</view>
+        <view class="tp-stat-value tp-c-teal">{{stats.dbi}}</view>
       </view>
-      <view class="r3d-stat">
-        <view class="r3d-stat-value num">{{stats.HPBW}}</view>
-        <view class="r3d-stat-name">半功率波束宽度</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">半功率波束宽度 HPBW</view>
+        <view class="tp-stat-value tp-c-indigo">{{stats.HPBW}}</view>
       </view>
-      <view class="r3d-stat">
-        <view class="r3d-stat-value num">{{stats.Rr}}</view>
-        <view class="r3d-stat-name">辐射电阻</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">辐射电阻 Rr（参考波腹）</view>
+        <view class="tp-stat-value tp-c-gold">{{stats.Rr}}</view>
       </view>
     </view>
-    <!-- 色标 -->
-    <view class="r3d-legend">
-      <text class="r3d-legend-lo">低</text>
-      <view class="r3d-legend-grad"></view>
-      <text class="r3d-legend-hi">高</text>
-    </view>
-    <view class="r3d-legend-cap">辐射强度</view>
+    <view class="r3d-stat-note" wx:if="{{statNote}}">{{statNote}}</view>
   </view>
 
-  <!-- 提示 -->
-  <view class="r3d-note rise">
+  <!-- 公式注脚 -->
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">所用公式</view>
+    <view class="tp-formula-line">{{formulaF}}</view>
+    <view class="tp-formula-line">D = 4π·U_max / P_rad = 2 / ∫₀^π F̂²(θ)·sinθ dθ</view>
+    <view class="tp-formula-line">Rr = (η₀/2π)·∫₀^π F²(θ)·sinθ dθ（参考电流波腹）</view>
+    <view class="tp-formula-cond">适用条件：细偶极子（线径 ≪ λ）正弦电流分布；无耗假设下增益 G = D。Rr 表值口径：半波 ≈73.1 Ω（≈输入电阻），全波 ≈199 Ω（中心馈电点在电流零点，实际输入阻抗高达数千欧）；短偶极子 Rr = 20π²(l/λ)² 假设三角形电流（l = 2h ≪ λ）。</view>
+  </view>
+
+  <!-- 图例说明 -->
+  <view class="tp-note rise">
     <view class="kicker">图例说明</view>
-    <view class="r3d-note-item">白线 = E面切线（φ=0 截面）</view>
-    <view class="r3d-note-item">黄线 = H面切线（θ=90° 截面）</view>
-    <view class="r3d-note-item">金色元件 = 天线（沿 Y 轴）</view>
+    <view class="tp-note-text">靛蓝环 = E 面切面（φ=0 主平面，含极轴）；青绿环 = H 面切面（θ=90° 主平面）；赭金杆 = 天线元件（沿极轴 Y）；曲面颜色 = 归一化辐射强度（见色标）。</view>
   </view>
 
 </view>
