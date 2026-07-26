@@ -1,13 +1,15 @@
-// pages/interactive/smart-array/smart-array.js —— 自适应零陷波束形成
-// 核心：
-//   MVDR/Capon 波束形成器
-//   约束：wᴴa(θs)=1, wᴴa(θi₁)=0, wᴴa(θi₂)=0
-//   求解：3×3 复数矩阵 Gauss 消元
-//   导向矢量：a(θ)=[1, e^{jkd·sinθ}, ..., e^{j(N-1)kd·sinθ}]ᵀ
-
+// pages/interactive/smart-array/smart-array.js —— MVDR（Capon）自适应波束形成
+// 真实协方差实现（非硬约束零陷）：
+//   R = σ²I + Σ JNRᵢ·a(θᵢ)a(θᵢ)ᴴ，σ² = 1（空间白噪声）
+//   w = R⁻¹a(θs) / (a(θs)ᴴ R⁻¹ a(θs))
+//   零陷深度随干噪比 JNR 物理变化；干扰靠近目标时零陷变浅、‖w‖ 激增
+// 导向矢量 a(θ) = [e^{j2πnd·sinθ/λ}]（rf-math 同源相位约定，d 以 λ 计）
 const haptic = require('../../../utils/haptic')
+const rf = require('../../../utils/rf-math')
+const lc = require('../../../utils/lab-canvas')
+const { THEME, alpha } = require('../../../utils/lab-theme')
 
-// ═══ 复数运算 ═══
+// ═══ 复数线性代数（[re, im] 数组，仅矩阵求解用）═══
 const EPS = 1e-12
 const cadd = (a, b) => [a[0] + b[0], a[1] + b[1]]
 const csub = (a, b) => [a[0] - b[0], a[1] - b[1]]
@@ -16,52 +18,63 @@ const cdiv = (a, b) => {
   const n = b[0] * b[0] + b[1] * b[1] + EPS
   return [(a[0] * b[0] + a[1] * b[1]) / n, (a[1] * b[0] - a[0] * b[1]) / n]
 }
-const conj = a => [a[0], -a[1]]
-const cmag = a => Math.hypot(a[0], a[1])
+const conj = (a) => [a[0], -a[1]]
+const cmag = (a) => Math.hypot(a[0], a[1])
 
 Page({
   data: {
-    S: { N: 12, d: 0.5, sig: 20, jam1: -35, jam2: 45 },
+    S: { N: 12, d100: 50, jnr: 25, sig: 20, jam1: -35, jam2: 45, dual: true },
     stats: null,
+    warn: '',
   },
+
+  _vals: null,
+  _peak: 1,
+  _wg: null,
+  _norm: 0,
 
   onLoad() { this.update() },
   onReady() { this.update() },
 
   // ═══ 事件 ═══
   onN(e) { this.setData({ 'S.N': e.detail.value }, () => this.update()) },
+  onD(e) { this.setData({ 'S.d100': e.detail.value }, () => this.update()) },
+  onJnr(e) { this.setData({ 'S.jnr': e.detail.value }, () => this.update()) },
   onSig(e) { this.setData({ 'S.sig': e.detail.value }, () => this.update()) },
   onJam1(e) { this.setData({ 'S.jam1': e.detail.value }, () => this.update()) },
   onJam2(e) { this.setData({ 'S.jam2': e.detail.value }, () => this.update()) },
+  setMode(e) {
+    const m = e.currentTarget.dataset.m
+    if (m !== '1' && m !== '2') return
+    haptic.light()
+    this.setData({ 'S.dual': m === '2' }, () => this.update())
+  },
 
-  // ═══ 导向矢量 ═══
+  // ═══ 导向矢量 a(θ) ═══
   steer(deg) {
     const S = this.data.S
+    const d = S.d100 / 100
     const th = deg * Math.PI / 180
     const a = []
     for (let n = 0; n < S.N; n++) {
-      const p = 2 * Math.PI * S.d * n * Math.sin(th)
+      const p = 2 * Math.PI * d * n * Math.sin(th)
       a.push([Math.cos(p), Math.sin(p)])
     }
     return a
   },
 
-  // 内积 <a, b> = aᴴb
+  // 内积 aᴴb
   inner(a, b) {
     let z = [0, 0]
-    for (let n = 0; n < a.length; n++) {
-      z = cadd(z, cmul(conj(a[n]), b[n]))
-    }
+    for (let n = 0; n < a.length; n++) z = cadd(z, cmul(conj(a[n]), b[n]))
     return z
   },
 
-  // 3×3 复数矩阵 Gauss 消元
+  // n×n 复数 Gauss-Jordan 消元（带列主元）
   solveComplex(A, b) {
     const n = b.length
     const M = A.map((row, r) => [...row, b[r]])
-
     for (let c = 0; c < n; c++) {
-      // 选主元
       let piv = c, best = cmag(M[c][c])
       for (let r = c + 1; r < n; r++) {
         const v = cmag(M[r][c])
@@ -69,7 +82,6 @@ Page({
       }
       if (piv !== c) { const t = M[c]; M[c] = M[piv]; M[piv] = t }
       if (best < 1e-9) M[c][c] = [1e-6, 0]
-
       const pv = M[c][c]
       for (let k = c; k <= n; k++) M[c][k] = cdiv(M[c][k], pv)
       for (let r = 0; r < n; r++) {
@@ -79,42 +91,37 @@ Page({
         for (let k = c; k <= n; k++) M[r][k] = csub(M[r][k], cmul(f, M[c][k]))
       }
     }
-    return M.map(row => row[n])
+    return M.map((row) => row[n])
   },
 
-  // MVDR 权值
+  // ═══ MVDR 权值：w = R⁻¹a(θs) / (a(θs)ᴴR⁻¹a(θs)) ═══
   computeWeights() {
     const S = this.data.S
-    const cols = [this.steer(S.sig), this.steer(S.jam1), this.steer(S.jam2)]
-    const G = []
-
-    // 构造 Gram 矩阵 G = AᴴA
-    for (let r = 0; r < 3; r++) {
-      G[r] = []
-      for (let c = 0; c < 3; c++) {
-        G[r][c] = this.inner(cols[r], cols[c])
+    const N = S.N
+    const as = this.steer(S.sig)
+    const jamDegs = S.dual ? [S.jam1, S.jam2] : [S.jam1]
+    const jnr = Math.pow(10, S.jnr / 10)
+    // R = I + Σ JNR·a(θᵢ)a(θᵢ)ᴴ（σ² = 1，正定，无需额外加载）
+    const R = []
+    for (let r = 0; r < N; r++) {
+      R[r] = []
+      for (let c = 0; c < N; c++) R[r][c] = r === c ? [1, 0] : [0, 0]
+    }
+    jamDegs.forEach((deg) => {
+      const a = this.steer(deg)
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          const t = cmul(a[r], conj(a[c]))
+          R[r][c] = cadd(R[r][c], [jnr * t[0], jnr * t[1]])
+        }
       }
-    }
-
-    // 对角加载正则化
-    const trace = G[0][0][0] + G[1][1][0] + G[2][2][0]
-    const load = Math.max(1e-8, trace / 3 * 1e-6)
-    for (let r = 0; r < 3; r++) G[r][r] = cadd(G[r][r], [load, 0])
-
-    // 求解 G·x = [1, 0, 0]ᵀ
-    const x = this.solveComplex(G, [[1, 0], [0, 0], [0, 0]])
-
-    // 组合权值 w = Σ xₖ·aₖ
-    const w = []
-    for (let n = 0; n < S.N; n++) {
-      let z = [0, 0]
-      for (let k = 0; k < 3; k++) z = cadd(z, cmul(cols[k][n], x[k]))
-      w.push(z)
-    }
-    return w
+    })
+    const x = this.solveComplex(R, as)          // x = R⁻¹a(θs)
+    const den = this.inner(as, x)               // a(θs)ᴴR⁻¹a(θs)，实、正
+    return x.map((z) => cdiv(z, den))
   },
 
-  // 阵列响应
+  // 阵列响应 |wᴴa(θ)|
   resp(deg, wg) {
     const a = this.steer(deg)
     let z = [0, 0]
@@ -123,160 +130,143 @@ Page({
   },
 
   db(v, ref) { return 20 * Math.log10(Math.max(v, 1e-12) / Math.max(ref || 1, 1e-12)) },
-
-  fmtDb(v) { return v < -80 ? '< -80 dB' : v.toFixed(1) + ' dB' },
+  fmtDb(v) { return v <= -100 ? '< −100 dB' : v.toFixed(1) + ' dB' },
 
   // ═══ 更新 ═══
   update() {
     const S = this.data.S
+    const d = S.d100 / 100
     const wg = this.computeWeights()
 
-    // 采样方向图
+    // 方向图采样 −90°..+90°，步距 0.5°
     const vals = []
-    let peak = 0, peakDeg = 0
-    for (let k = 0; k <= 720; k++) {
-      const deg = -90 + k * 0.25
+    let peak = 1e-12, peakDeg = 0
+    for (let k = 0; k <= 360; k++) {
+      const deg = -90 + k * 0.5
       const v = this.resp(deg, wg)
       vals.push(v)
       if (v > peak) { peak = v; peakDeg = deg }
     }
 
-    // 统计
-    const targetResp = this.resp(S.sig, wg)
-    const null1Resp = this.resp(S.jam1, wg)
-    const null2Resp = this.resp(S.jam2, wg)
+    const tR = this.resp(S.sig, wg)
+    const n1 = this.db(this.resp(S.jam1, wg), tR)
+    const n2 = S.dual ? this.db(this.resp(S.jam2, wg), tR) : null
     const norm = Math.sqrt(wg.reduce((s, z) => s + z[0] * z[0] + z[1] * z[1], 0))
+
+    this._vals = vals; this._peak = peak; this._wg = wg; this._norm = norm
+
+    // 警示：干扰进入主瓣（HPBW ≈ 0.886λ/(Nd)）/ 栅瓣
+    const hpbwDeg = rf.hpbwUniformApprox(S.N, d) * 180 / Math.PI
+    const warns = []
+    if (Math.abs(S.jam1 - S.sig) < hpbwDeg / 2) warns.push('干扰1 进入主瓣：零陷变浅、‖w‖ 激增')
+    if (S.dual && Math.abs(S.jam2 - S.sig) < hpbwDeg / 2) warns.push('干扰2 进入主瓣：零陷变浅、‖w‖ 激增')
+    if (d >= rf.gratingLobeLimit(S.sig * Math.PI / 180)) warns.push('d/λ ≥ 1/(1+|sinθs|)，出现栅瓣')
 
     this.setData({
       stats: {
-        null1: this.fmtDb(this.db(null1Resp, targetResp)),
-        null2: this.fmtDb(this.db(null2Resp, targetResp)),
-        beam: peakDeg.toFixed(0) + '°',
+        null1: this.fmtDb(n1),
+        null2: S.dual ? this.fmtDb(n2) : '—',
+        beam: peakDeg.toFixed(1) + '°',
         norm: norm.toFixed(2),
-      }
+      },
+      warn: warns.join('；'),
     })
-
-    this.drawPattern(vals, peak)
-    this.drawWeights(wg)
+    this.drawPattern()
+    this.drawWeights()
   },
 
-  // ═══ Canvas 查询 ═══
-  _queryCanvas(id, callback) {
-    const q = wx.createSelectorQuery().in(this)
-    q.select('#' + id).fields({ node: true, size: true }).exec((res) => {
-      if (res && res[0] && res[0].node) {
-        const canvas = res[0].node
-        const ctx = canvas.getContext('2d')
-        const dpr = wx.getWindowInfo().pixelRatio
-        const w = res[0].width
-        const h = res[0].height
-        canvas.width = Math.max(1, Math.floor(w * dpr))
-        canvas.height = Math.max(1, Math.floor(h * dpr))
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-        callback(ctx, w, h)
-      }
-    })
-  },
-
-  // ═══ 方向图 ═══
-  drawPattern(vals, peak) {
-    this._queryCanvas('patternCanvas', (g, w, h) => {
+  // ═══ 方向图（直角坐标 dB）═══
+  drawPattern() {
+    if (!this._vals) return
+    lc.mount(this, '#patternCanvas', (ctx, w, h) => {
+      lc.clear(ctx, w, h)
       const S = this.data.S
-      g.fillStyle = '#0a0c16'; g.fillRect(0, 0, w, h)
-
-      const L = 50, R = w - 20, T = 36, B = h - 36, minDb = -80
-
-      // dB 网格
-      g.strokeStyle = '#1e2235'; g.lineWidth = 1
-      for (let d = minDb; d <= 0; d += 20) {
-        const y = T + (-d / (-minDb)) * (B - T)
-        g.beginPath(); g.moveTo(L, y); g.lineTo(R, y); g.stroke()
-        g.fillStyle = '#59627f'; g.font = '10px monospace'; g.textAlign = 'right'
-        g.fillText(d + '', L - 6, y + 4)
+      const vals = this._vals, peak = this._peak
+      const box = { x: 50, y: 24, w: w - 66, h: h - 62 }
+      const p = lc.plot(ctx, box, [-90, 90], [-80, 0])
+      p.axes({
+        xTicks: [-90, -60, -30, 0, 30, 60, 90],
+        yTicks: [0, -20, -40, -60, -80],
+        xFmt: (v) => v + '°',
+        xLabel: 'θ（°）',
+        yLabel: '|wᴴa(θ)|（dB re 峰值）',
+      })
+      const xs = [], ys = []
+      for (let k = 0; k <= 360; k++) {
+        xs.push(-90 + k * 0.5)
+        ys.push(Math.max(-80, this.db(vals[k], peak)))
       }
+      p.area(xs, ys, THEME.accent)
+      p.line(xs, ys, THEME.accent, 2)
 
-      // 角度刻度
-      for (let d = -90; d <= 90; d += 30) {
-        const x = L + (d + 90) / 180 * (R - L)
-        g.strokeStyle = 'rgba(41,48,79,0.5)'
-        g.beginPath(); g.moveTo(x, T); g.lineTo(x, B); g.stroke()
-        g.fillStyle = '#59627f'; g.font = '9px sans-serif'; g.textAlign = 'center'
-        g.fillText(d + '°', x, B + 14)
+      // 方向标记（颜色与滑条标签一一对应）
+      const mark = (deg, color, name, row) => {
+        p.guideX(deg, alpha(color, 0.7))
+        const x = p.X(deg)
+        const flip = x > box.x + box.w - 64
+        lc.label(ctx, name, x + (flip ? -4 : 4), box.y + 12 + row * 14, {
+          align: flip ? 'right' : 'left', color, font: THEME.fontLabel,
+        })
       }
-
-      // 方向图曲线
-      g.strokeStyle = '#e8edf3'; g.lineWidth = 2.5; g.beginPath()
-      let started = false
-      for (let k = 0; k <= 720; k++) {
-        const deg = -90 + k * 0.25
-        const dB = Math.max(minDb, this.db(vals[k], peak))
-        const x = L + k * (R - L) / 720
-        const y = T + (-dB / (-minDb)) * (B - T)
-        if (!started) { g.moveTo(x, y); started = true } else g.lineTo(x, y)
-      }
-      g.stroke()
-
-      // 填充
-      g.lineTo(R, T); g.lineTo(L, T); g.closePath()
-      g.fillStyle = 'rgba(232,237,243,0.06)'; g.fill()
-
-      // 方向标记
-      const mark = (deg, color, label, yOff) => {
-        const x = L + (deg + 90) / 180 * (R - L)
-        g.strokeStyle = color; g.lineWidth = 2
-        g.setLineDash([4, 4])
-        g.beginPath(); g.moveTo(x, T); g.lineTo(x, B); g.stroke()
-        g.setLineDash([])
-        g.fillStyle = color; g.font = 'bold 10px sans-serif'
-        g.textAlign = 'left'
-        g.fillText(label, x + 4, T + 12 + yOff)
-      }
-      mark(S.sig, '#28c6a4', '目标 θs', 0)
-      mark(S.jam1, '#ee6d7a', '干扰1', 14)
-      mark(S.jam2, '#ff9944', '干扰2', 28)
+      mark(S.sig, THEME.teal, '目标 ' + S.sig + '°', 0)
+      mark(S.jam1, THEME.indigo, '干扰1 ' + S.jam1 + '°', 1)
+      if (S.dual) mark(S.jam2, THEME.gold, '干扰2 ' + S.jam2 + '°', 2)
     })
   },
 
-  // ═══ 权值图 ═══
-  drawWeights(wg) {
-    this._queryCanvas('weightsCanvas', (g, w, h) => {
-      const S = this.data.S
-      g.fillStyle = '#0a0c16'; g.fillRect(0, 0, w, h)
+  // ═══ 权值图：上 = 幅度柱状，下 = 相位针 ═══
+  drawWeights() {
+    if (!this._wg) return
+    lc.mount(this, '#weightsCanvas', (ctx, w, h) => {
+      lc.clear(ctx, w, h)
+      const wg = this._wg
+      const N = wg.length
+      const mags = wg.map(cmag)
+      const phs = wg.map((z) => Math.atan2(z[1], z[0]) * 180 / Math.PI)
+      const ymax = Math.max(...mags, 1e-6) * 1.2
+      const boxA = { x: 56, y: 22, w: w - 74, h: (h - 96) * 0.56 }
+      const boxP = { x: 56, y: boxA.y + boxA.h + 36, w: w - 74, h: (h - 96) * 0.44 }
+      const xt = []
+      const st = N > 16 ? 4 : N > 8 ? 2 : 1
+      for (let n = 1; n <= N; n += st) xt.push(n)
 
-      const L = 24, R = w - 24, cy = h * 0.58
-      const step = (R - L) / Math.max(1, S.N - 1)
-
-      // 轴
-      g.strokeStyle = '#252838'; g.lineWidth = 1
-      g.beginPath(); g.moveTo(L - 4, cy); g.lineTo(R + 4, cy); g.stroke()
-
-      const maxMag = Math.max(...wg.map(cmag), 0.1)
-      const scale = Math.min(28, h * 0.3) / maxMag
-
-      for (let n = 0; n < S.N; n++) {
-        const x = L + n * step
-        const z = wg[n]
-        const vx = z[0] * scale
-        const vy = -z[1] * scale
-
-        // 箭头
-        g.strokeStyle = '#4f8cff'; g.lineWidth = 2
-        g.beginPath(); g.moveTo(x, cy); g.lineTo(x + vx, cy + vy); g.stroke()
-
-        // 端点
-        g.fillStyle = '#ffd166'
-        g.beginPath(); g.arc(x, cy, 3.5, 0, Math.PI * 2); g.fill()
-
-        // 标号
-        if (S.N <= 16) {
-          g.fillStyle = '#4a5168'; g.font = '9px monospace'; g.textAlign = 'center'
-          g.fillText(n + 1, x, cy + 16)
-        }
+      // 幅度 |wₙ|（坐标轴随范数缩放，权值发散一目了然）
+      const pa = lc.plot(ctx, boxA, [0.5, N + 0.5], [0, ymax])
+      pa.axes({ xTicks: xt, xFmt: (v) => String(v), yTicks: lc.niceTicks(0, ymax, 3), yLabel: '|wₙ|' })
+      const bw2 = boxA.w / N * 0.55
+      for (let n = 0; n < N; n++) {
+        const x = pa.X(n + 1)
+        const y = pa.Y(mags[n])
+        ctx.fillStyle = THEME.accent
+        ctx.fillRect(x - bw2 / 2, y, bw2, boxA.y + boxA.h - y)
       }
+      // 均匀阵参考 |wₙ| = 1/N
+      if (1 / N <= ymax) {
+        pa.guideY(1 / N, alpha(THEME.teal, 0.8))
+        lc.label(ctx, '均匀阵 1/N', boxA.x + boxA.w, pa.Y(1 / N) - 5, {
+          align: 'right', color: THEME.teal, font: THEME.fontTick,
+        })
+      }
+      lc.label(ctx, '‖w‖ = ' + this._norm.toFixed(2) + '（静态 1/√N = ' + (1 / Math.sqrt(N)).toFixed(2) + '）',
+        boxA.x + boxA.w, boxA.y - 8, { align: 'right', color: THEME.ink, font: THEME.fontLabel })
 
-      // 说明
-      g.fillStyle = '#6c7698'; g.font = '10px sans-serif'; g.textAlign = 'left'
-      g.fillText('横=实部，纵=虚部', 8, 14)
+      // 相位 ∠wₙ
+      const pp = lc.plot(ctx, boxP, [0.5, N + 0.5], [-180, 180])
+      pp.axes({
+        xTicks: xt, xFmt: (v) => String(v),
+        yTicks: [-180, -90, 0, 90, 180],
+        yLabel: '∠wₙ（°）', xLabel: '阵元 n',
+      })
+      pp.guideY(0)
+      ctx.strokeStyle = THEME.indigo; ctx.lineWidth = 2; ctx.lineCap = 'round'
+      for (let n = 0; n < N; n++) {
+        const x = pp.X(n + 1)
+        ctx.beginPath(); ctx.moveTo(x, pp.Y(0)); ctx.lineTo(x, pp.Y(phs[n])); ctx.stroke()
+      }
+      for (let n = 0; n < N; n++) {
+        ctx.fillStyle = THEME.indigo
+        ctx.beginPath(); ctx.arc(pp.X(n + 1), pp.Y(phs[n]), 2.5, 0, Math.PI * 2); ctx.fill()
+      }
     })
   },
 

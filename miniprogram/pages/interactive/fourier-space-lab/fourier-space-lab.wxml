@@ -1,62 +1,83 @@
 <!-- pages/interactive/fourier-space-lab/fourier-space-lab.wxml —— 傅里叶空间 -->
-<view class="screen fs">
+<view class="screen tp-page">
 
-  <view class="fs-head rise">
+  <view class="tp-head rise">
     <view class="kicker">FOURIER SPACE LAB</view>
-    <view class="fs-title display">傅里叶空间</view>
-    <view class="fs-sub">同一个傅里叶结构 · 四种课程视角</view>
+    <view class="tp-title display">傅里叶空间</view>
+    <view class="tp-sub">同一个傅里叶结构 · 四种课程视角</view>
   </view>
 
   <!-- 左画布：分布 -->
-  <view class="fs-canvas-wrap rise">
-    <view class="fs-sub-plot">{{leftLabel}}</view>
-    <canvas type="2d" id="leftCanvas" class="fs-canvas"></canvas>
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">{{leftLabel}}</view>
+    <canvas type="2d" id="leftCanvas" class="tp-canvas-short"></canvas>
   </view>
 
-  <!-- 右画布：谱 -->
-  <view class="fs-canvas-wrap rise">
-    <view class="fs-sub-plot">{{rightLabel}}</view>
-    <canvas type="2d" id="rightCanvas" class="fs-canvas"></canvas>
+  <!-- 右画布：对偶谱 -->
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">{{rightLabel}}</view>
+    <canvas type="2d" id="rightCanvas" class="tp-canvas-short"></canvas>
   </view>
 
   <!-- 模式切换 -->
-  <view class="fs-section rise">
+  <view class="tp-section rise">
     <view class="kicker">实验模式</view>
-    <view class="fs-btns">
-      <view class="fs-btn {{S.mode==='signal' ? 'active' : ''}}" bindtap="setSignal">时间信号</view>
-      <view class="fs-btn {{S.mode==='aperture' ? 'active' : ''}}" bindtap="setAperture">口径天线</view>
-      <view class="fs-btn {{S.mode==='array' ? 'active' : ''}}" bindtap="setArray">阵列采样</view>
-      <view class="fs-btn {{S.mode==='uncertainty' ? 'active' : ''}}" bindtap="setUncertainty">不确定性</view>
+    <view class="tp-btns">
+      <view class="tp-btn {{S.mode==='signal' ? 'active' : ''}}" data-m="signal" bindtap="setMode">时间信号</view>
+      <view class="tp-btn {{S.mode==='aperture' ? 'active' : ''}}" data-m="aperture" bindtap="setMode">口径天线</view>
+      <view class="tp-btn {{S.mode==='array' ? 'active' : ''}}" data-m="array" bindtap="setMode">阵列采样</view>
+      <view class="tp-btn {{S.mode==='uncertainty' ? 'active' : ''}}" data-m="uncertainty" bindtap="setMode">不确定性</view>
     </view>
   </view>
 
-  <!-- 参数 -->
-  <view class="fs-section rise">
+  <!-- 参数（按模式显示相关滑杆，读数带物理单位） -->
+  <view class="tp-section rise">
     <view class="kicker">参数</view>
-    <view class="fs-slider-row">
-      <text class="fs-slider-label">分布宽度</text>
-      <slider class="fs-slider" min="12" max="90" step="1" value="{{S.width}}"
-        bindchange="onWidth" show-value />
+    <view class="tp-slider-row" wx:if="{{S.mode !== 'array'}}">
+      <text class="tp-slider-label">{{widthName}}</text>
+      <slider class="tp-slider" min="12" max="90" step="1" value="{{S.width}}"
+        bindchanging="onWidth" bindchange="onWidth" />
+      <text class="tp-slider-val">{{vals.width}}</text>
     </view>
-    <view class="fs-slider-row">
-      <text class="fs-slider-label">采样间距</text>
-      <slider class="fs-slider" min="25" max="120" step="1" value="{{S.spacing}}"
-        bindchange="onSpacing" show-value />
+    <view class="tp-slider-row" wx:if="{{S.mode === 'array'}}">
+      <text class="tp-slider-label">阵元间距 d</text>
+      <slider class="tp-slider" min="25" max="120" step="1" value="{{S.spacing}}"
+        bindchanging="onSpacing" bindchange="onSpacing" />
+      <text class="tp-slider-val">{{vals.spacing}}</text>
     </view>
-    <view class="fs-slider-row">
-      <text class="fs-slider-label">边缘渐削</text>
-      <slider class="fs-slider" min="0" max="100" step="1" value="{{S.taper}}"
-        bindchange="onTaper" show-value />
+    <view class="tp-slider-row" wx:if="{{S.mode === 'aperture' || S.mode === 'array'}}">
+      <text class="tp-slider-label">边缘渐削 T</text>
+      <slider class="tp-slider" min="0" max="100" step="1" value="{{S.taper}}"
+        bindchanging="onTaper" bindchange="onTaper" />
+      <text class="tp-slider-val">T = {{S.taper}}%</text>
     </view>
   </view>
 
-  <!-- 观察结论 -->
-  <view class="fs-note rise">
+  <!-- 读数（从计算好的谱实测，随参数刷新） -->
+  <view class="tp-section pop" wx:if="{{stats.length}}">
+    <view class="kicker">读数</view>
+    <view class="tp-stats-grid">
+      <view class="tp-stat {{item.wide ? 'tp-stat-wide' : ''}}" wx:for="{{stats}}" wx:key="label">
+        <view class="tp-stat-label">{{item.label}}</view>
+        <view class="tp-stat-value {{item.cls}}">{{item.value}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 公式注脚 -->
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">所用公式</view>
+    <view class="tp-formula-line">高斯对：x(t)=e^(−t²/2σt²) ↔ |X(f)|=e^(−f²/2σf²)，σf = 1/(2πσt)</view>
+    <view class="tp-formula-line">口径：F(sinθ) = ∫ Ea(x)·e^(j2πx·sinθ/λ) dx，Ea = (1−T) + T·cos²(πx/a)</view>
+    <view class="tp-formula-line">阵列：|AF| = |Σ wₙ·e^(jn·2π(d/λ)sinθ)| / Σwₙ，栅瓣进入可见区当 d/λ ≥ 1</view>
+    <view class="tp-formula-line">波包：ψ(x) = e^(−x²/4σx²)·cos(k₀x)，σk = 1/(2σx)，σx·σk = 1/2</view>
+    <view class="tp-formula-cond">适用条件：一维标量模型，忽略单元方向图、互耦与失配；阵列为等距线阵宽边（β = 0，N = 13）；σt/σf 为幅度高斯标准差，σx/σk 为 |·|² 密度标准差（量子约定）；方向图 dB 轴截断于 −40 dB。</view>
+  </view>
+
+  <!-- 观察结论（随当前模式高亮对应条目） -->
+  <view class="tp-note rise">
     <view class="kicker">观察结论</view>
-    <view class="fs-note-item">宽窄互补：分布越宽，对偶谱越窄</view>
-    <view class="fs-note-item">相位叠加：谱不是外形复制，是带相位的正弦/平面波叠加</view>
-    <view class="fs-note-item">采样混叠：离散采样复制谱，重叠时出现栅瓣</view>
-    <view class="fs-note-item">工程后果：更窄主瓣需更大口径、更长观测或更密采样</view>
+    <view class="fs-note-item {{item.m === S.mode ? 'on' : ''}}" wx:for="{{notes}}" wx:key="m">{{item.t}}</view>
   </view>
 
 </view>

@@ -1,83 +1,19 @@
-/* pages/interactive/fourier-space-lab/fourier-space-lab.wxss —— 傅里叶空间 */
-.fs { padding-top: 20rpx; }
+/* pages/interactive/fourier-space-lab/fourier-space-lab.wxss —— 傅里叶空间
+   共享 UI 见 styles/tool-ui.wxss（tp-* 类），本文件只放页面特有覆盖。 */
+@import "../../../styles/tool-ui.wxss";
 
-.fs-head { padding: 20rpx 12rpx 24rpx; }
-.fs-title { font-size: 40rpx; margin: 8rpx 0 4rpx; }
-.fs-sub { font-size: 24rpx; color: var(--muted); }
-
-.fs-canvas-wrap {
-  margin: 0 12rpx 20rpx;
-  padding: 16rpx;
-  background: var(--card);
-  border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.05);
-}
-.fs-canvas { width: 686rpx; height: 300rpx; }
-.fs-sub-plot {
-  font-size: 22rpx;
-  color: var(--muted);
-  margin-bottom: 8rpx;
-  padding-left: 8rpx;
-}
-
-.fs-section {
-  margin: 0 12rpx 20rpx;
-  padding: 24rpx 28rpx;
-  background: var(--card);
-  border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.04);
-}
-.fs-section .kicker { margin-bottom: 16rpx; }
-
-.fs-btns {
-  display: flex;
-  gap: 10rpx;
-  flex-wrap: wrap;
-}
-.fs-btn {
-  flex: 1;
-  min-width: 130rpx;
-  text-align: center;
-  padding: 14rpx 6rpx;
-  font-size: 24rpx;
-  color: var(--muted);
-  background: var(--paper);
-  border: 1rpx solid var(--line-soft);
-  border-radius: 14rpx;
-  transition: all .2s;
-}
-.fs-btn.active {
-  color: var(--accent);
-  border-color: var(--accent);
-  background: rgba(176,106,79,.06);
-  font-weight: 600;
-}
-
-.fs-slider-row {
-  display: flex;
-  align-items: center;
-  padding: 8rpx 0;
-}
-.fs-slider-label {
-  font-size: 26rpx;
-  color: var(--ink-soft);
-  width: 180rpx;
-  flex-shrink: 0;
-}
-.fs-slider { flex: 1; margin: 0 12rpx; }
-
-.fs-note {
-  margin: 0 12rpx 40rpx;
-  padding: 24rpx;
-  background: var(--card);
-  border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-}
+/* 观察结论条目：随当前模式高亮 */
 .fs-note-item {
   font-size: 23rpx;
   color: var(--muted);
-  padding: 6rpx 0;
+  padding: 8rpx 12rpx;
   line-height: 1.6;
+  border-radius: 10rpx;
+  border-left: 4rpx solid transparent;
+  transition: all 0.2s;
+}
+.fs-note-item.on {
+  color: var(--ink-soft);
+  background: rgba(184, 92, 56, 0.06);
+  border-left-color: var(--accent);
 }

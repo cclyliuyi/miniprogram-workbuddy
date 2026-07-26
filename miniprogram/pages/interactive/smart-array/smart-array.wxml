@@ -1,84 +1,114 @@
-<!-- pages/interactive/smart-array/smart-array.wxml —— 自适应零陷波束形成 -->
-<view class="screen sa">
+<!-- pages/interactive/smart-array/smart-array.wxml —— MVDR 自适应波束形成 -->
+<view class="screen tp-page">
 
-  <view class="sa-head rise">
+  <view class="tp-head rise">
     <view class="kicker">ADAPTIVE BEAMFORMING</view>
-    <view class="sa-title display">智能天线</view>
-    <view class="sa-sub">MVDR 自适应零陷 · 目标增强 · 干扰抑制</view>
+    <view class="tp-title display">智能天线</view>
+    <view class="tp-sub">MVDR（Capon）· 干扰功率驱动的自适应零陷</view>
   </view>
 
   <!-- 方向图 -->
-  <view class="sa-canvas-wrap rise">
-    <view class="sa-sub-plot">阵列响应 |wᴴa(θ)| (dB)</view>
-    <canvas type="2d" id="patternCanvas" class="sa-canvas-wide"></canvas>
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">阵列响应 |wᴴa(θ)|（dB，相对峰值）</view>
+    <canvas type="2d" id="patternCanvas" class="tp-canvas"></canvas>
   </view>
 
-  <!-- 复权值分布 -->
-  <view class="sa-canvas-wrap rise">
-    <view class="sa-sub-plot">复权值 wₙ 分布（横=幅度，纵=相位）</view>
-    <canvas type="2d" id="weightsCanvas" class="sa-canvas-sq"></canvas>
+  <!-- 复权值 -->
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">复权值 wₙ：上 = 幅度 |wₙ|，下 = 相位 ∠wₙ</view>
+    <canvas type="2d" id="weightsCanvas" class="tp-canvas"></canvas>
   </view>
 
   <!-- 阵列配置 -->
-  <view class="sa-section rise">
+  <view class="tp-section rise">
     <view class="kicker">阵列配置</view>
-    <view class="sa-slider-row">
-      <text class="sa-slider-label">阵元数 N</text>
-      <slider class="sa-slider" min="6" max="24" step="1" value="{{S.N}}"
-        bindchange="onN" show-value />
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">阵元数 N</text>
+      <slider class="tp-slider" min="6" max="24" step="1" value="{{S.N}}"
+        bindchanging="onN" bindchange="onN" />
+      <text class="tp-slider-val">{{S.N}} 元</text>
+    </view>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">阵间距 d</text>
+      <slider class="tp-slider" min="25" max="100" step="5" value="{{S.d100}}"
+        bindchanging="onD" bindchange="onD" />
+      <text class="tp-slider-val">{{S.d100 / 100}} λ</text>
+    </view>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">干噪比 JNR</text>
+      <slider class="tp-slider" min="0" max="40" step="1" value="{{S.jnr}}"
+        bindchanging="onJnr" bindchange="onJnr" />
+      <text class="tp-slider-val">{{S.jnr}} dB</text>
+    </view>
+    <view class="tp-btns" style="margin-top: 12rpx;">
+      <view class="tp-btn {{!S.dual ? 'active' : ''}}" data-m="1" bindtap="setMode">单干扰</view>
+      <view class="tp-btn {{S.dual ? 'active' : ''}}" data-m="2" bindtap="setMode">双干扰</view>
     </view>
   </view>
 
   <!-- 方向控制 -->
-  <view class="sa-section rise">
+  <view class="tp-section rise">
     <view class="kicker">方向控制</view>
-    <view class="sa-slider-row">
-      <text class="sa-slider-label sa-teal">目标 θs</text>
-      <slider class="sa-slider" min="-60" max="60" step="1" value="{{S.sig}}"
-        bindchange="onSig" show-value />
+    <view class="tp-slider-row">
+      <text class="tp-slider-label tp-c-teal">目标 θs</text>
+      <slider class="tp-slider" min="-60" max="60" step="1" value="{{S.sig}}"
+        bindchanging="onSig" bindchange="onSig" />
+      <text class="tp-slider-val">{{S.sig}}°</text>
     </view>
-    <view class="sa-slider-row">
-      <text class="sa-slider-label sa-red">干扰1 θi₁</text>
-      <slider class="sa-slider" min="-75" max="75" step="1" value="{{S.jam1}}"
-        bindchange="onJam1" show-value />
+    <view class="tp-slider-row">
+      <text class="tp-slider-label tp-c-indigo">干扰1 θi₁</text>
+      <slider class="tp-slider" min="-75" max="75" step="1" value="{{S.jam1}}"
+        bindchanging="onJam1" bindchange="onJam1" />
+      <text class="tp-slider-val">{{S.jam1}}°</text>
     </view>
-    <view class="sa-slider-row">
-      <text class="sa-slider-label sa-orange">干扰2 θi₂</text>
-      <slider class="sa-slider" min="-75" max="75" step="1" value="{{S.jam2}}"
-        bindchange="onJam2" show-value />
+    <view class="tp-slider-row" wx:if="{{S.dual}}">
+      <text class="tp-slider-label tp-c-gold">干扰2 θi₂</text>
+      <slider class="tp-slider" min="-75" max="75" step="1" value="{{S.jam2}}"
+        bindchanging="onJam2" bindchange="onJam2" />
+      <text class="tp-slider-val">{{S.jam2}}°</text>
     </view>
+  </view>
+
+  <!-- 警示 -->
+  <view class="tp-note rise" wx:if="{{warn}}">
+    <view class="tp-note-text tp-c-danger">注意：{{warn}}</view>
   </view>
 
   <!-- 读数 -->
-  <view class="sa-stats pop" wx:if="{{stats}}">
-    <view class="kicker sa-stats-title">实时读数</view>
-    <view class="sa-stats-grid">
-      <view class="sa-stat">
-        <view class="sa-stat-label">干扰1 零陷深度</view>
-        <view class="sa-stat-value num sa-red">{{stats.null1}}</view>
+  <view class="tp-section pop" wx:if="{{stats}}">
+    <view class="kicker">实时读数</view>
+    <view class="tp-stats-grid">
+      <view class="tp-stat">
+        <view class="tp-stat-label">干扰1 零陷深度（随 JNR 变化）</view>
+        <view class="tp-stat-value tp-c-indigo">{{stats.null1}}</view>
       </view>
-      <view class="sa-stat">
-        <view class="sa-stat-label">干扰2 零陷深度</view>
-        <view class="sa-stat-value num sa-orange">{{stats.null2}}</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">干扰2 零陷深度</view>
+        <view class="tp-stat-value tp-c-gold">{{stats.null2}}</view>
       </view>
-      <view class="sa-stat">
-        <view class="sa-stat-label">主瓣指向</view>
-        <view class="sa-stat-value num sa-teal">{{stats.beam}}</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">主瓣指向（响应峰值）</view>
+        <view class="tp-stat-value tp-c-teal">{{stats.beam}}</view>
       </view>
-      <view class="sa-stat">
-        <view class="sa-stat-label">权值范数</view>
-        <view class="sa-stat-value num">{{stats.norm}}</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">权值范数 ‖w‖（噪声放大代价）</view>
+        <view class="tp-stat-value tp-c-accent">{{stats.norm}}</view>
       </view>
     </view>
   </view>
 
-  <!-- 约束条件 -->
-  <view class="sa-formula-note rise">
-    <view class="kicker">MVDR 约束</view>
-    <view class="sa-formula-item">wᴴa(θs) = 1  （目标方向无失真）</view>
-    <view class="sa-formula-item">wᴴa(θi₁) = 0  wᴴa(θi₂) = 0  （干扰零陷）</view>
-    <view class="sa-formula-item">两个零陷占用两个空间自由度</view>
-    <view class="sa-formula-item">干扰靠近目标时，零陷变浅</view>
+  <!-- 公式注脚 -->
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">所用公式（MVDR / Capon）</view>
+    <view class="tp-formula-line">w = R⁻¹a(θs) / (a(θs)ᴴ R⁻¹ a(θs))，R = σ²I + Σ JNRᵢ·a(θᵢ)a(θᵢ)ᴴ，σ² = 1</view>
+    <view class="tp-formula-line">a(θ) = [1, e^{j2πd·sinθ/λ}, …, e^{j2π(N−1)d·sinθ/λ}]ᵀ</view>
+    <view class="tp-formula-cond">适用条件：窄带远场点干扰、空间白噪声。零陷是软零陷，深度随 JNR 增大而加深；干扰进入主瓣（约 ±HPBW/2，HPBW ≈ 0.886λ/(Nd)）时零陷变浅、主瓣畸变、‖w‖ 激增；d/λ ≥ 1/(1+|sinθs|) 时出现栅瓣。</view>
+  </view>
+
+  <!-- 说明 -->
+  <view class="tp-note rise">
+    <view class="kicker">统一解释</view>
+    <view class="tp-note-text">MVDR 在保持目标方向增益为 1 的前提下最小化输出总功率：干扰越强（JNR 越大）零陷越深；干扰越靠近目标，零陷被迫变浅、权值范数（噪声放大）激增——这是自适应阵的鲁棒性代价。试试把 JNR 调到 0 dB：零陷明显变浅、趋向静态方向图；或把 d 调到 1 λ：栅瓣出现。</view>
   </view>
 
 </view>

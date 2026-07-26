@@ -1,90 +1,106 @@
 <!-- pages/interactive/broadband-matching/broadband-matching.wxml —— 宽带匹配 -->
-<view class="screen bm">
+<view class="screen tp-page">
 
-  <view class="bm-head rise">
+  <view class="tp-head rise">
     <view class="kicker">BROADBAND MATCHING</view>
-    <view class="bm-title display">宽带匹配</view>
-    <view class="bm-sub">回波损耗 · Smith 阻抗轨迹 · 带宽分析</view>
+    <view class="tp-title display">宽带匹配</view>
+    <view class="tp-sub">回波损耗 · Smith 轨迹 · Bode–Fano 极限</view>
   </view>
 
   <!-- 回波损耗曲线 -->
-  <view class="bm-canvas-wrap rise">
-    <view class="bm-sub-plot">回波损耗 |RL| vs f/f₀</view>
-    <canvas type="2d" id="rlCanvas" class="bm-canvas-wide"></canvas>
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">回波损耗 RL vs f/f₀（绿色区 = RL≥10dB 匹配带）</view>
+    <canvas type="2d" id="rlCanvas" class="tp-canvas-short"></canvas>
   </view>
 
   <!-- Smith 轨迹 -->
-  <view class="bm-canvas-wrap rise">
-    <view class="bm-sub-plot">归一化阻抗轨迹（Γ 平面）</view>
-    <canvas type="2d" id="smithCanvas" class="bm-canvas-sq"></canvas>
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">Γ 平面阻抗轨迹（Smith 图，归一化到 50Ω）</view>
+    <canvas type="2d" id="smithCanvas" class="tp-canvas"></canvas>
   </view>
 
   <!-- 天线类型 -->
-  <view class="bm-section rise">
+  <view class="tp-section rise">
     <view class="kicker">天线模型</view>
-    <view class="bm-ant-btns">
-      <view class="bm-ant {{S.ant==='thin' ? 'active' : ''}}" bindtap="setThin">细偶极子</view>
-      <view class="bm-ant {{S.ant==='thick' ? 'active' : ''}}" bindtap="setThick">粗偶极子</view>
-      <view class="bm-ant {{S.ant==='folded' ? 'active' : ''}}" bindtap="setFolded">折合振子</view>
-      <view class="bm-ant {{S.ant==='bicone' ? 'active' : ''}}" bindtap="setBicone">双锥</view>
+    <view class="tp-btns">
+      <view wx:for="{{ants}}" wx:key="id"
+        class="tp-btn {{S.ant===item.id ? 'active' : ''}}"
+        data-a="{{item.id}}" bindtap="setAnt">{{item.name}}</view>
     </view>
   </view>
 
   <!-- 匹配方式 -->
-  <view class="bm-section rise">
+  <view class="tp-section rise">
     <view class="kicker">匹配方式</view>
-    <view class="bm-match-btns">
-      <view class="bm-match {{S.match==='none' ? 'active' : ''}}" bindtap="setNoMatch">无匹配</view>
-      <view class="bm-match {{S.match==='l' ? 'active' : ''}}" bindtap="setLMatch">L 匹配</view>
-      <view class="bm-match {{S.match==='taper' ? 'active' : ''}}" bindtap="setTaper">渐变宽带</view>
+    <view class="tp-btns">
+      <view wx:for="{{matches}}" wx:key="id"
+        class="tp-btn {{S.match===item.id ? 'active' : ''}}"
+        data-m="{{item.id}}" bindtap="setMatch">{{item.name}}</view>
     </view>
   </view>
 
-  <!-- 参数 -->
-  <view class="bm-section rise">
+  <!-- 结构参数 -->
+  <view class="tp-section rise">
     <view class="kicker">结构参数</view>
-    <view class="bm-slider-row">
-      <text class="bm-slider-label">结构粗细</text>
-      <slider class="bm-slider" min="0" max="1" step="0.01" value="{{S.thick}}"
-        bindchange="onThick" show-value />
+    <view class="tp-slider-row" wx:if="{{S.ant!=='bicone'}}">
+      <text class="tp-slider-label">细长比 L/2a</text>
+      <slider class="tp-slider" min="25" max="2000" step="25" value="{{S.slen}}"
+        bindchanging="onSlen" bindchange="onSlen" />
+      <text class="tp-slider-val">{{S.slen}}</text>
     </view>
-    <view class="bm-slider-row">
-      <text class="bm-slider-label">扫频范围</text>
-      <slider class="bm-slider" min="0.3" max="0.8" step="0.02" value="{{S.span}}"
-        bindchange="onSpan" show-value />
+    <view class="tp-slider-row" wx:if="{{S.ant==='bicone'}}">
+      <text class="tp-slider-label">半锥角 θh</text>
+      <slider class="tp-slider" min="10" max="60" step="1" value="{{S.cone}}"
+        bindchanging="onCone" bindchange="onCone" />
+      <text class="tp-slider-val">{{S.cone}}°</text>
+    </view>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">扫频范围</text>
+      <slider class="tp-slider" min="30" max="80" step="2" value="{{S.spanPct}}"
+        bindchanging="onSpan" bindchange="onSpan" />
+      <text class="tp-slider-val">±{{S.spanPct}}%</text>
     </view>
   </view>
 
   <!-- 带宽读数 -->
-  <view class="bm-stats pop" wx:if="{{stats}}">
-    <view class="kicker bm-stats-title">带宽分析</view>
-    <view class="bm-stats-grid">
-      <view class="bm-stat">
-        <view class="bm-stat-label">-10dB 带宽</view>
-        <view class="bm-stat-value num">{{stats.bw}}</view>
+  <view class="tp-section pop" wx:if="{{stats}}">
+    <view class="kicker">带宽分析</view>
+    <view class="tp-stats-grid">
+      <view class="tp-stat">
+        <view class="tp-stat-label">匹配带宽（RL≥10dB）</view>
+        <view class="tp-stat-value tp-c-teal">{{stats.bw}}</view>
       </view>
-      <view class="bm-stat">
-        <view class="bm-stat-label">最佳 RL</view>
-        <view class="bm-stat-value num">{{stats.minrl}} dB</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">峰值 RL</view>
+        <view class="tp-stat-value tp-c-accent">{{stats.peak}}</view>
       </view>
-      <view class="bm-stat">
-        <view class="bm-stat-label">等效 Q</view>
-        <view class="bm-stat-value num">{{stats.qv}}</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">天线 R(f₀) · Q</view>
+        <view class="tp-stat-value">{{stats.rq}}</view>
       </view>
-      <view class="bm-stat">
-        <view class="bm-stat-label">系统阻抗</view>
-        <view class="bm-stat-value num">50Ω</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">Bode–Fano 带宽上限</view>
+        <view class="tp-stat-value tp-c-indigo">{{stats.bf}}</view>
       </view>
     </view>
   </view>
 
-  <!-- 公式说明 -->
-  <view class="bm-formula-note rise">
-    <view class="kicker">阻抗模型</view>
-    <view class="bm-formula-item">Z(f) = R + jRQ(f/f₀ − f₀/f)</view>
-    <view class="bm-formula-item">Γ = (Z − Z₀)/(Z + Z₀),  RL = −20log|Γ|</view>
-    <view class="bm-formula-item">粗天线 Q 低 → 阻抗变化慢 → 带宽宽</view>
-    <view class="bm-formula-item">轨迹越靠近圆心 = 匹配越好</view>
+  <!-- 公式注脚 -->
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">所用公式</view>
+    <view class="tp-formula-line">Z(f) = R[1 + jQ(f/f₀ − f₀/f)]　·　Γ = (Z − Z₀)/(Z + Z₀)　·　RL = −20lg|Γ|</view>
+    <view class="tp-formula-line">偶极子：Za = 120[ln(2L/a) − 1]，Q = πZa/(4R)，R = 73Ω（折合振子 ×4）</view>
+    <view class="tp-formula-line">双锥：R = Zc = 120·ln cot(θh/2)，锥线模型 Q = π/4</view>
+    <view class="tp-formula-line">L 匹配：Qm = √(R/Z₀ − 1)，Xp = R/Qm，Xs = QmZ₀（f₀ 处设计，逐频点算 Zin）</view>
+    <view class="tp-formula-line">渐变线：Γ ≈ ½ln(R/Z₀)·e^(−jβL)·sinc(βL) + Γant·e^(−j2βL)，L = λ₀</view>
+    <view class="tp-formula-line">Bode–Fano：FBW·ln(1/|Γm|) ≤ π/Q</view>
+    <view class="tp-formula-cond">适用条件：天线按谐振点附近的串联 RLC 一阶模型；渐变线用小反射理论（弱失配近似）；L 匹配假设元件无耗。任何无源匹配的 RL≥10dB 带宽都不能超过 Bode–Fano 上限。</view>
+  </view>
+
+  <!-- 说明 -->
+  <view class="tp-note rise">
+    <view class="kicker">怎么读</view>
+    <view class="tp-note-text">结构越粗（细长比小 / 锥角大），Za 越低 → Q 越低 → 阻抗随频率变化越慢 → 带宽越宽。Smith 轨迹越收拢在圆心附近，匹配带越宽；L 匹配只能把 f₀ 附近"拉"到圆心（窄带），渐变线把整段阻抗抬到 R 附近（宽带，但低频端 βL 太小时失效）。</view>
   </view>
 
 </view>

@@ -1,79 +1,91 @@
 <!-- pages/interactive/miniaturization/miniaturization.wxml —— 电小天线与 Chu 极限 -->
-<view class="screen mc">
+<view class="screen tp-page">
 
-  <view class="mc-head rise">
+  <view class="tp-head rise">
     <view class="kicker">ELECTRICALLY SMALL ANTENNAS</view>
-    <view class="mc-title display">电小天线与 Chu 极限</view>
-    <view class="mc-sub">ka · 辐射电阻 · 效率 · 带宽</view>
+    <view class="tp-title display">电小天线与 Chu 极限</view>
+    <view class="tp-sub">ka · 辐射电阻 · 效率 · 带宽</view>
   </view>
 
-  <!-- 近场场景 -->
-  <view class="mc-canvas-wrap rise">
-    <view class="mc-sub-plot">近场储能 · 等效损耗模型</view>
-    <canvas type="2d" id="sceneCanvas" class="mc-canvas"></canvas>
+  <!-- Chu 球场景（几何按 ka 真实比例） -->
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">Chu 球（半径 a）与辐射球（r = λ/2π）：两球半径之比就是 ka</view>
+    <canvas type="2d" id="sceneCanvas" class="tp-canvas-short"></canvas>
   </view>
 
-  <!-- Chu Q / Rrad / 效率 曲线 -->
-  <view class="mc-canvas-wrap rise">
-    <view class="mc-sub-plot">Chu Q 下界 · 辐射电阻 · 效率 vs ka</view>
-    <canvas type="2d" id="curveCanvas" class="mc-canvas"></canvas>
+  <!-- Q / Rrad / 效率曲线 -->
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">Chu Q 下界 · 辐射电阻 · 效率 vs ka</view>
+    <canvas type="2d" id="curveCanvas" class="tp-canvas-tall"></canvas>
   </view>
 
   <!-- 天线类型 -->
-  <view class="mc-section rise">
+  <view class="tp-section rise">
     <view class="kicker">天线模型</view>
-    <view class="mc-btns">
-      <view class="mc-btn {{S.mode==='dipole' ? 'active' : ''}}" bindtap="setDipole">短电偶极子</view>
-      <view class="mc-btn {{S.mode==='loop' ? 'active' : ''}}" bindtap="setLoop">电小环</view>
+    <view class="tp-btns">
+      <view class="tp-btn {{S.mode==='dipole' ? 'active' : ''}}" data-m="dipole" bindtap="setMode">短电偶极子</view>
+      <view class="tp-btn {{S.mode==='loop' ? 'active' : ''}}" data-m="loop" bindtap="setMode">电小环（单匝）</view>
     </view>
   </view>
 
   <!-- 参数 -->
-  <view class="mc-section rise">
+  <view class="tp-section rise">
     <view class="kicker">参数</view>
-    <view class="mc-slider-row">
-      <text class="mc-slider-label">电尺寸 ka</text>
-      <slider class="mc-slider" min="0.06" max="0.80" step="0.01" value="{{S.ka}}"
-        bindchange="onKa" show-value />
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">电尺寸 ka = 2πa/λ</text>
+      <slider class="tp-slider" min="0.06" max="0.80" step="0.01" value="{{S.ka}}"
+        bindchanging="onKa" bindchange="onKa" />
+      <text class="tp-slider-val">{{S.ka}}</text>
     </view>
-    <view class="mc-slider-row">
-      <text class="mc-slider-label">损耗电阻 Rloss</text>
-      <slider class="mc-slider" min="0.2" max="20" step="0.1" value="{{S.rloss}}"
-        bindchange="onLoss" show-value />
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">损耗电阻 Rloss</text>
+      <slider class="tp-slider" min="0.2" max="20" step="0.1" value="{{S.rloss}}"
+        bindchanging="onLoss" bindchange="onLoss" />
+      <text class="tp-slider-val">{{S.rloss}} Ω</text>
     </view>
   </view>
 
   <!-- 读数 -->
-  <view class="mc-stats pop" wx:if="{{stats}}">
-    <view class="kicker mc-stats-title">物理读数</view>
-    <view class="mc-stats-grid">
-      <view class="mc-stat">
-        <view class="mc-stat-label">Chu Q 下界</view>
-        <view class="mc-stat-value num">{{stats.qmin}}</view>
+  <view class="tp-section pop" wx:if="{{stats}}">
+    <view class="kicker">物理读数</view>
+    <view class="tp-stats-grid">
+      <view class="tp-stat">
+        <view class="tp-stat-label">Chu Q 下界（无耗）</view>
+        <view class="tp-stat-value tp-c-accent">{{stats.qmin}}</view>
       </view>
-      <view class="mc-stat">
-        <view class="mc-stat-label">可用带宽趋势</view>
-        <view class="mc-stat-value num">{{stats.bw}}</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">辐射电阻 Rrad</view>
+        <view class="tp-stat-value tp-c-gold">{{stats.rrad}}</view>
       </view>
-      <view class="mc-stat">
-        <view class="mc-stat-label">辐射电阻 Rrad</view>
-        <view class="mc-stat-value num">{{stats.rrad}}</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">辐射效率 ηrad</view>
+        <view class="tp-stat-value tp-c-teal">{{stats.eta}}</view>
       </view>
-      <view class="mc-stat">
-        <view class="mc-stat-label">辐射效率 ηrad</view>
-        <view class="mc-stat-value num">{{stats.eta}}</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">FBW（VSWR≤2，含损）</view>
+        <view class="tp-stat-value tp-c-indigo">{{stats.bw}}</view>
+      </view>
+      <view class="tp-stat tp-stat-wide">
+        <view class="tp-stat-label">无耗极限带宽（Q = Qmin 时）—— 损耗把 Q 拉低到 η·Qmin，带宽反而变宽</view>
+        <view class="tp-stat-value">{{stats.bw0}}</view>
       </view>
     </view>
   </view>
 
-  <!-- 公式 -->
-  <view class="mc-formula-note rise">
-    <view class="kicker">核心公式</view>
-    <view class="mc-formula-item">Qmin ≈ 1/(ka)³ + 1/(ka)</view>
-    <view class="mc-formula-item" wx:if="{{S.mode==='dipole'}}">Rrad(short dipole) ≈ 80(ka)² Ω</view>
-    <view class="mc-formula-item" wx:if="{{S.mode==='loop'}}">Rrad(small loop) ∝ (ka)⁴ Ω</view>
-    <view class="mc-formula-item">ηrad = Rrad / (Rrad + Rloss)</view>
-    <view class="mc-formula-item">ka 变小 → 储能激增、带宽极窄、Rrad 被损耗淹没</view>
+  <!-- 公式注脚 -->
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">所用公式</view>
+    <view class="tp-formula-line">Qmin = 1/(ka)³ + 1/(ka)（Chu–McLean）</view>
+    <view class="tp-formula-line" wx:if="{{S.mode==='dipole'}}">Rrad = 20π²(l/λ)² = 20(ka)²（短偶极子）</view>
+    <view class="tp-formula-line" wx:if="{{S.mode==='loop'}}">Rrad = 320π⁴(A/λ²)² = 20π²(ka)⁴（单匝小环）</view>
+    <view class="tp-formula-line">η = Rrad/(Rrad + Rloss)　·　Q含损 ≈ η·Qmin　·　FBW ≈ (s−1)/(Q√s)，s = 2</view>
+    <view class="tp-formula-cond">适用条件：Qmin 针对无耗、单 TM/TE 模，a 为天线最小外接球半径；短偶极子按三角电流分布、中心馈电、a = l/2；小环按单匝均匀电流、a = 环半径。损耗使 Q ≈ η·Qmin，带宽变宽 —— 这是"用效率换带宽"的经典权衡，效率带宽积不超过无耗极限。</view>
+  </view>
+
+  <!-- 说明 -->
+  <view class="tp-note rise">
+    <view class="kicker">怎么读</view>
+    <view class="tp-note-text">ka 越小：近场储能激增（Qmin ∝ 1/(ka)³），Rrad 骤降（偶极子 ∝(ka)²，环 ∝(ka)⁴），很快被欧姆损耗淹没 → 效率崩塌。注意带宽读数：加大 Rloss 会让带宽"变宽"，但那是用辐射效率换来的 —— 匹配电阻吸收了能量，不等于天线性能变好。</view>
   </view>
 
 </view>

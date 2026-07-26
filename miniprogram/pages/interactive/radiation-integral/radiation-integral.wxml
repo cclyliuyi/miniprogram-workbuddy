@@ -1,86 +1,90 @@
 <!-- pages/interactive/radiation-integral/radiation-integral.wxml —— 辐射积分 -->
-<view class="screen ri">
+<view class="screen tp-page">
 
-  <view class="ri-head rise">
+  <view class="tp-head rise">
     <view class="kicker">RADIATION INTEGRAL</view>
-    <view class="ri-title display">辐射积分</view>
-    <view class="ri-sub">源分布 I(z') → 积分路径 → 远场方向图</view>
+    <view class="tp-title display">辐射积分</view>
+    <view class="tp-sub">源分布 I(z′) → 复平面矢量叠加 → 远场方向图</view>
   </view>
 
   <!-- 电流分布 -->
-  <view class="ri-canvas-wrap rise">
-    <view class="ri-sub-plot">电流分布 I(z')</view>
-    <canvas type="2d" id="sourceCanvas" class="ri-canvas-wide"></canvas>
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">电流分布 I(z′)/Imax</view>
+    <canvas type="2d" id="sourceCanvas" class="tp-canvas-short"></canvas>
   </view>
 
-  <!-- 积分路径动画 -->
-  <view class="ri-canvas-wrap rise">
-    <view class="ri-sub-plot">积分路径 · 矢量叠加（点击暂停/继续）</view>
-    <canvas type="2d" id="integralCanvas" class="ri-canvas-sq"
-      bindtap="toggleAnim"></canvas>
+  <!-- 分布类型 + 源长度 -->
+  <view class="tp-section rise">
+    <view class="kicker">电流分布</view>
+    <view class="tp-btns">
+      <view class="tp-btn {{S.taper==='uniform' ? 'active' : ''}}" data-t="uniform" bindtap="setTaper">均匀</view>
+      <view class="tp-btn {{S.taper==='dipole' ? 'active' : ''}}" data-t="dipole" bindtap="setTaper">驻波（偶极子）</view>
+      <view class="tp-btn {{S.taper==='tri' ? 'active' : ''}}" data-t="tri" bindtap="setTaper">三角</view>
+      <view class="tp-btn {{S.taper==='cos2' ? 'active' : ''}}" data-t="cos2" bindtap="setTaper">余弦平方</view>
+    </view>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">源长度 L</text>
+      <slider class="tp-slider" min="8" max="300" step="2" value="{{S.L100}}"
+        bindchanging="onLen" bindchange="onLen" />
+      <text class="tp-slider-val">{{S.L100 / 100}} λ</text>
+    </view>
+  </view>
+
+  <!-- 积分路径动画 + θ 滑条紧随其下 -->
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">积分路径 · 复平面累积和（点击图面暂停/继续）</view>
+    <canvas type="2d" id="integralCanvas" class="tp-canvas" bindtap="toggleAnim"></canvas>
+  </view>
+  <view class="tp-section rise">
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">观测角 θ</text>
+      <slider class="tp-slider" min="0" max="180" step="1" value="{{S.theta}}"
+        bindchanging="onTheta" bindchange="onTheta" />
+      <text class="tp-slider-val">{{S.theta}}°</text>
+    </view>
   </view>
 
   <!-- 远场方向图 -->
-  <view class="ri-canvas-wrap rise">
-    <view class="ri-sub-plot">远场方向图 F(θ)</view>
-    <canvas type="2d" id="patternCanvas" class="ri-canvas-sq"></canvas>
-  </view>
-
-  <!-- 电流分布类型 -->
-  <view class="ri-section rise">
-    <view class="kicker">电流分布</view>
-    <view class="ri-btns">
-      <view class="ri-btn {{S.taper==='uniform' ? 'active' : ''}}" bindtap="setUniform">均匀</view>
-      <view class="ri-btn {{S.taper==='sin' ? 'active' : ''}}" bindtap="setSin">正弦</view>
-      <view class="ri-btn {{S.taper==='tri' ? 'active' : ''}}" bindtap="setTri">三角</view>
-      <view class="ri-btn {{S.taper==='cos' ? 'active' : ''}}" bindtap="setCos">余弦</view>
-    </view>
-  </view>
-
-  <!-- 参数 -->
-  <view class="ri-section rise">
-    <view class="kicker">参数</view>
-    <view class="ri-slider-row">
-      <text class="ri-slider-label">源长度 L/λ</text>
-      <slider class="ri-slider" min="0.08" max="3.0" step="0.02" value="{{S.L}}"
-        bindchange="onLen" show-value />
-    </view>
-    <view class="ri-slider-row">
-      <text class="ri-slider-label">观测角 θ</text>
-      <slider class="ri-slider" min="0" max="180" step="1" value="{{S.theta}}"
-        bindchange="onTheta" show-value />
-    </view>
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">远场方向图 |sinθ·F(θ)|（dB · 角度轴 = θ−90°，0° = 宽边）</view>
+    <canvas type="2d" id="patternCanvas" class="tp-canvas-short"></canvas>
   </view>
 
   <!-- 读数 -->
-  <view class="ri-stats pop" wx:if="{{stats}}">
-    <view class="kicker ri-stats-title">读数</view>
-    <view class="ri-stats-grid">
-      <view class="ri-stat">
-        <view class="ri-stat-label">主瓣宽度</view>
-        <view class="ri-stat-value num">{{stats.bw}}</view>
+  <view class="tp-section pop" wx:if="{{stats}}">
+    <view class="kicker">读数</view>
+    <view class="tp-stats-grid">
+      <view class="tp-stat">
+        <view class="tp-stat-label">主瓣宽度 HPBW</view>
+        <view class="tp-stat-value tp-c-accent">{{stats.bw}}</view>
       </view>
-      <view class="ri-stat teal">
-        <view class="ri-stat-label">最大旁瓣</view>
-        <view class="ri-stat-value num">{{stats.sll}}</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">最大旁瓣（第一零点外）</view>
+        <view class="tp-stat-value">{{stats.sll}}</view>
       </view>
-      <view class="ri-stat orange">
-        <view class="ri-stat-label">θ 方向场强</view>
-        <view class="ri-stat-value num">{{stats.field}}</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">θ 方向场强（相对峰值）</view>
+        <view class="tp-stat-value tp-c-gold">{{stats.field}}</view>
       </view>
-      <view class="ri-stat">
-        <view class="ri-stat-label">积分贡献</view>
-        <view class="ri-stat-value num">{{stats.intVal}}</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">空间因子幅值 |F(θ)|</view>
+        <view class="tp-stat-value tp-c-teal">{{stats.intVal}}</view>
       </view>
     </view>
   </view>
 
-  <!-- 公式 -->
-  <view class="ri-formula-note rise">
-    <view class="kicker">辐射积分公式</view>
-    <view class="ri-formula-item">F(θ) = ∫ I(z') e^{jkz'cosθ} dz'</view>
-    <view class="ri-formula-item">Simpson 数值积分，N=180</view>
-    <view class="ri-formula-item">方向图含 |sinθ| 元因子</view>
+  <!-- 公式注脚 -->
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">所用公式</view>
+    <view class="tp-formula-line">F(θ) = ∫ I(z′) e^{jkz′cosθ} dz′，k = 2π/λ　·　总方向图 = |sinθ|·|F(θ)|</view>
+    <view class="tp-formula-line">驻波：I = sin(k(L/2 − |z′|))　·　余弦平方：I = cos²(πz′/L)　·　数值积分：复化梯形法，N = 180</view>
+    <view class="tp-formula-cond">适用条件：远场（r ≫ 2L²/λ）、线源沿 z 轴、θ 为与源轴的夹角；元因子 |sinθ| 对应 z 向电流元。短源无旁瓣时旁瓣读数显示 "—"。</view>
+  </view>
+
+  <!-- 说明 -->
+  <view class="tp-note rise">
+    <view class="kicker">积分图读法</view>
+    <view class="tp-note-text">复平面里每个点是一段源电流的复数贡献 I(z′)e^{jkz′cosθ}dz′ 的累积和。θ = 90°（宽边）时各段同相，链条拉直、|F| 最大；偏离宽边后相位散开，链条卷曲、|F| 变小；旁瓣就是链条卷绕后仍残留的净和。</view>
   </view>
 
 </view>
