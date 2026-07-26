@@ -1,90 +1,103 @@
-<!-- pages/interactive/moment-method/moment-method.wxml —— 矩量法 -->
-<view class="screen mm">
+<!-- pages/interactive/moment-method/moment-method.wxml —— 矩量法实验室 -->
+<view class="screen tp-page">
 
-  <view class="mm-head rise">
+  <view class="tp-head rise">
     <view class="kicker">METHOD OF MOMENTS</view>
-    <view class="mm-title display">矩量法</view>
-    <view class="mm-sub">细线积分方程 → 阻抗矩阵 → 电流分布 → 远场</view>
+    <view class="tp-title display">矩量法实验室</view>
+    <view class="tp-sub">Hallén 积分方程 → [Z]{I}={b} 真实求解 → 电流 · 阻抗 · 方向图</view>
   </view>
 
-  <!-- 电流分布 -->
-  <view class="mm-canvas-wrap rise">
-    <view class="mm-sub-plot">细线分段电流 |Iₙ|</view>
-    <canvas type="2d" id="currentCanvas" class="mm-canvas-wide"></canvas>
+  <!-- 电流分布（真解） -->
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">{{modeLabel}}</view>
+    <canvas type="2d" id="curCanvas" class="tp-canvas-short"></canvas>
+    <view class="mm-warn" wx:if="{{kernelWarn}}">Δz &lt; a：分段比导线半径还短，约化核超出适用范围，解可能出现数值振荡——请减小 N 或减小 a。</view>
   </view>
 
-  <!-- 阻抗矩阵热图 -->
-  <view class="mm-canvas-wrap rise">
-    <view class="mm-sub-plot">阻抗矩阵 |Zmn| 热图</view>
-    <canvas type="2d" id="matrixCanvas" class="mm-canvas-sq"></canvas>
+  <!-- 矩阵热图 + 方向图 -->
+  <view class="tp-canvas-card rise">
+    <view class="mm-canvas-row">
+      <view class="mm-canvas-col">
+        <view class="tp-canvas-caption">阻抗矩阵 |Zmn|（对角占优）</view>
+        <canvas type="2d" id="matCanvas" class="mm-canvas-half"></canvas>
+      </view>
+      <view class="mm-canvas-col">
+        <view class="tp-canvas-caption">远场方向图（E 面）</view>
+        <canvas type="2d" id="patCanvas" class="mm-canvas-half"></canvas>
+      </view>
+    </view>
   </view>
 
-  <!-- 远场方向图 -->
-  <view class="mm-canvas-wrap rise">
-    <view class="mm-sub-plot">远场方向图主截面</view>
-    <canvas type="2d" id="patternCanvas" class="mm-canvas-wide"></canvas>
+  <!-- 激励方式 -->
+  <view class="tp-section rise">
+    <view class="kicker">激励方式</view>
+    <view class="tp-btns">
+      <view class="tp-btn {{S.mode==='center' ? 'active' : ''}}" data-m="center" bindtap="setMode">中心馈电</view>
+      <view class="tp-btn {{S.mode==='offset' ? 'active' : ''}}" data-m="offset" bindtap="setMode">偏心馈电</view>
+      <view class="tp-btn {{S.mode==='wave' ? 'active' : ''}}" data-m="wave" bindtap="setMode">平面波接收</view>
+    </view>
   </view>
 
-  <!-- 参数 -->
-  <view class="mm-section rise">
+  <!-- 细线模型参数 -->
+  <view class="tp-section rise">
     <view class="kicker">细线模型</view>
-    <view class="mm-slider-row">
-      <text class="mm-slider-label">分段数 N</text>
-      <slider class="mm-slider" min="7" max="35" step="2" value="{{S.N}}"
-        bindchange="onN" show-value />
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">分段数 N</text>
+      <slider class="tp-slider" min="7" max="35" step="2" value="{{S.N}}"
+        bindchanging="onN" bindchange="onN" />
+      <text class="tp-slider-val">{{S.N}} 段</text>
     </view>
-    <view class="mm-slider-row">
-      <text class="mm-slider-label">总长度 L/λ</text>
-      <slider class="mm-slider" min="0.2" max="1.6" step="0.02" value="{{S.L}}"
-        bindchange="onL" show-value />
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">总长度 L</text>
+      <slider class="tp-slider" min="0.3" max="1.5" step="0.05" value="{{S.L}}"
+        bindchanging="onL" bindchange="onL" />
+      <text class="tp-slider-val">{{S.L}} λ</text>
     </view>
-    <view class="mm-slider-row">
-      <text class="mm-slider-label">导线半径 a/λ</text>
-      <slider class="mm-slider" min="0.002" max="0.03" step="0.001" value="{{S.a}}"
-        bindchange="onA" show-value />
-    </view>
-  </view>
-
-  <!-- 馈电类型 -->
-  <view class="mm-section rise">
-    <view class="kicker">馈电与加载</view>
-    <view class="mm-load-btns">
-      <view class="mm-load {{S.load==='none' ? 'active' : ''}}" bindtap="setNone">中心馈电</view>
-      <view class="mm-load {{S.load==='tip' ? 'active' : ''}}" bindtap="setTip">端部加载</view>
-      <view class="mm-load {{S.load==='loss' ? 'active' : ''}}" bindtap="setLoss">有损导体</view>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">导线半径 a</text>
+      <slider class="tp-slider" min="0.002" max="0.012" step="0.001" value="{{S.a}}"
+        bindchanging="onA" bindchange="onA" />
+      <text class="tp-slider-val">{{S.a}} λ</text>
     </view>
   </view>
 
-  <!-- 读数 -->
-  <view class="mm-stats pop" wx:if="{{stats}}">
-    <view class="kicker mm-stats-title">求解读数</view>
-    <view class="mm-stats-grid">
-      <view class="mm-stat">
-        <view class="mm-stat-label">输入阻抗 Z_in</view>
-        <view class="mm-stat-value num">{{stats.zin}}</view>
+  <!-- 求解读数 -->
+  <view class="tp-section pop" wx:if="{{stats}}">
+    <view class="kicker">求解读数（全部来自矩阵真解）</view>
+    <view class="tp-stats-grid">
+      <view class="tp-stat">
+        <view class="tp-stat-label">输入阻抗 Z_in = V₀/I(z_f)</view>
+        <view class="tp-stat-value tp-c-accent">{{stats.zin}}</view>
       </view>
-      <view class="mm-stat">
-        <view class="mm-stat-label">矩阵耦合度</view>
-        <view class="mm-stat-value num">{{stats.cond}}</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">矩阵条件数 κ₁</view>
+        <view class="tp-stat-value tp-c-indigo">{{stats.cond}}</view>
       </view>
-      <view class="mm-stat">
-        <view class="mm-stat-label">最大电流</view>
-        <view class="mm-stat-value num">{{stats.imax}}</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">{{stats.ifeedLabel}}</view>
+        <view class="tp-stat-value tp-c-teal">{{stats.ifeed}}</view>
       </view>
-      <view class="mm-stat">
-        <view class="mm-stat-label">HPBW</view>
-        <view class="mm-stat-value num">{{stats.hpbw}}°</view>
+      <view class="tp-stat">
+        <view class="tp-stat-label">半功率波束宽度 HPBW</view>
+        <view class="tp-stat-value tp-c-gold">{{stats.hpbw}}</view>
       </view>
     </view>
   </view>
 
-  <!-- 公式说明 -->
-  <view class="mm-formula-note rise">
-    <view class="kicker">离散方程</view>
-    <view class="mm-formula-item">[Z]·{I} = {V}  —— Galerkin 矩量法</view>
-    <view class="mm-formula-item">Zmn ≈ mutual coupling between segment m,n</view>
-    <view class="mm-formula-item">对角自阻抗 Znn ≈ ln(2Δz/a)</view>
-    <view class="mm-formula-item">教学版：电流为近似正弦，阻抗为 Green 函数简化</view>
+  <!-- 公式注脚 -->
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">所用公式与方法</view>
+    <view class="tp-formula-line">Hallén：∫ I(z′)·e^(−jkR)/(4πR) dz′ = (−j/η₀)[C₁cos kz + C₂sin kz + 特解]</view>
+    <view class="tp-formula-line">馈电特解 (V₀/2)·sin k|z−z_f|　·　平面波特解 E₀/k　·　R = √((z−z′)²+a²)</view>
+    <view class="tp-formula-line">脉冲基＋点匹配 → 复矩阵高斯消元；C₁、C₂ 由端点条件 I(±L/2)=0 确定</view>
+    <view class="tp-formula-line">Z_in = V₀/I(z_f)　·　F(θ) = |sinθ·Σ Iₙe^(jkzₙcosθ)|　·　κ₁ = ‖Z‖₁‖Z⁻¹‖₁</view>
+    <view class="tp-formula-cond">适用条件：细线近似（a ≪ λ 且 a ≪ L），约化核要求 Δz ≳ a；脉冲基解随 N 增大缓慢收敛——教科书值 73+j42.5 Ω 是"无限细半波偶极子＋正弦电流"的极限，有限半径与 δ-gap 馈电下 R 略高属正常物理结果。</view>
+  </view>
+
+  <!-- 说明 -->
+  <view class="tp-note rise">
+    <view class="kicker">这块屏幕上什么是真的</view>
+    <view class="tp-note-text">电流、输入阻抗、条件数、方向图全部来自同一个复数矩阵方程的数值解：改 N 看收敛、改 a 看粗细影响、改激励看馈电位置与接收态的区别。热图展示 |Zmn| 的对角占优结构——相邻段耦合强、远段耦合弱，这正是矩量法矩阵可解的原因。</view>
   </view>
 
 </view>

@@ -1,114 +1,28 @@
-/* pages/interactive/moment-method/moment-method.wxss —— 矩量法 */
-.mm { padding-top: 20rpx; }
+/* pages/interactive/moment-method/moment-method.wxss —— 矩量法实验室
+   共享 UI 见 styles/tool-ui.wxss（tp-* 类），本文件只放页面特有样式。 */
+@import "../../../styles/tool-ui.wxss";
 
-.mm-head { padding: 20rpx 12rpx 24rpx; }
-.mm-title { font-size: 44rpx; margin: 8rpx 0 4rpx; }
-.mm-sub { font-size: 24rpx; color: var(--muted); }
-
-.mm-canvas-wrap {
-  margin: 0 12rpx 20rpx;
-  padding: 16rpx;
-  background: var(--card);
-  border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.05);
-}
-.mm-canvas-wide { width: 686rpx; height: 280rpx; }
-.mm-canvas-sq { width: 500rpx; height: 500rpx; margin: 0 auto; display: block; }
-.mm-sub-plot {
-  font-size: 22rpx;
-  color: var(--muted);
-  margin-bottom: 8rpx;
-  padding-left: 8rpx;
-}
-
-.mm-section {
-  margin: 0 12rpx 20rpx;
-  padding: 24rpx 28rpx;
-  background: var(--card);
-  border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.04);
-}
-.mm-section .kicker { margin-bottom: 16rpx; }
-
-.mm-slider-row {
-  display: flex;
-  align-items: center;
-  padding: 10rpx 0;
-}
-.mm-slider-label {
-  font-size: 26rpx;
-  color: var(--ink-soft);
-  width: 180rpx;
-  flex-shrink: 0;
-}
-.mm-slider { flex: 1; margin: 0 12rpx; }
-
-.mm-load-btns {
+/* 矩阵热图 + 方向图 双图并排 */
+.mm-canvas-row {
   display: flex;
   gap: 12rpx;
 }
-.mm-load {
+.mm-canvas-col {
   flex: 1;
-  text-align: center;
-  padding: 16rpx 0;
-  font-size: 26rpx;
-  color: var(--muted);
-  background: var(--paper);
-  border: 1rpx solid var(--line-soft);
-  border-radius: 14rpx;
-  transition: all .2s;
+  min-width: 0;
 }
-.mm-load.active {
-  color: var(--accent);
-  border-color: var(--accent);
-  background: rgba(176,106,79,.06);
-  font-weight: 600;
+.mm-canvas-half {
+  width: 100%;
+  height: 340rpx;
 }
 
-.mm-stats {
-  margin: 0 12rpx 20rpx;
-  padding: 24rpx 28rpx;
-  background: var(--card);
-  border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.04);
-}
-.mm-stats-title { margin-bottom: 16rpx; }
-.mm-stats-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12rpx;
-}
-.mm-stat {
-  width: calc(50% - 6rpx);
-  padding: 18rpx 20rpx;
-  background: var(--paper);
-  border-radius: 14rpx;
-}
-.mm-stat-label {
+/* 核适用范围提示 */
+.mm-warn {
+  margin-top: 10rpx;
+  padding: 10rpx 14rpx;
   font-size: 22rpx;
-  color: var(--muted);
-  margin-bottom: 6rpx;
-}
-.mm-stat-value {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.mm-formula-note {
-  margin: 0 12rpx 40rpx;
-  padding: 24rpx;
-  background: var(--card);
-  border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-}
-.mm-formula-item {
-  font-size: 22rpx;
-  color: var(--muted);
-  font-family: 'SF Mono', 'Menlo', monospace;
-  padding: 6rpx 0;
-  letter-spacing: .5rpx;
+  line-height: 1.6;
+  color: #b3403a;
+  background: rgba(179, 64, 58, 0.08);
+  border-radius: 10rpx;
 }
