@@ -1,5 +1,5 @@
 <!-- pages/interactive/3d-lab/phased-array/phased-array.wxml —— 相控阵 3D -->
-<view class="screen pa3d">
+<view class="screen lab3d">
 
   <view class="lab3d-head rise">
     <view class="kicker">PHASED ARRAY · 3D BEAM STEERING</view>
@@ -15,48 +15,48 @@
       <view class="lab3d-skel-ring"></view>
       <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
     </view>
-    <view class="lab3d-hint {{showHint ? '' : 'fade'}}">双击复位 · 绿环=主瓣 · 红环=栅瓣</view>
+    <view class="lab3d-hint {{showHint ? '' : 'fade'}}">双击复位 · 金箭头=阵轴 y · 青绿环=主瓣 · 红环=栅瓣</view>
   </view>
 
   <!-- 阵列配置 -->
   <view class="lab3d-section rise">
     <view class="kicker">阵列配置</view>
-    <view class="pa3d-row">
-      <text class="lab3d-label">阵元数 N</text>
-      <text class="lab3d-val">{{S.N}}</text>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">阵元数 N</text>
+      <slider class="tp-slider" min="2" max="24" step="1" value="{{S.N}}" bindchanging="onNChanging" bindchange="onN" />
+      <text class="tp-slider-val">{{S.N}} 元</text>
     </view>
-    <slider min="2" max="24" step="1" value="{{S.N}}" bindchanging="onNChanging" bindchange="onN" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="pa3d-row">
-      <text class="lab3d-label">间距 d/λ</text>
-      <text class="lab3d-val">{{S.d}}</text>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">间距 d/λ</text>
+      <slider class="tp-slider" min="0.1" max="1.5" step="0.01" value="{{S.d}}" bindchanging="onDChanging" bindchange="onD" />
+      <text class="tp-slider-val">{{S.d}} λ</text>
     </view>
-    <slider min="0.1" max="1.5" step="0.01" value="{{S.d}}" bindchanging="onDChanging" bindchange="onD" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
   </view>
 
   <!-- 波束扫描 -->
   <view class="lab3d-section rise">
     <view class="kicker">波束扫描 ★</view>
-    <view class="pa3d-row">
-      <text class="lab3d-label">渐进相移 β</text>
-      <text class="lab3d-val pa3d-accent">{{S.beta}}°</text>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">渐进相移 β</text>
+      <slider class="tp-slider" min="-180" max="180" step="1" value="{{S.beta}}" bindchanging="onBetaChanging" bindchange="onBeta" />
+      <text class="tp-slider-val">{{S.beta}}°</text>
     </view>
-    <slider min="-180" max="180" step="1" value="{{S.beta}}" bindchanging="onBetaChanging" bindchange="onBeta" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="pa3d-preset-btns">
-      <view class="pa3d-preset {{S.beta > 60 ? 'active' : ''}}" bindtap="setEndfireBack">端射 ←</view>
-      <view class="pa3d-preset {{S.beta === 0 ? 'active' : ''}}" bindtap="setBroadside">边射</view>
-      <view class="pa3d-preset {{S.beta < -60 ? 'active' : ''}}" bindtap="setEndfireFwd">端射 →</view>
+    <view class="tp-btns">
+      <view class="tp-btn {{S.beta > 60 ? 'active' : ''}}" bindtap="setEndfireBack">端射 ←</view>
+      <view class="tp-btn {{S.beta === 0 ? 'active' : ''}}" bindtap="setBroadside">边射</view>
+      <view class="tp-btn {{S.beta < -60 ? 'active' : ''}}" bindtap="setEndfireFwd">端射 →</view>
     </view>
-    <view class="pa3d-scan-toggle" bindtap="toggleScan">
-      <view class="pa3d-scan-btn {{scanOn ? 'on' : ''}}">自动扫描动画 {{scanOn ? '●' : '○'}}</view>
+    <view class="tp-btns pa3d-scan">
+      <view class="tp-btn {{scanOn ? 'active' : ''}}" bindtap="toggleScan">自动扫描动画 {{scanOn ? '●' : '○'}}</view>
     </view>
   </view>
 
   <!-- 阵元因子 -->
   <view class="lab3d-section rise">
     <view class="kicker">阵元因子</view>
-    <view class="pa3d-preset-btns">
-      <view class="pa3d-preset {{S.el === 'iso' ? 'active' : ''}}" bindtap="setIso">各向同性</view>
-      <view class="pa3d-preset {{S.el === 'dipole' ? 'active' : ''}}" bindtap="setDipole">半波偶极子</view>
+    <view class="tp-btns">
+      <view class="tp-btn {{S.el === 'iso' ? 'active' : ''}}" bindtap="setIso">各向同性</view>
+      <view class="tp-btn {{S.el === 'dipole' ? 'active' : ''}}" bindtap="setDipole">半波偶极子</view>
     </view>
   </view>
 
@@ -65,20 +65,20 @@
     <view class="kicker lab3d-stats-title">阵列参数</view>
     <view class="lab3d-stats-grid">
       <view class="lab3d-stat">
-        <view class="lab3d-stat-value num">{{stats.theta}}°</view>
-        <view class="lab3d-stat-name">波束指向 θ₀</view>
+        <view class="lab3d-stat-value num tp-c-teal">{{stats.theta}}°</view>
+        <view class="lab3d-stat-name">波束指向 θ₀（自阵轴）</view>
       </view>
       <view class="lab3d-stat">
         <view class="lab3d-stat-value num">{{stats.dbi}}</view>
         <view class="lab3d-stat-name">方向性 dBi</view>
       </view>
       <view class="lab3d-stat">
-        <view class="lab3d-stat-value num">{{stats.hpbw}}°</view>
+        <view class="lab3d-stat-value num tp-c-gold">{{stats.hpbw}}°</view>
         <view class="lab3d-stat-name">HPBW</view>
       </view>
       <view class="lab3d-stat">
         <view class="lab3d-stat-value num">{{stats.sll}} dB</view>
-        <view class="lab3d-stat-name">副瓣电平</view>
+        <view class="lab3d-stat-name">副瓣电平（不含栅瓣）</view>
       </view>
     </view>
     <view class="pa3d-grating-warn" wx:if="{{stats.grating > 0}}">
@@ -87,18 +87,26 @@
   </view>
 
   <!-- 2D 极坐标子图 -->
-  <view class="lab3d-section rise">
-    <view class="kicker">E 面方向图 (dB)</view>
-    <canvas type="2d" id="plot" class="lab3d-2d"></canvas>
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">E 面方向图 · 全圆 dB 刻度 · γ 自阵轴（3D 场景金色 y 轴）起量，0° 朝上</view>
+    <canvas type="2d" id="plot" class="tp-canvas"></canvas>
   </view>
 
-  <!-- 公式说明 -->
+  <!-- 公式注脚 -->
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">所用公式</view>
+    <view class="tp-formula-line">AF(γ) = |sin(Nψ/2) / (N·sinψ/2)|　·　ψ = kd·cosγ + β　·　kd = 2πd/λ</view>
+    <view class="tp-formula-line">P(γ) = AF × EF（方向图相乘）　·　EF半波偶极子 = |cos(π·cosγ/2)/sinγ|</view>
+    <view class="tp-formula-line">D = 2 / ∫₀^π Pn²(γ)sinγ dγ　·　栅瓣：cosγ = (−β−2πm)/kd　·　无栅瓣条件 d/λ &lt; 1/(1+|cosθ₀|)</view>
+    <view class="tp-formula-cond">适用条件：均匀幅度直线阵；γ 为偏离阵轴的夹角，方向图绕阵轴旋转对称（故 D = 2/∫Pn²sinγdγ）。偶极子阵元假设与阵轴共线（collinear）取向。SLL 统计已剔除栅瓣（栅瓣是 0 dB 主极大，不是副瓣）；主瓣贴端射时 HPBW 按对称补全为全宽。普通端射需 |β| = kd = 360·(d/λ)°，d &gt; 0.5λ 时超出滑杆 ±180° 会被截断（有提示，非真端射）。</view>
+  </view>
+
+  <!-- 说明 -->
   <view class="lab3d-note rise">
-    <view class="kicker">核心公式</view>
-    <view class="lab3d-note-item">AF(θ) = sin(Nψ/2) / [N·sin(ψ/2)]</view>
-    <view class="lab3d-note-item">ψ = kd·cosθ + β （β = 渐进相移）</view>
-    <view class="lab3d-note-item">栅瓣条件：d/λ > 1/(1+|cosθ₀|)</view>
-    <view class="lab3d-note-item">方向图相乘原理：总方向图 = 阵因子 × 阵元因子</view>
+    <view class="kicker">图例与坐标约定</view>
+    <view class="lab3d-note-item">3D：赭金小球 = 阵元（沿金色 y 轴 = 阵轴）· 曲面颜色浅→深 = 归一化幅度低→高</view>
+    <view class="lab3d-note-item">3D：青绿环 = 主瓣锥 · 红环 = 栅瓣锥；2D 图 0° 即阵轴方向，与统计卡 θ₀ 同一坐标</view>
+    <view class="lab3d-note-item">β 每前进 360·(d/λ)° 波束扫过一个可见空间周期；间距越大越易出栅瓣</view>
   </view>
 
 </view>

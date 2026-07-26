@@ -2,9 +2,9 @@
 <view class="screen lab3d">
 
   <view class="lab3d-head rise">
-    <view class="kicker">DOLPH-CHEBYSHEV ARRAY SYNTHESIS</view>
+    <view class="kicker">LINEAR ARRAY SYNTHESIS</view>
     <view class="lab3d-title display">方向图综合</view>
-    <view class="lab3d-sub">Dolph-Chebyshev · Taylor · 均匀加权</view>
+    <view class="lab3d-sub">Dolph-Chebyshev · Taylor n̄ · 均匀加权</view>
   </view>
 
   <view class="lab3d-canvas-wrap rise">
@@ -19,47 +19,72 @@
 
   <view class="lab3d-section rise">
     <view class="kicker">阵列配置</view>
-    <view class="lab3d-row"><text class="lab3d-label">阵元数 N</text><text class="lab3d-val">{{nVal}}</text></view>
-    <slider min="4" max="20" step="1" value="{{nSlider}}" bindchanging="onNChanging" bindchange="onN" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-row"><text class="lab3d-label">阵元间距 d/λ</text><text class="lab3d-val">{{dVal}}</text></view>
-    <slider min="30" max="100" step="1" value="{{dSlider}}" bindchanging="onDChanging" bindchange="onD" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">阵元数 N</text>
+      <slider class="tp-slider" min="4" max="20" step="1" value="{{nSlider}}" bindchanging="onNChanging" bindchange="onN" />
+      <text class="tp-slider-val">{{nVal}}</text>
+    </view>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">阵元间距 d/λ</text>
+      <slider class="tp-slider" min="30" max="100" step="1" value="{{dSlider}}" bindchanging="onDChanging" bindchange="onD" />
+      <text class="tp-slider-val">{{dVal}}</text>
+    </view>
   </view>
 
   <view class="lab3d-section rise">
     <view class="kicker">综合方法</view>
-    <view class="lab3d-btns">
-      <view class="lab3d-btn {{method==='chebyshev'?'on':''}}" data-m="chebyshev" bindtap="onMethod">Chebyshev</view>
-      <view class="lab3d-btn {{method==='taylor'?'on':''}}" data-m="taylor" bindtap="onMethod">Taylor</view>
-      <view class="lab3d-btn {{method==='uniform'?'on':''}}" data-m="uniform" bindtap="onMethod">均匀</view>
+    <view class="tp-btns">
+      <view class="tp-btn {{method==='chebyshev'?'active':''}}" data-m="chebyshev" bindtap="onMethod">Chebyshev</view>
+      <view class="tp-btn {{method==='taylor'?'active':''}}" data-m="taylor" bindtap="onMethod">Taylor</view>
+      <view class="tp-btn {{method==='uniform'?'active':''}}" data-m="uniform" bindtap="onMethod">均匀</view>
+    </view>
+    <view wx:if="{{method==='taylor'}}" class="as-nbar">
+      <text class="tp-slider-label">过渡副瓣数 n̄</text>
+      <view class="tp-btns as-nbar-btns">
+        <view wx:for="{{nbarList}}" wx:key="*this"
+          class="tp-btn {{nbar===item?'active':''}}" data-nb="{{item}}" bindtap="onNbar">{{item}}</view>
+      </view>
     </view>
   </view>
 
-  <view class="lab3d-section rise">
-    <view class="kicker">副瓣控制</view>
-    <view class="lab3d-row"><text class="lab3d-label">副瓣电平 SLL</text><text class="lab3d-val">{{sllVal}}</text></view>
-    <slider min="-40" max="-10" step="1" value="{{sllSlider}}" bindchanging="onSllChanging" bindchange="onSll" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+  <view class="lab3d-section rise {{method==='uniform'?'as-disabled':''}}">
+    <view class="kicker">副瓣控制{{method==='uniform'?'（均匀加权时无效）':''}}</view>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">副瓣电平 SLL</text>
+      <slider class="tp-slider" min="-40" max="-10" step="1" value="{{sllSlider}}" disabled="{{method==='uniform'}}" bindchanging="onSllChanging" bindchange="onSll" />
+      <text class="tp-slider-val">{{sllVal}}</text>
+    </view>
   </view>
 
   <view class="lab3d-stats pop">
     <view class="kicker lab3d-stats-title">阵列参数</view>
-    <view class="lab3d-stats-grid">
-      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{dbi}}</view><view class="lab3d-stat-name">方向性 dBi</view></view>
-      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{hpbw}}</view><view class="lab3d-stat-name">HPBW</view></view>
-      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{actualSll}}</view><view class="lab3d-stat-name">实际副瓣</view></view>
-      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{nulCount}}</view><view class="lab3d-stat-name">零点数</view></view>
+    <view class="tp-stats-grid">
+      <view class="tp-stat"><view class="tp-stat-label">方向性估计</view><view class="tp-stat-value tp-c-accent">{{dbi}} dBi</view></view>
+      <view class="tp-stat"><view class="tp-stat-label">HPBW（数值搜索）</view><view class="tp-stat-value tp-c-teal">{{hpbw}}</view></view>
+      <view class="tp-stat"><view class="tp-stat-label">实际副瓣</view><view class="tp-stat-value tp-c-indigo">{{actualSll}}</view></view>
+      <view class="tp-stat"><view class="tp-stat-label">可见区零点数</view><view class="tp-stat-value tp-c-gold">{{nulCount}}</view></view>
     </view>
   </view>
 
   <view class="lab3d-section rise">
-    <view class="kicker">方向图</view>
+    <view class="kicker">方向图切面（θ：0° 阵轴 → 90° 边射 → 180°）</view>
     <canvas type="2d" id="plot" class="lab3d-2d"></canvas>
+  </view>
+
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">所用公式</view>
+    <view class="tp-formula-line">AF(θ) = |Σ wₙ·e^(jn·kd·cosθ)| / Σwₙ，k = 2π/λ（θ 为与阵轴夹角，边射主瓣在 θ=90°）</view>
+    <view class="tp-formula-line">Chebyshev：R = 10^(|SLL|/20)，x₀ = cosh(acosh R/(N−1))，T₍N−1₎ 采样逆 DFT 求权重</view>
+    <view class="tp-formula-line">Taylor n̄：A = acosh R/π，σ² = n̄²/(A²+(n̄−½)²)，F(m) 系数展开后按元位置采样</view>
+    <view class="tp-formula-line">D ≈ (2d/λ)·(Σw)²/Σw²　·　HPBW 与实际 SLL 由方向图数值搜索（含锥削展宽）</view>
+    <view class="tp-formula-cond">适用条件：各向同性阵元、等相激励边射线阵；方向性近似要求无栅瓣（d/λ ≤ 1，接近 1 时读数偏乐观）。3D 图半径取 √|AF| 为显示压缩（副瓣更易观察），不代表物理幅度。</view>
   </view>
 
   <view class="lab3d-note rise">
     <view class="kicker">原理</view>
-    <view class="lab3d-note-item">Dolph-Chebyshev：等副瓣最优化综合</view>
-    <view class="lab3d-note-item">Taylor：旁瓣渐减方向图</view>
-    <view class="lab3d-note-item">蓝 = Chebyshev 加权 · 橙 = 均匀加权 · 绿 = 理想方向图</view>
+    <view class="lab3d-note-item">Dolph-Chebyshev：给定副瓣电平下主瓣最窄（等副瓣最优）。</view>
+    <view class="lab3d-note-item">Taylor n̄：靠近主瓣的 n̄−1 个副瓣近似等电平，其余按 1/u 渐降，激励比 Chebyshev 更平滑易实现。</view>
+    <view class="lab3d-note-item">锥削代价：副瓣压得越低，主瓣越宽、口径效率越低（方向性下降）。</view>
   </view>
 
 </view>

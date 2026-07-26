@@ -4,12 +4,12 @@
   <view class="lab3d-head rise">
     <view class="kicker">OSCILLATING DIPOLE · NEAR/FAR FIELD</view>
     <view class="lab3d-title display">电偶极子辐射</view>
-    <view class="lab3d-sub">近场 → 远场过渡 · E 面截面 · 推迟时间</view>
+    <view class="lab3d-sub">近场 → 远场过渡 · E 面截面 · 推迟相位</view>
   </view>
 
   <view class="lab3d-canvas-wrap rise">
-    <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
-      catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
+    <canvas type="webgl" id="three-canvas" class="lab3d-canvas"></canvas>
+    <canvas type="2d" id="fa-overlay" class="fa-overlay"></canvas>
     <view wx:if="{{!glReady}}" class="lab3d-skel">
       <view class="lab3d-skel-ring"></view>
       <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
@@ -19,19 +19,19 @@
   <!-- 播放控制 -->
   <view class="lab3d-section rise">
     <view class="kicker">播放控制</view>
-    <view class="lab3d-btns">
-      <view class="lab3d-btn {{playing?'on':''}}" bindtap="onPlay">{{playText}}</view>
+    <view class="tp-btns">
+      <view class="tp-btn {{playing?'active':''}}" bindtap="onPlay">{{playText}}</view>
     </view>
-    <view class="lab3d-row" style="margin-top:12rpx">
-      <text class="lab3d-label">播放速度</text>
-      <text class="lab3d-val">{{spdVal}}</text>
+    <view class="tp-slider-row" style="margin-top:12rpx">
+      <text class="tp-slider-label">播放速度</text>
+      <slider class="tp-slider" min="1" max="30" step="1" value="{{spdSlider}}" bindchanging="onSpd" bindchange="onSpd" />
+      <text class="tp-slider-val">{{spdVal}}</text>
     </view>
-    <slider min="1" max="30" step="1" value="{{spdSlider}}" bindchange="onSpd" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-row">
-      <text class="lab3d-label">视野范围</text>
-      <text class="lab3d-val">{{sclVal}}</text>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">视野半径</text>
+      <slider class="tp-slider" min="10" max="80" step="5" value="{{sclSlider}}" bindchanging="onSclChanging" bindchange="onScl" />
+      <text class="tp-slider-val">{{sclVal}}</text>
     </view>
-    <slider min="10" max="80" step="5" value="{{sclSlider}}" bindchanging="onSclChanging" bindchange="onScl" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
   </view>
 
   <!-- 显示控制 -->
@@ -45,45 +45,45 @@
         <text class="lab3d-toggle-dot"></text><text class="lab3d-toggle-text">场区边界</text>
       </view>
     </view>
-    <view class="lab3d-btns" style="margin-top:12rpx">
-      <view class="lab3d-btn {{fieldMode==='near'?'on':''}}" data-m="near" bindtap="onMode">仅近场</view>
-      <view class="lab3d-btn {{fieldMode==='far'?'on':''}}" data-m="far" bindtap="onMode">仅远场</view>
-      <view class="lab3d-btn {{fieldMode==='both'?'on':''}}" data-m="both" bindtap="onMode">近+远</view>
+    <view class="tp-btns" style="margin-top:12rpx">
+      <view class="tp-btn {{fieldMode==='near'?'active':''}}" data-m="near" bindtap="onMode">仅近场</view>
+      <view class="tp-btn {{fieldMode==='far'?'active':''}}" data-m="far" bindtap="onMode">仅远场</view>
+      <view class="tp-btn {{fieldMode==='both'?'active':''}}" data-m="both" bindtap="onMode">近+远</view>
     </view>
   </view>
 
-  <!-- 场区说明 -->
+  <!-- 场区说明（边界圈颜色与画面标注一致）-->
   <view class="lab3d-stats pop">
-    <view class="kicker lab3d-stats-title">场区</view>
+    <view class="kicker lab3d-stats-title">场区（以偶极子为中心）</view>
     <view class="fa-zone">
-      <view class="fa-dot fa-red"></view>
+      <view class="fa-dot fa-c-accent"></view>
       <view>
-        <view class="fa-zone-text">近场（反应场）</view>
-        <view class="fa-zone-val">r &lt; λ/2π ≈ 0.16λ</view>
+        <view class="fa-zone-text">反应近场区（1/r³ 静电项主导）</view>
+        <view class="fa-zone-val">r &lt; λ/2π ≈ 0.16λ（赭金圈内）</view>
       </view>
     </view>
     <view class="fa-zone">
-      <view class="fa-dot fa-yellow"></view>
+      <view class="fa-dot fa-c-gold"></view>
       <view>
-        <view class="fa-zone-text">感应场区</view>
-        <view class="fa-zone-val">0.16λ &lt; r &lt; 2λ</view>
+        <view class="fa-zone-text">辐射近场区（Fresnel 区，各项可比拟）</view>
+        <view class="fa-zone-val">0.16λ &lt; r &lt; 2λ（赭金圈 → 青绿圈）</view>
       </view>
     </view>
     <view class="fa-zone">
-      <view class="fa-dot fa-blue"></view>
+      <view class="fa-dot fa-c-teal"></view>
       <view>
-        <view class="fa-zone-text">辐射场（远场）</view>
-        <view class="fa-zone-val">r &gt; 2λ</view>
+        <view class="fa-zone-text">远场区（1/r 辐射项主导）</view>
+        <view class="fa-zone-val">r &gt; 2λ（青绿圈外，电小天线经验值）</view>
       </view>
     </view>
   </view>
 
-  <view class="lab3d-note rise">
-    <view class="kicker">场的公式</view>
-    <view class="lab3d-note-item">Eθ = sinθ × [k²cos(τ)/r ←辐射</view>
-    <view class="lab3d-note-item">−k·sin(τ)/r² ←感应</view>
-    <view class="lab3d-note-item">−cos(τ)/r³ ←静态]</view>
-    <view class="lab3d-note-item">τ = ωt − kr（推迟时间）</view>
+  <!-- 公式注脚 -->
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">场的公式</view>
+    <view class="tp-formula-line">Eθ ∝ sinθ · [ k²·cos τ / r − k·sin τ / r² − cos τ / r³ ]，τ = ωt − kr，k = 2π/λ</view>
+    <view class="tp-formula-line">三项依次为：辐射场（1/r）· 感应场（1/r²）· 静电场（1/r³）；kr = 1 即 r = λ/2π 处辐射项与感应项等幅</view>
+    <view class="tp-formula-cond">适用条件：赫兹（电小）偶极子，整体幅度归一化。r &gt; 2λ 的远场边界是电小天线经验值，大口径天线应取 2D²/λ。画面做了 ×r 振幅补偿与 tanh 压缩，仅为显示手段、不改物理；赤陶 = E&gt;0，靛蓝 = E&lt;0（右上色标）。</view>
   </view>
 
 </view>

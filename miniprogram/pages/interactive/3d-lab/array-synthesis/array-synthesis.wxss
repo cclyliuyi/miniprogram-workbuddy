@@ -1,2 +1,9 @@
-/* 方向图综合 — 复用通用样式 + toggle */
-@import "../parabolic/parabolic.wxss";
+/* 方向图综合 — 共享 3D 实验室样式（lab3d.wxss 内已 @import tool-ui.wxss） */
+@import "../lab3d.wxss";
+
+/* Taylor n̄ 选择行 */
+.as-nbar { margin-top: 16rpx; }
+.as-nbar-btns { margin-top: 8rpx; }
+
+/* 均匀加权时副瓣卡置灰 */
+.as-disabled { opacity: 0.45; }
