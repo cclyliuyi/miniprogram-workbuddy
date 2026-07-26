@@ -1,7 +1,10 @@
-/* pages/tools/match/match.wxss —— 传输线 & 阻抗匹配 */
+/* pages/tools/match/match.wxss —— 传输线 & 阻抗匹配
+   共享 UI 见 styles/tool-ui.wxss（tp-* 类），本文件只放页面特有样式。 */
+@import "../../../styles/tool-ui.wxss";
+
 .tl3 { padding-top: 12rpx; }
 
-/* ═══ Tab 切换 ═══ */
+/* ═══ Tab 切换（页面特有：横向滚动药丸）═══ */
 .tl3-tabs {
   margin: 0 0 24rpx;
   white-space: nowrap;
@@ -28,160 +31,12 @@
   border-color: var(--ink);
 }
 
-/* ═══ 表单区 ═══ */
-.tl3-section {
-  padding: 28rpx;
-  margin: 0 12rpx 24rpx;
-  background: var(--card);
-  border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.05);
-}
-.tl3-field {
-  margin-bottom: 24rpx;
-  position: relative;
-}
-.tl3-label {
-  display: block;
-  font-size: 24rpx;
-  color: var(--muted);
-  margin-bottom: 10rpx;
-}
-.tl3-hint {
-  display: block;
+/* ═══ 页面特有微调 ═══ */
+.mt-mode { margin-bottom: 16rpx; }
+.mt-hint {
   font-size: 20rpx;
   color: var(--muted);
-  margin-top: 6rpx;
-  opacity: .7;
-}
-.tl3-input {
-  width: 100%;
-  height: 80rpx;
-  padding: 0 24rpx;
-  font-size: 32rpx;
-  font-weight: 600;
-  color: var(--ink);
-  background: var(--paper);
-  border: 1rpx solid var(--line);
-  border-radius: 14rpx;
-  box-sizing: border-box;
-}
-
-.tl3-calc-btn {
-  margin: 0 12rpx 24rpx;
-  width: calc(100% - 24rpx);
-}
-
-/* ═══ 结果区 ═══ */
-.tl3-results {
-  margin: 0 12rpx 24rpx;
-  padding: 28rpx;
-  background: var(--card);
-  border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-}
-.tl3-results-title {
-  margin-bottom: 24rpx;
-}
-.tl3-result-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding: 12rpx 0;
-  border-bottom: 1rpx solid var(--line-soft);
-}
-.tl3-result-label {
-  font-size: 24rpx;
-  color: var(--muted);
-}
-.tl3-result-value {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: var(--ink);
-}
-.tl3-highlight {
-  color: var(--accent);
-}
-
-/* ═══ 拓扑卡片（L 型匹配专用）═══ */
-.tl3-topology {
-  margin: 20rpx 0;
-  padding: 24rpx;
-  background: var(--paper);
-  border-radius: 14rpx;
-  border-left: 6rpx solid var(--sage);
-}
-.tl3-topo-name {
-  font-size: 26rpx;
-  font-weight: 600;
-  color: var(--ink);
-  margin-bottom: 8rpx;
-}
-.tl3-topo-desc {
-  font-size: 24rpx;
-  color: var(--muted);
-  line-height: 1.6;
-}
-
-/* ═══ 波导频带卡片 ═══ */
-.tl3-band {
-  margin: 20rpx 0;
-  padding: 24rpx;
-  background: rgba(122,145,129,.10);
-  border-radius: 14rpx;
-  text-align: center;
-}
-.tl3-band-label {
-  font-size: 24rpx;
-  color: var(--muted);
-  margin-bottom: 8rpx;
-}
-.tl3-band-val {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: var(--sage);
-}
-.tl3-band-sub {
-  font-size: 20rpx;
-  color: var(--muted);
-  margin-top: 6rpx;
-}
-
-/* ═══ 判定 & 公式 ═══ */
-.tl3-verdict {
-  margin-top: 20rpx;
-  padding: 20rpx 24rpx;
-  border-radius: 14rpx;
-  font-size: 26rpx;
-  font-weight: 600;
-  text-align: center;
-}
-.tl3-verdict-ok {
-  background: rgba(122,145,129,.12);
-  color: var(--sage);
-}
-.tl3-verdict-warn {
-  background: rgba(200,155,110,.15);
-  color: var(--accent-2);
-}
-.tl3-verdict-fail {
-  background: rgba(176,106,79,.12);
-  color: var(--accent);
-}
-
-.tl3-formula {
-  margin-top: 12rpx;
-  padding: 16rpx 20rpx;
-  font-size: 22rpx;
-  color: var(--muted);
-  background: var(--paper);
-  border-radius: 10rpx;
-  text-align: center;
-  font-family: 'SF Mono', 'Menlo', monospace;
-  letter-spacing: .5rpx;
-}
-.tl3-formula-sub {
-  margin-top: 8rpx;
-  font-size: 20rpx;
   opacity: .8;
+  padding-left: 192rpx;
+  margin: -4rpx 0 8rpx;
 }

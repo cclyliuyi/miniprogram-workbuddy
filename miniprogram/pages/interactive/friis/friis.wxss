@@ -1,146 +1,28 @@
-/* pages/interactive/friis/friis.wxss —— Friis / 雷达方程交互 */
-.fm { padding-top: 20rpx; }
+/* pages/interactive/friis/friis.wxss —— Friis / 雷达方程链路预算
+   共享 UI 见 styles/tool-ui.wxss（tp-* 类），本文件只放页面特有样式。 */
+@import "../../../styles/tool-ui.wxss";
 
-/* ═══ 标题 ═══ */
-.fm-head { padding: 20rpx 12rpx 24rpx; }
-.fm-title { font-size: 44rpx; margin: 8rpx 0 4rpx; }
-.fm-sub { font-size: 24rpx; color: var(--muted); }
-
-/* ═══ Canvas ═══ */
-.fm-canvas-wrap {
-  margin: 0 12rpx 24rpx;
-  padding: 16rpx;
-  background: var(--card);
-  border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.05);
-  display: flex;
-  justify-content: center;
-}
-.fm-canvas { width: 686rpx; height: 480rpx; }
-
-/* ═══ 通用 section ═══ */
-.fm-section {
-  margin: 0 12rpx 20rpx;
-  padding: 24rpx 28rpx;
-  background: var(--card);
-  border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.04);
-}
-.fm-section .kicker { margin-bottom: 16rpx; }
-
-/* ═══ 模式切换 ═══ */
-.fm-mode-btns {
-  display: flex;
-  gap: 12rpx;
-}
-.fm-mode {
-  flex: 1;
-  text-align: center;
-  padding: 18rpx 0;
-  font-size: 28rpx;
-  color: var(--muted);
-  background: var(--paper);
-  border: 1rpx solid var(--line-soft);
-  border-radius: 14rpx;
-  transition: all .2s;
-}
-.fm-mode.active {
-  color: var(--accent);
-  border-color: var(--accent);
-  background: rgba(176,106,79,.06);
-  font-weight: 600;
-}
-
-/* ═══ 滑块行 ═══ */
-.fm-slider-row {
-  display: flex;
-  align-items: center;
-  padding: 10rpx 0;
-}
-.fm-slider-label {
-  font-size: 26rpx;
-  color: var(--ink-soft);
-  width: 180rpx;
-  flex-shrink: 0;
-}
-.fm-slider {
-  flex: 1;
-  margin: 0 12rpx;
-}
-.fm-slider-unit {
-  font-size: 22rpx;
-  color: var(--muted);
-  width: 56rpx;
-  text-align: right;
-  flex-shrink: 0;
-}
-
-/* ═══ 读数 ═══ */
-.fm-readout {
-  margin: 0 12rpx 20rpx;
-  padding: 24rpx 28rpx;
-  background: var(--card);
-  border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-  box-shadow: 0 2rpx 16rpx rgba(32,32,28,.04);
-}
-.fm-readout-title { margin-bottom: 16rpx; }
-
-.fm-readout-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12rpx;
-  margin-bottom: 16rpx;
-}
-.fm-rc {
-  width: calc(50% - 6rpx);
-  padding: 18rpx 20rpx;
-  background: var(--paper);
-  border-radius: 14rpx;
-}
-.fm-rc-label {
-  font-size: 22rpx;
-  color: var(--muted);
-  margin-bottom: 6rpx;
-}
-.fm-rc-value {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: var(--ink);
-}
-.fm-ok { color: var(--ink); }
-.fm-warn { color: var(--sage); }
-
+/* 链路状态条（语义命名：up = 可达 / down = 中断） */
 .fm-link-status {
+  margin-top: 16rpx;
   text-align: center;
   font-size: 26rpx;
   font-weight: 600;
   padding: 14rpx;
   border-radius: 12rpx;
 }
-.fm-link-ok {
-  color: var(--sage);
-  background: rgba(122,145,129,.10);
+.fm-link-up {
+  color: #1f8a70;
+  background: rgba(31, 138, 112, 0.10);
 }
-.fm-link-fail {
-  color: var(--accent);
-  background: rgba(176,106,79,.08);
+.fm-link-down {
+  color: #b3403a;
+  background: rgba(179, 64, 58, 0.08);
 }
 
-/* ═══ 公式说明 ═══ */
-.fm-formula-note {
-  margin: 0 12rpx 40rpx;
-  padding: 24rpx;
-  background: var(--card);
-  border-radius: 20rpx;
-  border: 1rpx solid var(--line-soft);
-}
-.fm-formula-item {
+/* 典型值提示 */
+.fm-hint {
+  margin-top: 8rpx;
   font-size: 22rpx;
   color: var(--muted);
-  font-family: 'SF Mono', 'Menlo', monospace;
-  padding: 6rpx 0;
-  letter-spacing: .5rpx;
 }
