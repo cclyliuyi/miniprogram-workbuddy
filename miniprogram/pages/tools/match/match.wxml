@@ -97,9 +97,9 @@
 
     <view class="tp-formula rise">
       <view class="tp-formula-title">所用公式</view>
-      <view class="tp-formula-line">εeff = (εr+1)/2 + (εr−1)/2·(1+12H/W)^−½ [+ 0.04(1−W/H)²，W/H<1] − Δεeff(T)</view>
+      <view class="tp-formula-line">εeff = (εr+1)/2 + (εr−1)/2·(1+12H/W)^−½ [+ 0.04(1−W/H)²，W/H&lt;1] − Δεeff(T)</view>
       <view class="tp-formula-line">Z₀ = (60/√εeff)·ln(F/u + √(1+4/u²))，F = 6+(2π−6)e^−(30.666/u)^0.7528</view>
-      <view class="tp-formula-line">Weff = W + (1.25T/π)(1+ln X)，X = 2H/T (W/H≥1/2π) 或 4πW/T (W/H<1/2π)</view>
+      <view class="tp-formula-line">Weff = W + (1.25T/π)(1+ln X)，X = 2H/T (W/H≥1/2π) 或 4πW/T (W/H&lt;1/2π)</view>
       <view class="tp-formula-cond">适用条件：Hammerstad–Jensen 准静态拟合，0.01 ≤ W/H ≤ 100 内 Z₀ 误差约 ±0.2%；铜厚 Δεeff 用 Bahl–Garg 式 (εr−1)(T/H)/(4.6√(W/H))；不含高频色散。反算用 Wheeler–Hammerstad 综合式（按零铜厚），结果已用含铜厚分析式校核。</view>
     </view>
 
