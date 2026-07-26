@@ -4,7 +4,7 @@
   <view class="lab3d-head rise">
     <view class="kicker">PARABOLIC REFLECTOR · RAY TRACING</view>
     <view class="lab3d-title display">抛物面反射天线</view>
-    <view class="lab3d-sub">焦点 · 离焦 · 口面相位 · 射线追踪</view>
+    <view class="lab3d-sub">焦点 · 离焦 · 口面相位 · 射线追踪（D = 6λ）</view>
   </view>
 
   <view class="lab3d-canvas-wrap rise">
@@ -19,12 +19,21 @@
 
   <view class="lab3d-section rise">
     <view class="kicker">几何参数</view>
-    <view class="lab3d-row"><text class="lab3d-label">焦径比 f/D</text><text class="lab3d-val">{{fdVal}}</text></view>
-    <slider min="25" max="100" step="1" value="{{fdSlider}}" bindchanging="onFdChanging" bindchange="onFd" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-row"><text class="lab3d-label">射线数</text><text class="lab3d-val">{{rayVal}}</text></view>
-    <slider min="7" max="45" step="2" value="{{raySlider}}" bindchanging="onRaysChanging" bindchange="onRays" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-row"><text class="lab3d-label">轴向离焦 Δ/f</text><text class="lab3d-val">{{dzVal}}</text></view>
-    <slider min="-42" max="42" step="1" value="{{dzSlider}}" bindchanging="onDzChanging" bindchange="onDz" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">焦径比 f/D</text>
+      <slider class="tp-slider" min="25" max="100" step="1" value="{{fdSlider}}" bindchanging="onFdChanging" bindchange="onFd" />
+      <text class="tp-slider-val">{{fdVal}}</text>
+    </view>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">射线数</text>
+      <slider class="tp-slider" min="7" max="45" step="2" value="{{raySlider}}" bindchanging="onRaysChanging" bindchange="onRays" />
+      <text class="tp-slider-val">{{rayVal}}</text>
+    </view>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">轴向离焦 Δ/f</text>
+      <slider class="tp-slider" min="-42" max="42" step="1" value="{{dzSlider}}" bindchanging="onDzChanging" bindchange="onDz" />
+      <text class="tp-slider-val">{{dzVal}}</text>
+    </view>
   </view>
 
   <view class="lab3d-section rise">
@@ -43,25 +52,34 @@
   </view>
 
   <view class="lab3d-stats pop">
-    <view class="kicker lab3d-stats-title">读数</view>
+    <view class="kicker lab3d-stats-title">读数（D = 6λ）</view>
     <view class="lab3d-stats-grid">
-      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{focal}}</view><view class="lab3d-stat-name">焦距 f/λ</view></view>
-      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{theta}}</view><view class="lab3d-stat-name">半张角</view></view>
-      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{phase}}</view><view class="lab3d-stat-name">口面相位峰峰值</view></view>
-      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{gain}}</view><view class="lab3d-stat-name">趋势增益</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{focal}}</view><view class="lab3d-stat-name">焦距 F/λ</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num tp-c-indigo">{{theta}}</view><view class="lab3d-stat-name">边缘半张角 θ0 = 2·atan(D/4F)</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num tp-c-gold">{{phase}}</view><view class="lab3d-stat-name">口面相位峰峰值</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num tp-c-accent">{{gain}}</view><view class="lab3d-stat-name">估计增益 η_ill·η_ph</view></view>
     </view>
   </view>
 
-  <view class="lab3d-section rise">
-    <view class="kicker">口面相位误差</view>
-    <canvas type="2d" id="plot" class="lab3d-2d"></canvas>
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">口面相位误差 δ(r) · 中心 → 边缘</view>
+    <canvas type="2d" id="plot" class="tp-canvas-short"></canvas>
+  </view>
+
+  <!-- 公式注脚 -->
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">所用公式</view>
+    <view class="tp-formula-line">z = r²/(4F)　·　θ0 = 2·atan(D/4F)　·　δ(r) = 2π/λ·[|F′P| + (z_rim − z_P) − 中心路径]</view>
+    <view class="tp-formula-line">η_ph = |∫₀¹ e^(jδ(ρ))·2ρ dρ|²　·　η_ill = 24{sin²(θ0/2)+ln cos(θ0/2)}²·cot²(θ0/2)</view>
+    <view class="tp-formula-line">G = 10lg(η_ill·η_ph·(πD/λ)²)，D = 6λ</view>
+    <view class="tp-formula-cond">适用条件：几何光学光程模型；η_ill 为 cos²θ 理想馈源的锥削×溢出闭式（Balanis 15-55a，θ0≈66° 即 f/D≈0.38 时最优）；η_ph 按均匀口面幅度积分；只计轴向离焦，忽略馈源遮挡与边缘绕射。</view>
   </view>
 
   <view class="lab3d-note rise">
     <view class="kicker">原理</view>
-    <view class="lab3d-note-item">理想焦点处，馈源到反射面再到口面路径近似相等</view>
-    <view class="lab3d-note-item">离焦会破坏等相位口面，使主瓣偏移或增益下降</view>
-    <view class="lab3d-note-item">蓝线 = 馈源入射 · 白线 = 反射后方向 · 色点 = 口面路径差</view>
+    <view class="lab3d-note-item">理想焦点处，馈源到反射面再到口面的路径处处相等 —— 反射射线严格平行</view>
+    <view class="lab3d-note-item">轴向离焦破坏等相位口面：反射线汇聚或发散，相位误差 → 增益下降（图中 η_ph 联动）</view>
+    <view class="lab3d-note-item">靛蓝 = 馈源入射 · 青绿 = 反射方向 · 面片色 = 口面相位（靛蓝超前 / 赤陶滞后，±180° 固定标尺）</view>
   </view>
 
 </view>

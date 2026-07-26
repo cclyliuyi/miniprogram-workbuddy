@@ -1,2 +1,2 @@
-/* 微波暗室 — 复用通用样式 + toggle */
-@import "../parabolic/parabolic.wxss";
+/* 微波暗室 — 共享舞台样式（内含 tool-ui.wxss） */
+@import "../lab3d.wxss";

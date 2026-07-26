@@ -19,45 +19,59 @@
 
   <view class="lab3d-section rise">
     <view class="kicker">被测天线 AUT</view>
-    <view class="lab3d-btns">
-      <view class="lab3d-btn {{aut==='horn'?'on':''}}" data-a="horn" bindtap="onAut">标准喇叭</view>
-      <view class="lab3d-btn {{aut==='dipole'?'on':''}}" data-a="dipole" bindtap="onAut">偶极子</view>
-      <view class="lab3d-btn {{aut==='array'?'on':''}}" data-a="array" bindtap="onAut">小阵列</view>
+    <view class="tp-btns">
+      <view class="tp-btn {{aut==='horn' ? 'active' : ''}}" data-a="horn" bindtap="onAut">标准喇叭</view>
+      <view class="tp-btn {{aut==='dipole' ? 'active' : ''}}" data-a="dipole" bindtap="onAut">半波偶极子</view>
+      <view class="tp-btn {{aut==='array' ? 'active' : ''}}" data-a="array" bindtap="onAut">4×4 面阵</view>
     </view>
   </view>
 
   <view class="lab3d-section rise">
     <view class="kicker">转台控制</view>
-    <view class="lab3d-row"><text class="lab3d-label">方位角 φ</text><text class="lab3d-val">{{angVal}}</text></view>
-    <slider min="0" max="359" step="1" value="{{angSlider}}" bindchanging="onAngChanging" bindchange="onAng" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-row"><text class="lab3d-label">采样步进</text><text class="lab3d-val">{{stepVal}}</text></view>
-    <slider min="1" max="15" step="1" value="{{stepSlider}}" bindchanging="onStepChanging" bindchange="onStep" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-btns" style="margin-top:12rpx">
-      <view class="lab3d-btn {{scanning?'on':''}}" bindtap="onScan">{{scanText}}</view>
-      <view class="lab3d-btn" bindtap="onClear">清空</view>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">方位角 φ</text>
+      <slider class="tp-slider" min="0" max="359" step="1" value="{{angSlider}}" bindchanging="onAngChanging" bindchange="onAng" />
+      <text class="tp-slider-val">{{angVal}}</text>
+    </view>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">采样步进</text>
+      <slider class="tp-slider" min="1" max="15" step="1" value="{{stepSlider}}" bindchanging="onStepChanging" bindchange="onStep" />
+      <text class="tp-slider-val">{{stepVal}}</text>
+    </view>
+    <view class="tp-btns" style="margin-top:12rpx">
+      <view class="tp-btn {{scanning ? 'active' : ''}}" bindtap="onScan">{{scanText}}</view>
+      <view class="tp-btn" bindtap="onClear">清空样本</view>
     </view>
   </view>
 
   <view class="lab3d-stats pop">
     <view class="kicker lab3d-stats-title">测量读数</view>
     <view class="lab3d-stats-grid">
-      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{pwr}}</view><view class="lab3d-stat-name">当前相对电平</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num tp-c-accent">{{pwr}}</view><view class="lab3d-stat-name">当前相对电平</view></view>
       <view class="lab3d-stat"><view class="lab3d-stat-value num">{{samples}}</view><view class="lab3d-stat-name">采样点数</view></view>
-      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{hpbw}}</view><view class="lab3d-stat-name">估计 HPBW</view></view>
-      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{sll}}</view><view class="lab3d-stat-name">最大旁瓣</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num tp-c-teal">{{hpbw}}</view><view class="lab3d-stat-name">估计 HPBW（−3 dB 插值）</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num tp-c-indigo">{{sll}}</view><view class="lab3d-stat-name">最大旁瓣（主瓣零点外）</view></view>
     </view>
   </view>
 
-  <view class="lab3d-section rise">
-    <view class="kicker">实测方向图</view>
-    <canvas type="2d" id="polar" class="lab3d-2d"></canvas>
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">实测方向图（极坐标，径向 dB：0 / −10 / −20 / −30）</view>
+    <canvas type="2d" id="polar" class="tp-canvas"></canvas>
+  </view>
+
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">所用方向图模型（归一化功率）</view>
+    <view class="tp-formula-line">喇叭：U(θ) = cos¹²θ（cos^q 馈源教学模型，HPBW = 2·acos(2^(−1/12)) ≈ 39°）</view>
+    <view class="tp-formula-line">半波偶极子：U(ψ) = [cos(½π·cosψ)/sinψ]²，ψ 为与振子轴夹角（HPBW ≈ 78°）</view>
+    <view class="tp-formula-line">4×4 面阵方位切面：AF = sin(Nψ/2)/(N·sin(ψ/2))，N = 4，ψ = 2π(d/λ)sinθ，d = 0.5λ；单元因子 cos²θ</view>
+    <view class="tp-formula-cond">适用条件：均为教学近似，显示底取 −30 dB（非物理后瓣模型）；HPBW 取峰值两侧 −3 dB 交点线性插值，SLL 在主瓣第一零点之外搜索，二者需接近整圈采样；真实测量需满足远场条件 R ≥ 2D²/λ 与暗室静区指标。</view>
   </view>
 
   <view class="lab3d-note rise">
     <view class="kicker">原理</view>
-    <view class="lab3d-note-item">暗室测量要保证足够远场距离 R ≥ 2D²/λ</view>
+    <view class="lab3d-note-item">暗室测量要保证足够远场距离 R ≥ 2D²/λ，吸波锥抑制多径反射</view>
     <view class="lab3d-note-item">标准增益法通常先用两只喇叭天线完成链路定标</view>
-    <view class="lab3d-note-item">左侧 = 发射标准喇叭 · 右侧 = AUT 转台 · 蓝点 = 已采样方位角</view>
+    <view class="lab3d-note-item">左侧 = 发射标准喇叭 · 右侧 = AUT 转台 · 青绿圆点 = 已采样方位角</view>
   </view>
 
 </view>

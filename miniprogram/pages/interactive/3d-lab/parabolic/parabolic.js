@@ -1,28 +1,46 @@
-// pages/interactive/3d-lab/parabolic/parabolic.js —— 抛物面反射器 3D (r108) · 深空暖金 v2
-const { createScopedThreejs } = require('threejs-miniprogram');
+// pages/interactive/3d-lab/parabolic/parabolic.js —— 抛物面反射器 3D（r108）· 暖纸舞台
+// 物理模型（Balanis《Antenna Theory》4th, Ch.15 反射面天线；口径 D = 6λ 固定）：
+//   抛物面 z = r²/(4F)；馈源看边缘半张角 θ0 = 2·atan(D/4F)（Balanis 15-25，计入反射面深度）
+//   口面相位误差：δ(r) = (2π/λ)·{|馈源→P| + (z_rim − z_P) − 中心路径}（射线光程，轴向离焦 Δz）
+//   相位效率（均匀口面幅度的圆口径积分）：η_ph = |∫₀¹ e^{jδ(ρ)}·2ρ dρ|²
+//   照明效率（cos²θ 理想馈源的锥削×溢出闭式，Balanis 15-55a）：
+//     η_ill = 24·{sin²(θ0/2) + ln[cos(θ0/2)]}²·cot²(θ0/2)（θ0≈66° 时峰值 ≈0.83）
+//   增益：G = 10lg(η_ill·η_ph·(πD/λ)²) —— 圆口径 (πD/λ)²，相位峰峰值与增益读数自洽。
 const { registerOrbitControls } = require('../orbit-controls');
 const stage = require('../lab3d-stage');
+const haptic = require('../../../../utils/haptic');
+const lc = require('../../../../utils/lab-canvas');
+const { THEME, divergeColor } = require('../../../../utils/lab-theme');
+
+const NERR = 80;   // 口面相位误差径向采样数
 
 Page({
   data: {
     fdSlider: 40, fdVal: '0.40',
-    raySlider: 18, rayVal: '18',
-    dzSlider: 0, dzVal: '0.00',
+    raySlider: 18, rayVal: '18 条',
+    dzSlider: 0, dzVal: '0.00 f',
     showIn: true, showOut: true, showPhase: true,
-    focal: '-', theta: '-', phase: '-', gain: '-',
+    focal: '—', theta: '—', phase: '—', gain: '—',
     showHint: true,
     glReady: false,
   },
 
   THREE: null, canvasNode: null, renderer: null, scene: null,
   camera: null, controls: null, root: null,
-  dishGroup: null, rayGroup: null, phaseGroup: null,
+  dishGroup: null, rayGroup: null,
   animId: null,
   state: { fd: 0.40, rays: 18, dz: 0, show: { in: true, out: true, phase: true } },
   plotCtx: null, plotW: 0, plotH: 0,
-  lastKey: '',
+  lastKey: '', _cache: null,
 
-  onReady() { this.initThree(); this.init2D(); },
+  onLoad() { this.renderAll(); },   // 读数先行，避免首帧占位符
+  onReady() {
+    this.initThree();
+    stage.init2D(this, '#plot', (ctx, w, h) => {
+      this.plotCtx = ctx; this.plotW = w; this.plotH = h;
+      this.drawPlot(this.compute());
+    });
+  },
   onUnload() { this.dispose(); },
   onHide() { this.stopAnim(); stage.clearTimers(this); },
   onShow() { if (this.canvasNode && this.renderer) { this.startAnim(); stage.scheduleIdle(this); } },
@@ -30,229 +48,203 @@ Page({
   clamp(v, a, b) { return Math.max(a, Math.min(b, v)); },
 
   initThree() {
-    const sel = this.createSelectorQuery();
-    sel.select('#three-canvas').fields({ node: true, size: true }).exec((res) => {
-      if (!res || !res[0]) return;
-      const r = res[0];
-      const canvas = r.node;
-      if (!canvas) return;
-      const cssW = r.width, cssH = r.height;
-      if (!cssW || !cssH) { setTimeout(() => this.initThree(), 200); return; }
+    stage.initThree(this, '#three-canvas', {
+      cameraPos: [4.0, -4.3, 3.5],
+      onReady: (env) => {
+        const THREE = env.THREE;
+        registerOrbitControls(THREE);
+        this.THREE = THREE;
+        this.canvasNode = env.canvas;
+        this.renderer = env.renderer;
+        this.scene = env.scene;
+        this.camera = env.camera;
 
-      this.canvasNode = canvas;
-      const dpr = wx.getWindowInfo().pixelRatio || 2;
+        const controls = new THREE.OrbitControls(this.camera, env.canvas);
+        controls.enableDamping = true;
+        controls.autoRotateSpeed = 1.0;
+        controls.target.set(0, 0, 0.8);
+        controls.update();
+        this.controls = controls;
+        this._home = stage.saveHome(controls);
 
-      const THREE = createScopedThreejs(canvas);
-      this.THREE = THREE;
-      registerOrbitControls(THREE);
+        const root = new THREE.Group();
+        this.scene.add(root);
+        this.root = root;
+        this.dishGroup = new THREE.Group();
+        this.rayGroup = new THREE.Group();
+        root.add(this.dishGroup, this.rayGroup);
 
-      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-      renderer.setPixelRatio(Math.min(dpr, 2));
-      renderer.setSize(cssW, cssH, false);
-      renderer.setClearColor(stage.COL.bgEdge, 1);
-      this.renderer = renderer;
-
-      const scene = new THREE.Scene();
-      this.scene = scene;
-      const camera = new THREE.PerspectiveCamera(42, cssW / cssH, 0.01, 200);
-      this.camera = camera;
-
-      const controls = new THREE.OrbitControls(camera, canvas);
-      controls.enableDamping = true;
-      controls.autoRotateSpeed = 1.0;
-      this.controls = controls;
-
-      // 深空暖金舞台 + 三灯（盘面半径 3λ，地面按比例放大）
-      stage.buildStage(THREE, scene, { groundY: -3.4, groundScale: 1.8 });
-      stage.buildLights(THREE, scene);
-
-      const root = new THREE.Group();
-      scene.add(root);
-      this.root = root;
-
-      this.dishGroup = new THREE.Group();
-      this.rayGroup = new THREE.Group();
-      this.phaseGroup = new THREE.Group();
-      root.add(this.dishGroup, this.rayGroup, this.phaseGroup);
-
-      this.renderAll();
-      this.startAnim();
-      stage.ready(this);
+        this.lastKey = '';
+        this.renderAll();
+        this.startAnim();
+        stage.ready(this);
+      },
     });
   },
 
-  clearGroup(g) { stage.clearGroup(g); },
+  // ═══════════════ 物理（纯数值，不依赖 THREE）═══════════════
+  // 馈源(0,0,F+Δz) → 表面(r, z=r²/4F) → 口面参考面 z_rim 的光程（λ 计）
+  pathLen(r, F, dz, zRef) {
+    const z = r * r / (4 * F);
+    return Math.hypot(r, z - F - dz) + (zRef - z);
+  },
 
-  metrics() {
+  compute() {
     const S = this.state;
-    const D = 6;
+    const key = [S.fd, S.dz].join('|');
+    if (this._cache && this._cache.key === key) return this._cache;
+
+    const D = 6;                                   // 口径（λ）固定
     const F = S.fd * D;
-    const theta = Math.atan((D / 2) / F);
-    const dz = S.dz * F;
-    const loss = 1 / (1 + 18 * S.dz * S.dz);
-    const gain = 10 * Math.log10(4 * Math.PI * 0.56 * loss * D * D);
-    return { D, F, theta, dz, loss, gain };
-  },
+    const dz = S.dz * F;                           // 轴向离焦（λ）
+    const theta0 = 2 * Math.atan(1 / (4 * S.fd));  // 馈源看边缘半张角（rad）
+    const zRef = (D / 2) ** 2 / (4 * F);
 
-  surfacePoint(r, ang, m) {
-    const THREE = this.THREE;
-    return new THREE.Vector3(r * Math.cos(ang), r * Math.sin(ang), r * r / (4 * m.F));
-  },
-
-  normalAt(p, m) {
-    const THREE = this.THREE;
-    return new THREE.Vector3(-p.x, -p.y, 2 * m.F).normalize();
-  },
-
-  reflectDir(feed, p, m) {
-    const inc = p.clone().sub(feed).normalize();
-    const n = this.normalAt(p, m);
-    return inc.sub(n.multiplyScalar(2 * inc.dot(n))).normalize();
-  },
-
-  pathError(r, m) {
-    const THREE = this.THREE;
-    const feed = new THREE.Vector3(0, 0, m.F + m.dz);
-    const p = this.surfacePoint(r, 0, m);
-    const zRef = (m.D / 2) ** 2 / (4 * m.F);
-    return feed.distanceTo(p) + (zRef - p.z);
-  },
-
-  errors(m) {
-    const arr = [];
-    const c = this.pathError(0, m);
-    for (let i = 0; i <= 80; i++) {
-      const r = (m.D / 2) * i / 80;
-      arr.push((this.pathError(r, m) - c) * 360);
+    // 口面相位误差 δ(ρ)（°），ρ = r/(D/2)
+    const c0 = this.pathLen(0, F, dz, zRef);
+    const err = [];
+    for (let i = 0; i <= NERR; i++) {
+      const r = (D / 2) * i / NERR;
+      err.push((this.pathLen(r, F, dz, zRef) - c0) * 360);
     }
-    return arr;
+
+    // 相位效率：η_ph = |∫₀¹ e^{jδ}·2ρdρ|²（梯形积分，均匀幅度）
+    let re = 0, im = 0, wsum = 0;
+    for (let i = 0; i <= NERR; i++) {
+      const rho = i / NERR;
+      const w = (i === 0 || i === NERR) ? 0.5 : 1;
+      const d = err[i] * Math.PI / 180;
+      re += w * rho * Math.cos(d);
+      im += w * rho * Math.sin(d);
+      wsum += w * rho;
+    }
+    const etaPh = wsum > 0 ? (re * re + im * im) / (wsum * wsum) : 1;
+
+    // 照明效率（cos²θ 馈源闭式，Balanis 15-55a）
+    const t2 = theta0 / 2;
+    const etaIll = this.clamp(
+      24 * Math.pow(Math.sin(t2) ** 2 + Math.log(Math.cos(t2)), 2) / Math.tan(t2) ** 2,
+      0, 1
+    );
+
+    const gain = 10 * Math.log10(etaIll * etaPh * (Math.PI * D) ** 2);
+    const pp = Math.max(...err) - Math.min(...err);
+
+    this._cache = { key, D, F, dz, theta0, zRef, err, etaPh, etaIll, gain, pp };
+    return this._cache;
   },
 
-  layout3d(m, err) {
+  // ═══════════════ 3D 几何（材质色一律取 stage.THEME3D / lab-theme）═══════════════
+  layout3d(m) {
     const THREE = this.THREE;
+    if (!THREE) return;
+    const C = stage.THEME3D;
     const S = this.state;
-    this.clearGroup(this.dishGroup);
-    this.clearGroup(this.rayGroup);
-    this.clearGroup(this.phaseGroup);
+    stage.clearGroup(this.dishGroup);
+    stage.clearGroup(this.rayGroup);
 
-    // 抛物面网格
+    // ── 抛物面网格：顶点色 = 口面相位误差（固定标尺 ±180°：靛蓝=超前 / 赤陶=滞后）──
     const rs = 46, as = 96;
     const pos = [], col = [], idx = [];
-    const maxErr = Math.max(1, ...err.map(x => Math.abs(x)));
-
     for (let ir = 0; ir <= rs; ir++) {
       const r = m.D / 2 * ir / rs;
+      const z = r * r / (4 * m.F);
+      const e = m.err[Math.round(ir / rs * NERR)];
+      const c = new THREE.Color(divergeColor(this.clamp(e / 180, -1, 1)));
       for (let ia = 0; ia <= as; ia++) {
         const a = ia / as * Math.PI * 2;
-        const p = this.surfacePoint(r, a, m);
-        pos.push(p.x, p.y, p.z);
-        const e = (this.pathError(r, m) - this.pathError(0, m)) * 360 / maxErr;
-        const c = new THREE.Color().setHSL(0.58 - 0.38 * (e * 0.5 + 0.5), 0.74, 0.45);
+        pos.push(r * Math.cos(a), r * Math.sin(a), z);
         col.push(c.r, c.g, c.b);
       }
     }
     for (let ir = 0; ir < rs; ir++) {
       for (let ia = 0; ia < as; ia++) {
-        const a = ir * (as + 1) + ia;
-        const b = a + 1;
-        const c = a + (as + 1);
-        const d = c + 1;
+        const a = ir * (as + 1) + ia, b = a + 1, c = a + (as + 1), d = c + 1;
         idx.push(a, c, b, b, c, d);
       }
     }
-
-    // ⚠️ r108: addAttribute
     const geo = new THREE.BufferGeometry();
-    geo.addAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.addAttribute('position', new THREE.Float32BufferAttribute(pos, 3));   // r108 API
     geo.addAttribute('color', new THREE.Float32BufferAttribute(col, 3));
     geo.setIndex(idx);
     geo.computeVertexNormals();
-
-    const dishMat = new THREE.MeshStandardMaterial({
-      color: 0xb06f2b, metalness: 0.45, roughness: 0.30,
-      emissive: 0x201205, emissiveIntensity: 0.35,
-      side: THREE.DoubleSide, transparent: true, opacity: 0.92
-    });
+    const dishMat = S.show.phase
+      ? new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide })
+      : new THREE.MeshStandardMaterial({
+          color: C.gold, metalness: 0.35, roughness: 0.55, side: THREE.DoubleSide,
+        });
     this.dishGroup.add(new THREE.Mesh(geo, dishMat));
 
-    // 边缘
+    // 边缘 · 赭金
     const rimPts = [];
-    for (let i = 0; i <= 160; i++) rimPts.push(this.surfacePoint(m.D / 2, i / 160 * Math.PI * 2, m));
+    for (let i = 0; i <= 160; i++) {
+      const a = i / 160 * Math.PI * 2;
+      rimPts.push(new THREE.Vector3(m.D / 2 * Math.cos(a), m.D / 2 * Math.sin(a), m.zRef));
+    }
     this.dishGroup.add(new THREE.LineLoop(
       new THREE.BufferGeometry().setFromPoints(rimPts),
-      new THREE.LineBasicMaterial({ color: 0xf3c36b, transparent: true, opacity: 0.65 })
+      new THREE.LineBasicMaterial({ color: C.gold, transparent: true, opacity: 0.75 })
     ));
 
-    // 馈源
+    // 焦轴 + 馈源 · 赤陶
     const feed = new THREE.Vector3(0, 0, m.F + m.dz);
+    this.dishGroup.add(new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), feed]),
+      new THREE.LineBasicMaterial({ color: C.warmGray, transparent: true, opacity: 0.5 })
+    ));
     const feedMesh = new THREE.Mesh(
-      new THREE.SphereGeometry(0.075, 18, 18),
-      new THREE.MeshStandardMaterial({ color: 0x7fa0ff, emissive: 0x1a3870, emissiveIntensity: 0.5, metalness: 0.35, roughness: 0.38 })
+      new THREE.SphereGeometry(0.09, 18, 18),
+      new THREE.MeshStandardMaterial({ color: C.accent, metalness: 0.25, roughness: 0.5 })
     );
     feedMesh.position.copy(feed);
     this.dishGroup.add(feedMesh);
 
-    // 射线
-    const inMat = new THREE.LineBasicMaterial({ color: 0x6c88e8, transparent: true, opacity: 0.62 });
-    const outMat = new THREE.LineBasicMaterial({ color: 0xf0e6d6, transparent: true, opacity: 0.70 });
-
+    // ── 射线：入射 靛蓝 / 反射 青绿；反射线延长到出口平面，离焦时可见汇聚/发散 ──
+    const inMat = new THREE.LineBasicMaterial({ color: C.indigo, transparent: true, opacity: 0.55 });
+    const outMat = new THREE.LineBasicMaterial({ color: C.teal, transparent: true, opacity: 0.75 });
+    const zExit = m.zRef + 2.6;
     const rings = Math.max(1, Math.round(S.rays / 6));
     const per = Math.max(8, Math.round(S.rays / rings));
     for (let ir = 1; ir <= rings; ir++) {
       const r = m.D / 2 * (0.22 + 0.70 * ir / rings);
       for (let ia = 0; ia < per; ia++) {
-        const p = this.surfacePoint(r, ia / per * Math.PI * 2, m);
-        const dir = this.reflectDir(feed, p, m);
-        const end = p.clone().add(dir.multiplyScalar(1.35));
-
+        const a = ia / per * Math.PI * 2;
+        const z = r * r / (4 * m.F);
+        const p = new THREE.Vector3(r * Math.cos(a), r * Math.sin(a), z);
+        // 镜面反射 r = i − 2(i·n)n，n ∝ (−x,−y,2F)
+        const inc = p.clone().sub(feed).normalize();
+        const n = new THREE.Vector3(-p.x, -p.y, 2 * m.F).normalize();
+        const dir = inc.sub(n.multiplyScalar(2 * inc.dot(n))).normalize();
+        const t = dir.z > 0.04 ? Math.min(14, (zExit - p.z) / dir.z) : 3;
+        const end = p.clone().add(dir.multiplyScalar(t));
         if (S.show.in) {
-          const g1 = new THREE.BufferGeometry().setFromPoints([feed, p]);
-          this.rayGroup.add(new THREE.Line(g1, inMat));
+          this.rayGroup.add(new THREE.Line(
+            new THREE.BufferGeometry().setFromPoints([feed, p]), inMat));
         }
         if (S.show.out) {
-          const g2 = new THREE.BufferGeometry().setFromPoints([p, end]);
-          this.rayGroup.add(new THREE.Line(g2, outMat));
+          this.rayGroup.add(new THREE.Line(
+            new THREE.BufferGeometry().setFromPoints([p, end]), outMat));
         }
       }
     }
-
-    if (S.show.phase) {
-      this.phaseGroup.add(new THREE.Points(geo.clone(), new THREE.PointsMaterial({
-        size: 0.035, vertexColors: true, transparent: true, opacity: 0.9
-      })));
-    }
-
-    // 相机只在首次定位；之后用户视角不被参数修改打断
-    if (!this._camInit) {
-      this.camera.position.set(m.D * 0.66, -m.D * 0.72, m.D * 0.58);
-      this.controls.target.set(0, 0, m.F * 0.28);
-      this.camera.near = 0.01; this.camera.far = 200;
-      this.camera.updateProjectionMatrix();
-      this.controls.update();
-      this._home = stage.saveHome(this.controls);
-      this._camInit = true;
-    }
-    this.controls.update();
   },
 
+  // ═══════════════ 动画（仅阻尼/自转，无装饰性摆动）═══════════════
   startAnim() {
     if (this.animId || !this.canvasNode) return;
     const tick = () => {
       this.animId = this.canvasNode.requestAnimationFrame(tick);
-      if (this.root) this.root.rotation.z = 0.035 * Math.sin(Date.now() / 2100);
       this.controls.update();
       this.renderer.render(this.scene, this.camera);
     };
     tick();
   },
-
   stopAnim() {
     if (this.animId && this.canvasNode) {
       this.canvasNode.cancelAnimationFrame(this.animId);
       this.animId = null;
     }
   },
-
   dispose() {
     this.stopAnim();
     stage.clearTimers(this);
@@ -264,80 +256,68 @@ Page({
   onTouchMove(e) { stage.touchMove(this, e); },
   onTouchEnd(e) { stage.touchEnd(this, e); },
 
-  onFd(e) { this.state.fd = e.detail.value / 100; this.setData({ fdVal: this.state.fd.toFixed(2) }); this.renderAll(); },
-  onFdChanging(e) { this.state.fd = e.detail.value / 100; this.setData({ fdVal: this.state.fd.toFixed(2) }); stage.throttle(this); },
-  onRays(e) { this.state.rays = e.detail.value; this.setData({ rayVal: String(this.state.rays) }); this.renderAll(); },
-  onRaysChanging(e) { this.state.rays = e.detail.value; this.setData({ rayVal: String(this.state.rays) }); stage.throttle(this); },
-  onDz(e) { this.state.dz = e.detail.value / 100; this.setData({ dzVal: this.state.dz.toFixed(2) }); this.renderAll(); },
-  onDzChanging(e) { this.state.dz = e.detail.value / 100; this.setData({ dzVal: this.state.dz.toFixed(2) }); stage.throttle(this); },
+  // ═══════════════ 参数：拖动节流 + 松手精修 ═══════════════
+  onFd(e) { this.state.fd = e.detail.value / 100; this.renderAll(); },
+  onFdChanging(e) { this.state.fd = e.detail.value / 100; stage.throttle(this); },
+  onRays(e) { this.state.rays = e.detail.value; this.renderAll(); },
+  onRaysChanging(e) { this.state.rays = e.detail.value; stage.throttle(this); },
+  onDz(e) { this.state.dz = e.detail.value / 100; this.renderAll(); },
+  onDzChanging(e) { this.state.dz = e.detail.value / 100; stage.throttle(this); },
 
-  onTogIn() { this.state.show.in = !this.state.show.in; this.setData({ showIn: this.state.show.in }); this.renderAll(); },
-  onTogOut() { this.state.show.out = !this.state.show.out; this.setData({ showOut: this.state.show.out }); this.renderAll(); },
-  onTogPhase() { this.state.show.phase = !this.state.show.phase; this.setData({ showPhase: this.state.show.phase }); this.renderAll(); },
+  onTogIn() { haptic.light(); this.state.show.in = !this.state.show.in; this.setData({ showIn: this.state.show.in }); this.renderAll(); },
+  onTogOut() { haptic.light(); this.state.show.out = !this.state.show.out; this.setData({ showOut: this.state.show.out }); this.renderAll(); },
+  onTogPhase() { haptic.light(); this.state.show.phase = !this.state.show.phase; this.setData({ showPhase: this.state.show.phase }); this.renderAll(); },
 
   renderAll() {
-    const m = this.metrics();
-    const err = this.errors(m);
+    const S = this.state;
+    const m = this.compute();
     this.setData({
+      fdVal: S.fd.toFixed(2),
+      rayVal: S.rays + ' 条',
+      dzVal: (S.dz >= 0 ? '+' : '') + S.dz.toFixed(2) + ' f',
       focal: m.F.toFixed(2) + ' λ',
-      theta: (m.theta * 180 / Math.PI).toFixed(1) + '°',
-      phase: (Math.max(...err) - Math.min(...err)).toFixed(0) + '°',
+      theta: (m.theta0 * 180 / Math.PI).toFixed(1) + '°',
+      phase: m.pp.toFixed(0) + '°',
       gain: m.gain.toFixed(1) + ' dBi',
     });
-    this.drawPlot(m, err);
-    const key = JSON.stringify(this.state);
+    this.drawPlot(m);
+    const key = [m.key, S.rays, S.show.in, S.show.out, S.show.phase].join('|');
     if (key !== this.lastKey) {
-      this.layout3d(m, err);
+      this.layout3d(m);
       this.lastKey = key;
     }
   },
 
-  init2D() {
-    const sel = this.createSelectorQuery();
-    sel.select('#plot').fields({ node: true, size: true }).exec((res) => {
-      if (!res || !res[0]) return;
-      const r = res[0];
-      const canvas = r.node;
-      const ctx = canvas.getContext('2d');
-      const dpr = wx.getSystemInfoSync().pixelRatio || 2;
-      canvas.width = r.width * dpr;
-      canvas.height = r.height * dpr;
-      ctx.scale(dpr, dpr);
-      this.plotCtx = ctx;
-      this.plotW = r.width;
-      this.plotH = r.height;
-      const m = this.metrics();
-      this.drawPlot(m, this.errors(m));
+  // ═══════════════ 2D 口面相位误差（lab-canvas 纸底 · 轴 + 刻度 + 效率联动标注）═══════════════
+  drawPlot(m) {
+    if (!this.plotCtx) return;
+    if (!m) m = this.compute();
+    const ctx = this.plotCtx, w = this.plotW, h = this.plotH;
+    lc.clear(ctx, w, h);
+    const maxAbs = Math.max(...m.err.map((x) => Math.abs(x)));
+    const ySpan = Math.max(15, maxAbs * 1.2);
+    const box = { x: 52, y: 26, w: w - 66, h: h - 68 };
+    const p = lc.plot(ctx, box, [0, 1], [-ySpan, ySpan]);
+    p.axes({
+      xTicks: [0, 0.25, 0.5, 0.75, 1],
+      xFmt: (v) => String(v),
+      yFmt: (v) => v.toFixed(0) + '°',
+      xLabel: 'r / R（0=中心 → 1=边缘）',
+      yLabel: '口面相位误差 δ（°）',
     });
+    p.guideY(0);
+    const xs = m.err.map((_, i) => i / NERR);
+    p.area(xs, m.err, THEME.accent, 0);
+    p.line(xs, m.err, THEME.accent, 2);
+    // 相位 → 增益的因果联动读数
+    const lossDb = -10 * Math.log10(Math.max(m.etaPh, 1e-6));
+    lc.label(ctx,
+      'η_ph = ' + (m.etaPh * 100).toFixed(1) + '% → 相位损失 ' + lossDb.toFixed(2) + ' dB',
+      box.x + box.w, box.y - 8, { align: 'right', color: THEME.ink, font: THEME.fontTitle });
+    lc.legend(ctx, [{ name: 'δ(r) 路径相位误差（D = 6λ）', color: THEME.accent }], box.x, h - 12);
   },
 
-  drawPlot(m, err) {
-    if (!this.plotCtx) return;
-    const pg = this.plotCtx;
-    const w = this.plotW, h = this.plotH;
-    pg.fillStyle = '#1c2130';
-    pg.fillRect(0, 0, w, h);
-    const L = 40, R = w - 14, T = 16, B = h - 24;
-    const max = Math.max(20, ...err.map(x => Math.abs(x)));
-    pg.strokeStyle = '#313a55';
-    for (let i = -2; i <= 2; i++) {
-      const y = (T + B) / 2 - i * (B - T) / 4;
-      pg.beginPath(); pg.moveTo(L, y); pg.lineTo(R, y); pg.stroke();
-    }
-    pg.strokeStyle = '#6c88e8';
-    pg.lineWidth = 2;
-    pg.beginPath();
-    err.forEach((e, i) => {
-      const x = L + i * (R - L) / (err.length - 1);
-      const y = (T + B) / 2 - e / max * (B - T) * 0.46;
-      i ? pg.lineTo(x, y) : pg.moveTo(x, y);
-    });
-    pg.stroke();
-    pg.fillStyle = '#7c89b0';
-    pg.font = '10px Consolas';
-    pg.textAlign = 'left';
-    pg.fillText('中心 → 边缘路径相位误差', L, T - 4);
-    pg.textAlign = 'right';
-    pg.fillText('±' + max.toFixed(0) + '°', R, T - 4);
+  onShareAppMessage() {
+    return { title: '抛物面反射天线 3D 实验室', path: '/pages/interactive/3d-lab/parabolic/parabolic' };
   },
 });

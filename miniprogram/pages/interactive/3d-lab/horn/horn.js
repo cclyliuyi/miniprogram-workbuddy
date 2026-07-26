@@ -1,386 +1,338 @@
-// pages/interactive/3d-lab/horn/horn.js —— 喇叭天线 3D (r108) · 深空暖金实验室 v2
-const { createScopedThreejs } = require('threejs-miniprogram');
+// pages/interactive/3d-lab/horn/horn.js —— 角锥喇叭天线 3D（r108）· 暖纸舞台
+// 物理模型（Balanis《Antenna Theory》4th, Ch.13 口径天线）：
+//   边缘程差 Δ = √(R²+(A/2)²) − R（λ 计），最大二次相位 δmax = 2πΔ（精确几何，泰勒展开即 A²/8R）
+//   口径分布（可分离方口径 A×A）：
+//     E 面 g(u) = 1（TE10 沿 E 面均匀）
+//     H 面 g(u) = p + (1−p)·cos(πu/2)，p = 10^(−边缘电平/20)（pedestal-cosine；p=0 即纯 TE10 余弦）
+//   方向图（1D 口径积分 + 单元因子）：
+//     F(θ) = (1+cosθ)/2 · |∫₋₁¹ g(u)·exp(j[πA·u·sinθ − δmax·u²]) du|
+//   口径效率（Fresnel 型积分，θ=0 的同一积分给出，读数与曲线自洽）：
+//     η_plane = |∫g·e^(−jδmax·u²)du|² / (2∫g²du)，G = 10lg(4π·ηE·ηH·(A/λ)²)
+//     校验：δ=0 时 ηE=1、ηH(p=0)=8/π²（TE10 经典因子）
+//   HPBW 直接在数值方向图上搜 −3 dB 点 —— 无任何拟合系数。
 const { registerOrbitControls } = require('../orbit-controls');
 const stage = require('../lab3d-stage');
-const COL = stage.COL;
+const lc = require('../../../../utils/lab-canvas');
+const { THEME, rampColor } = require('../../../../utils/lab-theme');
+
+const ASTEP = 1;        // 方向图角度步长（°），−90..90
+const SCALE = 0.12;     // 场景缩放：1λ = 0.12 单位
 
 Page({
   data: {
-    aSlider: 60, aVal: '6.0',
-    lSlider: 80, lVal: '8.0',
+    aSlider: 60, aVal: '6.0 λ',
+    lSlider: 80, lVal: '8.0 λ',
     tapSlider: 10, tapVal: '-10 dB',
-    phase: '-', gain: '-', flare: '-', hpbw: '-',
-    showHint: true,   // 手势提示（2.4s 后淡出）
-    glReady: false,   // WebGL 骨架屏开关
+    phase: '—', gain: '—', flare: '—', hpbw: '—',
+    showHint: true,
+    glReady: false,
   },
 
   THREE: null, canvasNode: null, renderer: null, scene: null,
   camera: null, controls: null, root: null,
-  hornGroup: null, phaseGroup: null, waveGroup: null,
+  hornGroup: null, phaseGroup: null,
   animId: null,
-  state: { A: 6, R: 8, tap: 10, ph: 0 },
+  state: { A: 6, R: 8, tap: 10 },
   plotCtx: null, plotW: 0, plotH: 0,
-  lastKey: '',
-  _camInit: false, _home: null,        // 相机只初始化一次；home 视角用于双击复位
-  _pt: null,                           // 参数重建节流定时器
-  _idleT: null, _hintT: null,          // 闲置自转 / 提示淡出定时器
-  _lastTap: 0, _moved: false, _tapX: 0, _tapY: 0,
+  lastKey: '', _cache: null,
 
-  onReady() { this.initThree(); this.init2D(); },
+  onLoad() { this.renderAll(); },   // 读数先行，避免首帧占位符
+  onReady() {
+    this.initThree();
+    stage.init2D(this, '#plot', (ctx, w, h) => {
+      this.plotCtx = ctx; this.plotW = w; this.plotH = h;
+      this.drawPlot(this.compute());
+    });
+  },
   onUnload() { this.dispose(); },
-  onHide() { this.stopAnim(); this.clearTimers(); },
+  onHide() { this.stopAnim(); stage.clearTimers(this); },
   onShow() { if (this.canvasNode && this.renderer) { this.startAnim(); stage.scheduleIdle(this); } },
 
-  clamp(v, a, b) { return Math.max(a, Math.min(b, v)); },
-  sinc(x) { return Math.abs(x) < 1e-6 ? 1 : Math.sin(x) / x; },
-
-  // ═══════════════ 场景初始化 ═══════════════
   initThree() {
-    const sel = this.createSelectorQuery();
-    sel.select('#three-canvas').fields({ node: true, size: true }).exec((res) => {
-      if (!res || !res[0]) { console.error('[horn] SelectorQuery empty'); return; }
-      const r = res[0];
-      const canvas = r.node;
-      if (!canvas) { console.error('[horn] canvas null'); return; }
-      const cssW = r.width, cssH = r.height;
-      if (!cssW || !cssH) { setTimeout(() => this.initThree(), 200); return; }
-
-      try {
-        this.canvasNode = canvas;
-        const dpr = wx.getWindowInfo().pixelRatio || 2;
-
-        const THREE = createScopedThreejs(canvas);
-        this.THREE = THREE;
+    stage.initThree(this, '#three-canvas', {
+      cameraPos: [1.15, 0.9, 1.55],
+      onReady: (env) => {
+        const THREE = env.THREE;
         registerOrbitControls(THREE);
+        this.THREE = THREE;
+        this.canvasNode = env.canvas;
+        this.renderer = env.renderer;
+        this.scene = env.scene;
+        this.camera = env.camera;
 
-        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-        renderer.setPixelRatio(Math.min(dpr, 2));
-        renderer.setSize(cssW, cssH, false);
-        renderer.setClearColor(COL.bgEdge, 1);
-        this.renderer = renderer;
-
-        const scene = new THREE.Scene();
-        this.scene = scene;
-        const camera = new THREE.PerspectiveCamera(42, cssW / cssH, 0.01, 200);
-        this.camera = camera;
-
-        const controls = new THREE.OrbitControls(camera, canvas);
+        const controls = new THREE.OrbitControls(this.camera, env.canvas);
         controls.enableDamping = true;
         controls.autoRotateSpeed = 1.0;
+        controls.target.set(0, 0, 0.1);
+        controls.update();
         this.controls = controls;
-
-        this.buildStage = null;   // 舞台已模块化
-        stage.buildStage(THREE, scene, { groundY: -1.08 });   // 渐变天穹 + 极坐标地面 + 接触光环
-        stage.buildLights(THREE, scene);                      // 三灯：主光暖白 / 轮廓暖金 / 底部青蓝
+        this._home = stage.saveHome(controls);
 
         const root = new THREE.Group();
-        scene.add(root);
+        this.scene.add(root);
         this.root = root;
         this.hornGroup = new THREE.Group();
         this.phaseGroup = new THREE.Group();
-        this.waveGroup = new THREE.Group();
-        root.add(this.hornGroup, this.phaseGroup, this.waveGroup);
+        root.add(this.hornGroup, this.phaseGroup);
 
+        this.lastKey = '';       // 强制首次搭建
         this.renderAll();
         this.startAnim();
-        stage.ready(this);   // 撤骨架屏 + 提示淡出 + 闲置自转
-      } catch (err) {
-        console.error('[horn] initThree error:', err);
-      }
+        stage.ready(this);
+      },
     });
   },
 
-  clearGroup(g) { stage.clearGroup(g); },
+  // ═══════════════ 物理：口径积分（无魔法系数）═══════════════
+  // 口径分布 g(u)，u ∈ [−1,1]
+  gDist(plane, u, p) {
+    return plane === 'H' ? p + (1 - p) * Math.cos(Math.PI * u / 2) : 1;
+  },
 
-  // ═══════════════ 物理度量 ═══════════════
-  metrics() {
+  // ∫₋₁¹ g(u)·exp(j[πA·u·sinθ − δmax·u²]) du 的模（梯形积分）
+  apInt(plane, sinTh, A, dMax, p, N) {
+    const du = 2 / N;
+    let re = 0, im = 0;
+    for (let i = 0; i <= N; i++) {
+      const u = -1 + i * du;
+      const w = (i === 0 || i === N) ? 0.5 : 1;
+      const g = this.gDist(plane, u, p);
+      const ph = Math.PI * A * u * sinTh - dMax * u * u;
+      re += w * g * Math.cos(ph);
+      im += w * g * Math.sin(ph);
+    }
+    return Math.hypot(re, im) * du;
+  },
+
+  // 数值方向图上搜 −3 dB 点（自峰值向外，线性内插）；无交点返回 null
+  hpbwOf(ang, db) {
+    let mi = 0;
+    for (let i = 1; i < db.length; i++) if (db[i] > db[mi]) mi = i;
+    for (let j = mi + 1; j < db.length; j++) {
+      if (db[j] <= -3) {
+        const t = (-3 - db[j - 1]) / (db[j] - db[j - 1]);
+        return 2 * (ang[j - 1] + t * ASTEP - ang[mi]);
+      }
+    }
+    return null;
+  },
+
+  compute() {
     const S = this.state;
+    const key = [S.A, S.R, S.tap].join('|');
+    if (this._cache && this._cache.key === key) return this._cache;
+
     const A = S.A, R = S.R;
-    const edge = Math.sqrt(R * R + (A / 2) ** 2) - R;
+    const edge = Math.sqrt(R * R + (A / 2) ** 2) - R;    // λ
     const phaseDeg = 360 * edge;
+    const dMax = 2 * Math.PI * edge;                     // rad
     const flare = Math.atan((A / 2) / R) * 180 / Math.PI;
-    const phaseLoss = Math.max(0.42, Math.cos(Math.min(Math.PI / 2, phaseDeg * Math.PI / 360)) ** 2);
-    const tapLoss = 1 - 0.018 * S.tap;
-    const eta = this.clamp(0.72 * phaseLoss * tapLoss, 0.28, 0.78);
-    const gain = 10 * Math.log10(4 * Math.PI * eta * A * A);
-    const hpbw = 51 / A * (1 + 0.35 * (1 - phaseLoss) + 0.012 * S.tap);
-    return { edge, phaseDeg, flare, eta, gain, hpbw };
+    const p = Math.pow(10, -S.tap / 20);
+    // 积分点数按最快相位变化自适应（πA·sinθ 项 + 二次项）
+    const N = Math.min(400, Math.max(64, Math.ceil(4 * (Math.PI * A + 2 * dMax))));
+
+    // 口径效率：θ=0 的同一积分（分子）/ 2∫g²du（分母）
+    const effPlane = (plane) => {
+      const num = this.apInt(plane, 0, A, dMax, p, N) ** 2;
+      const du = 2 / N;
+      let den = 0;
+      for (let i = 0; i <= N; i++) {
+        const w = (i === 0 || i === N) ? 0.5 : 1;
+        den += w * this.gDist(plane, -1 + i * du, p) ** 2;
+      }
+      return num / (2 * den * du);
+    };
+    const etaE = effPlane('E');
+    const etaH = effPlane('H');
+    const gain = 10 * Math.log10(4 * Math.PI * etaE * etaH * A * A);
+
+    // E/H 面数值方向图（含单元因子 (1+cosθ)/2），各自归一化
+    const ang = [], eRaw = [], hRaw = [];
+    for (let i = 0; i <= 180 / ASTEP * 2; i++) {
+      const deg = -90 + i * ASTEP;
+      const th = deg * Math.PI / 180;
+      const el = (1 + Math.cos(th)) / 2;
+      ang.push(deg);
+      eRaw.push(el * this.apInt('E', Math.sin(th), A, dMax, p, N));
+      hRaw.push(el * this.apInt('H', Math.sin(th), A, dMax, p, N));
+    }
+    const toDb = (arr) => {
+      const mx = Math.max(...arr) || 1;
+      return arr.map((v) => Math.max(-60, 20 * Math.log10(Math.max(v / mx, 1e-6))));
+    };
+    const eDb = toDb(eRaw), hDb = toDb(hRaw);
+
+    this._cache = {
+      key, edge, phaseDeg, dMax, flare, etaE, etaH, gain,
+      ang, eDb, hDb,
+      hpbwE: this.hpbwOf(ang, eDb),
+      hpbwH: this.hpbwOf(ang, hDb),
+    };
+    return this._cache;
   },
 
-  cut(deg, plane, m) {
-    const S = this.state;
-    const u = Math.sin(deg * Math.PI / 180);
-    const x = Math.PI * S.A * u;
-    const taper = Math.pow(10, -S.tap / 20);
-    let f = Math.abs(this.sinc(x * (plane === 'E' ? 1 : 0.72)));
-    f = taper + (1 - taper) * f;
-    const phasePenalty = 1 / (1 + 0.0018 * m.phaseDeg * Math.abs(u) ** 1.6);
-    return f * phasePenalty;
-  },
-
-  // ═══════════════ 几何搭建 ═══════════════
+  // ═══════════════ 3D 几何（材质色一律取 stage.THEME3D / lab-theme）═══════════════
   layout3d(m) {
     const THREE = this.THREE;
+    if (!THREE) return;
+    const C = stage.THEME3D;
     const S = this.state;
-    this.clearGroup(this.hornGroup);
-    this.clearGroup(this.phaseGroup);
-    this.clearGroup(this.waveGroup);
+    stage.clearGroup(this.hornGroup);
+    stage.clearGroup(this.phaseGroup);
 
-    const s = 0.12;
-    const A = S.A * s, R = S.R * s, th = 0.26 * s;
-    const ap = A, thr = Math.max(0.42 * s, ap * 0.18);
+    const ap = S.A * SCALE, R = S.R * SCALE, th = 0.26 * SCALE;
+    const thr = Math.max(0.42 * SCALE, ap * 0.18);
     const z0 = -R / 2, z1 = R / 2;
 
-    // ── 喇叭壁（双调暖铜：降 metalness 补偿无 envMap，微自发光托底）──
+    // ── 喇叭壁 · 赭金 ──
     const pts = [
       [-thr / 2, -thr / 2, z0], [thr / 2, -thr / 2, z0],
       [thr / 2, thr / 2, z0], [-thr / 2, thr / 2, z0],
       [-ap / 2, -ap / 2, z1], [ap / 2, -ap / 2, z1],
       [ap / 2, ap / 2, z1], [-ap / 2, ap / 2, z1]
-    ].map(p => new THREE.Vector3(p[0], p[1], p[2]));
+    ].map((q) => new THREE.Vector3(q[0], q[1], q[2]));
 
     const faces = [[0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7]];
     const posArr = [];
-    faces.forEach(f => {
+    faces.forEach((f) => {
       const [a, b, c, d] = f;
-      [[a, b, c], [a, c, d]].forEach(t => t.forEach(i => {
+      [[a, b, c], [a, c, d]].forEach((t) => t.forEach((i) => {
         posArr.push(pts[i].x, pts[i].y, pts[i].z);
       }));
     });
-
-    // ⚠️ r108: addAttribute
     const geo = new THREE.BufferGeometry();
-    geo.addAttribute('position', new THREE.Float32BufferAttribute(posArr, 3));
+    geo.addAttribute('position', new THREE.Float32BufferAttribute(posArr, 3));  // r108 API
     geo.computeVertexNormals();
-    const metal = new THREE.MeshStandardMaterial({
-      color: COL.copper, metalness: 0.45, roughness: 0.30,
-      emissive: 0x241408, emissiveIntensity: 0.35,
-      side: THREE.DoubleSide,
-    });
-    this.hornGroup.add(new THREE.Mesh(geo, metal));
+    this.hornGroup.add(new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
+      color: C.gold, metalness: 0.35, roughness: 0.55,
+      side: THREE.DoubleSide, transparent: true, opacity: 0.92,
+    })));
 
-    // 四条棱线高光（勾勒轮廓，深色底上的"勾边"）
+    // 棱线 + 口径边框 · 暖灰/赤陶勾边
     const edgeLines = [];
-    [0, 1, 2, 3].forEach(i => { edgeLines.push(pts[i], pts[i + 4]); });
+    [0, 1, 2, 3].forEach((i) => { edgeLines.push(pts[i], pts[i + 4]); });
     this.hornGroup.add(new THREE.LineSegments(
       new THREE.BufferGeometry().setFromPoints(edgeLines),
-      new THREE.LineBasicMaterial({ color: COL.copperHi, transparent: true, opacity: 0.5 })
+      new THREE.LineBasicMaterial({ color: C.warmGray, transparent: true, opacity: 0.8 })
+    ));
+    this.hornGroup.add(new THREE.LineLoop(
+      new THREE.BufferGeometry().setFromPoints([pts[4], pts[5], pts[6], pts[7]]),
+      new THREE.LineBasicMaterial({ color: C.accent, transparent: true, opacity: 0.9 })
     ));
 
-    // ── 喉部 ──
+    // ── 喉部（馈电波导段）· 暖灰 ──
     const throat = new THREE.Mesh(
       new THREE.BoxGeometry(thr * 0.82, thr * 0.82, th),
-      new THREE.MeshStandardMaterial({ color: COL.throat, metalness: 0.5, roughness: 0.4 })
+      new THREE.MeshStandardMaterial({ color: C.warmGray, metalness: 0.3, roughness: 0.6 })
     );
     throat.position.z = z0 - th * 0.55;
     this.hornGroup.add(throat);
 
-    // ── 口径边框（提亮）──
-    const rimPts = [pts[4], pts[5], pts[6], pts[7]];
-    const rimGeo = new THREE.BufferGeometry().setFromPoints(rimPts);
-    this.hornGroup.add(new THREE.LineLoop(rimGeo, new THREE.LineBasicMaterial({
-      color: COL.copperHi, transparent: true, opacity: 0.9
-    })));
-
-    // ── 口径相位：点云 → 连续色面 ──
+    // ── 口径相位色面：固定标尺 0°→360°（赤陶 ramp 浅→深），随参数真实变化 ──
     const SEG = 29;
     const pg = new THREE.PlaneBufferGeometry(ap, ap, SEG, SEG);
     const ppos = pg.getAttribute('position');
     const col = [];
-    const maxPhase = Math.max(1, m.phaseDeg);
     for (let i = 0; i < ppos.count; i++) {
-      const x = ppos.getX(i), y = ppos.getY(i);
-      const rr = Math.sqrt(x * x + y * y) / (ap / Math.SQRT2);
-      const phase = this.clamp(rr * rr * m.phaseDeg / maxPhase, 0, 1);
-      const c = new THREE.Color().setHSL(0.60 - 0.42 * phase, 0.82, 0.45 + 0.14 * (1 - phase));
+      const rl = Math.hypot(ppos.getX(i), ppos.getY(i)) / SCALE;   // 半径（λ）
+      const phase = 360 * (Math.hypot(S.R, rl) - S.R);             // 相对中心的相位滞后（°）
+      const c = new THREE.Color(rampColor(Math.min(1, phase / 360)));
       col.push(c.r, c.g, c.b);
     }
     pg.addAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-    const aperture = new THREE.Mesh(pg, new THREE.MeshBasicMaterial({
-      vertexColors: true, transparent: true, opacity: 0.96, side: THREE.DoubleSide,
+    const apertureMesh = new THREE.Mesh(pg, new THREE.MeshBasicMaterial({
+      vertexColors: true, transparent: true, opacity: 0.95, side: THREE.DoubleSide,
     }));
-    aperture.position.z = z1 + 0.012;
-    this.phaseGroup.add(aperture);
-
-    // ── 等相位波前：加色混合 + 纵深衰减（发光感）──
-    for (let k = 0; k < 8; k++) {
-      const z = z1 + 0.18 + k * 0.11;
-      const rx = ap * 0.45 + k * 0.035;
-      const pts2 = [];
-      for (let i = 0; i <= 80; i++) {
-        const a = i / 80 * Math.PI * 2;
-        pts2.push(new THREE.Vector3(
-          Math.cos(a) * rx, Math.sin(a) * rx, z + 0.022 * Math.sin(a * 2 + this.state.ph)
-        ));
-      }
-      const baseOp = 0.50 - k * 0.045;  // 越远越淡
-      const wmat = new THREE.LineBasicMaterial({
-        color: COL.wave, transparent: true, opacity: baseOp,
-        blending: THREE.AdditiveBlending, depthWrite: false,
-      });
-      wmat.userData = { baseOp };
-      this.waveGroup.add(new THREE.LineLoop(
-        new THREE.BufferGeometry().setFromPoints(pts2), wmat));
-    }
-
-    // 相机只在首次定位；之后用户视角不被参数修改打断
-    if (!this._camInit) {
-      this.camera.position.set(ap * 0.85, ap * 0.65, R * 0.85);
-      this.camera.updateProjectionMatrix();
-      this.controls.target.set(0, 0, 0);
-      this.controls.update();
-      this._home = stage.saveHome(this.controls);
-      this._camInit = true;
-    }
-    this.controls.update();
+    apertureMesh.position.z = z1 + 0.012;
+    this.phaseGroup.add(apertureMesh);
   },
 
-  // ═══════════════ 动画循环 ═══════════════
+  // ═══════════════ 动画（仅阻尼/自转，无装饰性假动画）═══════════════
   startAnim() {
     if (this.animId || !this.canvasNode) return;
     const tick = () => {
       this.animId = this.canvasNode.requestAnimationFrame(tick);
-      this.state.ph += 0.025;
-      if (this.root) this.root.rotation.y = 0.08 * Math.sin(this.state.ph * 0.16);
-      if (this.waveGroup) {
-        this.waveGroup.children.forEach((l, i) => {
-          const b = l.material.userData.baseOp || 0.3;
-          l.material.opacity = b * (0.55 + 0.45 * Math.sin(this.state.ph + i * 0.5) ** 2);
-        });
-      }
       this.controls.update();
       this.renderer.render(this.scene, this.camera);
     };
     tick();
   },
-
   stopAnim() {
     if (this.animId && this.canvasNode) {
       this.canvasNode.cancelAnimationFrame(this.animId);
       this.animId = null;
     }
   },
-
-  clearTimers() { stage.clearTimers(this); },
-
   dispose() {
     this.stopAnim();
-    this.clearTimers();
+    stage.clearTimers(this);
     if (this.renderer) { this.renderer.dispose(); this.renderer = null; }
     if (this.controls) { this.controls.dispose(); this.controls = null; }
   },
 
-  // ═══════════════ 触摸：旋转/缩放 + 双击复位 + 闲置自转 ═══════════════
   onTouchStart(e) { stage.touchStart(this, e); },
   onTouchMove(e) { stage.touchMove(this, e); },
   onTouchEnd(e) { stage.touchEnd(this, e); },
 
   // ═══════════════ 参数：拖动节流 + 松手精修 ═══════════════
-  onAChanging(e) { this.queueParam('A', e.detail.value / 10); },
-  onRChanging(e) { this.queueParam('R', e.detail.value / 10); },
-  onTapChanging(e) { this.queueParam('tap', e.detail.value); },
-
-  queueParam(key, val) {
-    this.state[key] = val;
-    stage.throttle(this);                    // 55ms 节流窗口内合并
-  },
-
+  onAChanging(e) { this.state.A = e.detail.value / 10; stage.throttle(this); },
+  onRChanging(e) { this.state.R = e.detail.value / 10; stage.throttle(this); },
+  onTapChanging(e) { this.state.tap = e.detail.value; stage.throttle(this); },
   onA(e) { this.state.A = e.detail.value / 10; this.renderAll(); },
   onR(e) { this.state.R = e.detail.value / 10; this.renderAll(); },
   onTap(e) { this.state.tap = e.detail.value; this.renderAll(); },
 
+  fmtHpbw(v) { return v == null ? '>90°' : v.toFixed(1) + '°'; },
+
   renderAll() {
     const S = this.state;
-    const m = this.metrics();
+    const m = this.compute();
     this.setData({
-      aVal: S.A.toFixed(1),
-      lVal: S.R.toFixed(1),
-      tapVal: '-' + S.tap + ' dB',
+      aVal: S.A.toFixed(1) + ' λ',
+      lVal: S.R.toFixed(1) + ' λ',
+      tapVal: (S.tap === 0 ? '0' : '-' + S.tap) + ' dB',
       phase: m.phaseDeg.toFixed(0) + '°',
       gain: m.gain.toFixed(1) + ' dBi',
       flare: m.flare.toFixed(1) + '°',
-      hpbw: m.hpbw.toFixed(1) + '°',
+      hpbw: this.fmtHpbw(m.hpbwE) + ' / ' + this.fmtHpbw(m.hpbwH),
     });
-    const key = [S.A, S.R, S.tap].join('|');
+    const key = m.key;
     if (key !== this.lastKey) {
       this.layout3d(m);
       this.lastKey = key;
     }
-    this.drawPattern(m);
+    this.drawPlot(m);
   },
 
-  // ═══════════════ 2D 方向图（深空同色系）═══════════════
-  init2D() {
-    const sel = this.createSelectorQuery();
-    sel.select('#plot').fields({ node: true, size: true }).exec((res) => {
-      if (!res || !res[0]) return;
-      const r = res[0];
-      const canvas = r.node;
-      const ctx = canvas.getContext('2d');
-      const dpr = wx.getWindowInfo().pixelRatio || 2;
-      canvas.width = r.width * dpr;
-      canvas.height = r.height * dpr;
-      ctx.scale(dpr, dpr);
-      this.plotCtx = ctx;
-      this.plotW = r.width;
-      this.plotH = r.height;
-      this.drawPattern(this.metrics());
-    });
-  },
-
-  drawPattern(m) {
+  // ═══════════════ 2D 方向图（lab-canvas 纸底 · 坐标轴 + 刻度 + 图例）═══════════════
+  drawPlot(m) {
     if (!this.plotCtx) return;
-    const pg = this.plotCtx;
-    const w = this.plotW, h = this.plotH;
-    pg.fillStyle = '#1c2130';                    // 与 3D 天穹同系
-    pg.fillRect(0, 0, w, h);
+    if (!m) m = this.compute();
+    const ctx = this.plotCtx, w = this.plotW, h = this.plotH;
+    lc.clear(ctx, w, h);
+    const box = { x: 46, y: 24, w: w - 60, h: h - 66 };
+    const p = lc.plot(ctx, box, [-90, 90], [-45, 0]);
+    p.axes({
+      xTicks: [-90, -60, -30, 0, 30, 60, 90],
+      yTicks: [-40, -30, -20, -10, 0],
+      xFmt: (v) => v + '°',
+      xLabel: 'θ（°）',
+      yLabel: '归一化电平（dB）',
+    });
+    p.area(m.ang, m.eDb, THEME.accent, -45);
+    p.line(m.ang, m.eDb, THEME.accent, 2);
+    p.line(m.ang, m.hDb, THEME.teal, 2);
+    p.guideY(-3);
+    lc.label(ctx, '−3 dB', box.x + box.w - 4, p.Y(-3) - 4, {
+      align: 'right', color: THEME.muted, font: THEME.fontTick,
+    });
+    lc.legend(ctx, [
+      { name: 'E 面（均匀分布）', color: THEME.accent },
+      { name: 'H 面（边缘电平 ' + (this.state.tap === 0 ? '0' : '−' + this.state.tap) + ' dB）', color: THEME.teal },
+    ], box.x, h - 12);
+  },
 
-    const L = 42, R = w - 16, T = 16, B = h - 26, minDb = -45;
-    pg.strokeStyle = '#313a55';
-    pg.lineWidth = 1;
-    for (let db = minDb; db <= 0; db += 10) {
-      const y = T + (-db / (-minDb)) * (B - T);
-      pg.beginPath();
-      pg.moveTo(L, y); pg.lineTo(R, y); pg.stroke();
-      pg.fillStyle = '#7c89b0';
-      pg.font = '10px Consolas';
-      pg.textAlign = 'right';
-      pg.fillText(db + ' dB', L - 7, y + 3);
-    }
-
-    const drawLine = (plane, color, fill) => {
-      let max = 0;
-      const vals = [];
-      for (let i = 0; i <= 360; i++) {
-        const deg = -90 + i * 0.5;
-        const v = this.cut(deg, plane, m);
-        vals.push(v);
-        max = Math.max(max, v);
-      }
-      // 曲线下淡填充（层次）
-      pg.beginPath();
-      vals.forEach((v, i) => {
-        const db = this.clamp(20 * Math.log10(v / max), minDb, 0);
-        const x = L + i * (R - L) / 360;
-        const y = T + (-db / (-minDb)) * (B - T);
-        i ? pg.lineTo(x, y) : pg.moveTo(x, y);
-      });
-      pg.strokeStyle = color;
-      pg.lineWidth = 2;
-      pg.stroke();
-      pg.lineTo(R, B); pg.lineTo(L, B); pg.closePath();
-      pg.fillStyle = fill;
-      pg.fill();
-    };
-
-    drawLine('E', '#6c88e8', 'rgba(108,136,232,0.07)');
-    drawLine('H', '#3ec9a7', 'rgba(62,201,167,0.06)');
-
-    pg.fillStyle = '#9db1e8';
-    pg.font = '10px sans-serif';
-    pg.textAlign = 'left';
-    pg.fillText('E 面', L + 8, T + 12);
-    pg.fillStyle = '#6fdcbf';
-    pg.fillText('H 面', L + 52, T + 12);
+  onShareAppMessage() {
+    return { title: '喇叭天线 3D 实验室', path: '/pages/interactive/3d-lab/horn/horn' };
   },
 });

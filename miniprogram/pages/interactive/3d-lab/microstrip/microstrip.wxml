@@ -18,15 +18,37 @@
   </view>
 
   <view class="lab3d-section rise">
+    <view class="kicker">基板预设</view>
+    <view class="tp-btns">
+      <view class="tp-btn {{preset==='fr4' ? 'active' : ''}}" data-p="fr4" bindtap="onPreset">FR4 · 4.40/1.6</view>
+      <view class="tp-btn {{preset==='r4350' ? 'active' : ''}}" data-p="r4350" bindtap="onPreset">RO4350B · 3.66/0.76</view>
+      <view class="tp-btn {{preset==='ptfe' ? 'active' : ''}}" data-p="ptfe" bindtap="onPreset">PTFE · 2.20/1.57</view>
+    </view>
+  </view>
+
+  <view class="lab3d-section rise">
     <view class="kicker">设计参数</view>
-    <view class="lab3d-row"><text class="lab3d-label">工作频率 f₀</text><text class="lab3d-val">{{fVal}}</text></view>
-    <slider min="80" max="1200" step="5" value="{{fSlider}}" bindchanging="onFChanging" bindchange="onF" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-row"><text class="lab3d-label">介电常数 εᵣ</text><text class="lab3d-val">{{erVal}}</text></view>
-    <slider min="20" max="120" step="1" value="{{erSlider}}" bindchanging="onErChanging" bindchange="onEr" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-row"><text class="lab3d-label">基板厚度 h</text><text class="lab3d-val">{{hVal}}</text></view>
-    <slider min="20" max="400" step="5" value="{{hSlider}}" bindchanging="onHChanging" bindchange="onH" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
-    <view class="lab3d-row"><text class="lab3d-label">馈点内凹 y₀/L</text><text class="lab3d-val">{{insetVal}}</text></view>
-    <slider min="0" max="48" step="1" value="{{insetSlider}}" bindchanging="onInsetChanging" bindchange="onInset" block-size="18" activeColor="#c89b6e" backgroundColor="rgba(32,32,28,.10)" block-color="#b06a4f" />
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">工作频率 f₀</text>
+      <slider class="tp-slider" min="80" max="1200" step="5" value="{{fSlider}}" data-k="f" bindchanging="onParamChanging" bindchange="onParam" />
+      <text class="tp-slider-val">{{fVal}}</text>
+    </view>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">介电常数 εᵣ</text>
+      <slider class="tp-slider" min="20" max="120" step="1" value="{{erSlider}}" data-k="er" bindchanging="onParamChanging" bindchange="onParam" />
+      <text class="tp-slider-val">{{erVal}}</text>
+    </view>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">基板厚度 h</text>
+      <slider class="tp-slider" min="20" max="400" step="5" value="{{hSlider}}" data-k="h" bindchanging="onParamChanging" bindchange="onParam" />
+      <text class="tp-slider-val">{{hVal}}</text>
+    </view>
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">馈点内凹 y₀/L</text>
+      <slider class="tp-slider" min="0" max="48" step="1" value="{{insetSlider}}" data-k="inset" bindchanging="onParamChanging" bindchange="onParam" />
+      <text class="tp-slider-val">{{insetVal}}</text>
+    </view>
+    <view wx:if="{{warn}}" class="ms-warn">{{warn}}</view>
   </view>
 
   <view class="lab3d-stats pop">
@@ -35,22 +57,32 @@
       <view class="lab3d-stat"><view class="lab3d-stat-value num">{{W}}</view><view class="lab3d-stat-name">贴片宽 W</view></view>
       <view class="lab3d-stat"><view class="lab3d-stat-value num">{{L}}</view><view class="lab3d-stat-name">贴片长 L</view></view>
       <view class="lab3d-stat"><view class="lab3d-stat-value num">{{ee}}</view><view class="lab3d-stat-name">有效 εeff</view></view>
-      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{rin}}</view><view class="lab3d-stat-name">馈点电阻 Rin</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{redge}}</view><view class="lab3d-stat-name">边缘电阻 Redge</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num tp-c-accent">{{rin}}</view><view class="lab3d-stat-name">馈点电阻 Rin</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num tp-c-teal">{{insetSug}}</view><view class="lab3d-stat-name">建议 y₀/L（Rin = 50 Ω）</view></view>
       <view class="lab3d-stat"><view class="lab3d-stat-value num">{{smin}}</view><view class="lab3d-stat-name">最小 |S11|</view></view>
-      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{bw}}</view><view class="lab3d-stat-name">-10 dB 带宽</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{bw}}</view><view class="lab3d-stat-name">−10 dB 相对带宽</view></view>
     </view>
   </view>
 
-  <view class="lab3d-section rise">
-    <view class="kicker">S 参数</view>
-    <canvas type="2d" id="s11" class="lab3d-2d"></canvas>
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">S11 扫频曲线（单谐振并联 RLC 模型，绿带 = −10 dB 带宽）</view>
+    <canvas type="2d" id="s11" class="tp-canvas-short"></canvas>
+  </view>
+
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">所用公式（Balanis 4th §14.2）</view>
+    <view class="tp-formula-line">W = c/(2f₀)·√(2/(εᵣ+1))　·　εeff = (εᵣ+1)/2 + (εᵣ−1)/2·(1+12h/W)^(−½)　·　L = c/(2f₀√εeff) − 2ΔL</view>
+    <view class="tp-formula-line">Redge = 1/(2(G₁+G₁₂))（缝隙电导 14-12/14-18a 数值积分）　·　Rin = Redge·cos²(π·y₀/L)</view>
+    <view class="tp-formula-line">FBW ≈ 3.77·(εᵣ−1)/εᵣ²·(W/L)·(h/λ₀)（VSWR≤2）　·　Q = 1/(√2·FBW)　·　Z(f) = Rin/(1+j·2Q(f/f₀−1))</view>
+    <view class="tp-formula-cond">适用条件：εeff/ΔL 近似要求 W/h &gt; 1 且 h ≪ λ₀；S11 为 TM₁₀ 单谐振并联 RLC 教学模型（不含馈线电抗与高次模），真实设计仍需全波仿真。</view>
   </view>
 
   <view class="lab3d-note rise">
     <view class="kicker">原理</view>
-    <view class="lab3d-note-item">一阶尺寸：W≈c/(2f₀)√(2/(εᵣ+1))，L≈c/(2f₀√εeff)-2ΔL</view>
-    <view class="lab3d-note-item">S11 为教学用单谐振近似，真实设计仍需全波仿真</view>
-    <view class="lab3d-note-item">铜色 = 贴片/馈线/地板 · 蓝绿弧线 = 缝隙场 · 橙色线 = 表面电流</view>
+    <view class="lab3d-note-item">贴片沿 L 半波谐振：两条辐射缝的等效磁流同相叠加，形成边射方向图</view>
+    <view class="lab3d-note-item">表面电流沿谐振长度 L 呈 sin(πz/L) 分布（中间最大、两缝为零），横向近似均匀</view>
+    <view class="lab3d-note-item">赤陶 = 贴片/馈线（铜） · 青绿 = 介质基板 · 靛蓝弧线 = 缝隙场 · 赭金 = 表面电流 · 暖灰 = W/L 尺寸标注</view>
   </view>
 
 </view>

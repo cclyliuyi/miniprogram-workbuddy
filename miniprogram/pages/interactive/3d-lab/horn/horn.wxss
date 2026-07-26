@@ -1,2 +1,2 @@
-/* 喇叭天线 — 复用通用样式（舞台样式已并入 loop.wxss） */
-@import "../loop/loop.wxss";
+/* 喇叭天线 —— 公共舞台样式取自 ../lab3d.wxss（内含 tool-ui.wxss），无页面特有样式 */
+@import "../lab3d.wxss";
