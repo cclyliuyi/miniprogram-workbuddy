@@ -1,23 +1,29 @@
 // pages/interactive/energy-flow-lab/energy-flow-lab.js —— 电磁能流账本实验室
-// 3种模式：端口功率分账 / Poynting矢量近场远场 / 电小天线Chu Q
-// 统一模型：匹配→反射→接受功率→热损耗+储能+辐射
+// 三种模式：端口功率分账 / 近场·远场能流 / 电小天线 Chu 极限
+// 物理模型（全部真实公式，见 utils/rf-math.js）：
+//   反射 = |Γ|² = 10^(−RL/10)；接受 = 1 − |Γ|²
+//   辐射 = η · 接受；热损耗 = (1−η) · 接受   —— 严格能量守恒
+//   Qmin = 1/(ka)³ + 1/ka（Chu–McLean 无耗下界）；FBW ≈ (s−1)/(Q√s)
 
 const haptic = require('../../../utils/haptic')
+const rf = require('../../../utils/rf-math')
+const lc = require('../../../utils/lab-canvas')
+const { THEME, alpha } = require('../../../utils/lab-theme')
 
 const MODE_LABELS = {
-  budget: '端口功率分账：匹配好不等于效率高',
-  field: 'Poynting 矢量：能量在场中流动',
-  small: '电小天线：空间局域化带来高储能',
+  budget: '端口功率分账 · 匹配好 ≠ 效率高',
+  field: '能流的两种形态：往返储能 与 净流出',
+  small: 'Chu–McLean 极限：越小，Q 越高，带宽越窄',
 }
 const NOTE_TEXTS = {
-  budget: '匹配只解决反射问题；效率还要看损耗和近场储能。接受功率 = 1 − 反射；辐射 = 接受 − 损耗 − 储能。',
-  field: '近场箭头可以往返交换（无功功率），远场箭头表示净功率离开天线。Poynting 定理保证能量守恒。',
-  small: '电尺寸 ka 越小，能量越容易被困在近场储能中，带宽和效率都会受限。Qmin ≈ 1/(ka)³ + 1/(ka)。',
+  budget: '回波损耗 RL 只决定反射掉多少（|Γ|² = 10^(−RL/10)）；进入天线的功率还要按辐射效率 η 分给辐射和热损耗。四项严格守恒：反射 + 热损耗 + 辐射 = 100%。',
+  field: '以 r = λ/2π（辐射球半径）为界：近区能量在场与源之间往返交换（无功，双向箭头），远区能量以 Poynting 矢量净流出（有功辐射，单向箭头）。储能与每周期辐射能之比就是品质因数 Q。',
+  small: '电尺寸 ka 越小，Qmin = 1/(ka)³ + 1/ka 增长越快（近场储能占比越大），相对带宽 FBW ≈ (s−1)/(Q√s) 越窄。损耗会把 Q 拉低到 η·Qmin —— 用效率换带宽。',
 }
 
 Page({
   data: {
-    S: { mode: 'budget', match: 70, loss: 18, ka: 42 },
+    S: { mode: 'budget', rl: 10, eta: 70, ka100: 50 },
     stats: null,
     modeLabel: MODE_LABELS.budget,
     noteText: NOTE_TEXTS.budget,
@@ -27,186 +33,213 @@ Page({
   onReady() { this.update() },
 
   // ═══ 事件 ═══
-  onMatch(e) { this.setData({ 'S.match': e.detail.value }, () => this.update()) },
-  onLoss(e) { this.setData({ 'S.loss': e.detail.value }, () => this.update()) },
-  onKa(e) { this.setData({ 'S.ka': e.detail.value }, () => this.update()) },
-  setBudget() { haptic.light(); this.setData({ 'S.mode': 'budget', modeLabel: MODE_LABELS.budget, noteText: NOTE_TEXTS.budget }, () => this.draw()) },
-  setField() { haptic.light(); this.setData({ 'S.mode': 'field', modeLabel: MODE_LABELS.field, noteText: NOTE_TEXTS.field }, () => this.draw()) },
-  setSmall() { haptic.light(); this.setData({ 'S.mode': 'small', modeLabel: MODE_LABELS.small, noteText: NOTE_TEXTS.small }, () => this.draw()) },
+  onRl(e) { this.setData({ 'S.rl': e.detail.value }, () => this.update()) },
+  onEta(e) { this.setData({ 'S.eta': e.detail.value }, () => this.update()) },
+  onKa(e) { this.setData({ 'S.ka100': e.detail.value }, () => this.update()) },
+  setMode(e) {
+    haptic.light()
+    const mode = e.currentTarget.dataset.m
+    this.setData({
+      'S.mode': mode,
+      modeLabel: MODE_LABELS[mode],
+      noteText: NOTE_TEXTS[mode],
+    }, () => this.draw())
+  },
 
-  // ═══ 物理 ═══
+  // ═══ 物理（无魔法系数）═══
   values() {
     const S = this.data.S
-    const match = S.match / 100
-    const loss = S.loss / 100
-    const ka = S.ka / 100
-    const reflected = (1 - match) * 0.42
-    const accepted = 1 - reflected
-    const heat = accepted * loss * 0.72
-    const stored = accepted * Math.min(0.58, 0.18 / Math.max(0.08, ka))
-    const radiated = Math.max(0.04, accepted - heat - stored)
-    return { match, loss, ka, reflected, accepted, heat, stored, radiated }
+    const eta = S.eta / 100
+    const ka = S.ka100 / 100
+    const gamma2 = Math.pow(10, -S.rl / 10)   // |Γ|²
+    const reflected = gamma2
+    const accepted = 1 - gamma2
+    const radiated = accepted * eta
+    const heat = accepted * (1 - eta)
+    const qMin = rf.chuQmin(ka)               // 无耗下界
+    const q = Math.max(1, eta * qMin)         // 含损 Q ≈ η·Qmin
+    const fbw = Math.min(1, rf.fbwFromQ(q, 2)) // VSWR≤2 相对带宽
+    return { eta, ka, reflected, accepted, radiated, heat, qMin, q, fbw }
   },
 
   update() {
     const v = this.values()
     this.setData({
       stats: {
-        reflected: Math.round(v.reflected * 100) + '%',
-        heat: Math.round(v.heat * 100) + '%',
-        stored: Math.round(v.stored * 100) + '%',
-        radiated: Math.round(v.radiated * 100) + '%',
-      }
+        reflected: (v.reflected * 100).toFixed(1) + '%',
+        heat: (v.heat * 100).toFixed(1) + '%',
+        radiated: (v.radiated * 100).toFixed(1) + '%',
+        qfbw: 'Q≈' + (v.q >= 100 ? v.q.toFixed(0) : v.q.toFixed(1)) +
+          ' · FBW≈' + (v.fbw * 100).toFixed(1) + '%',
+      },
     })
     this.draw()
   },
 
-  // ═══ Canvas ═══
-  _queryCanvas(callback) {
-    const q = wx.createSelectorQuery().in(this)
-    q.select('#mainCanvas').fields({ node: true, size: true }).exec((res) => {
-      if (res && res[0] && res[0].node) {
-        const canvas = res[0].node
-        const ctx = canvas.getContext('2d')
-        const dpr = wx.getWindowInfo().pixelRatio
-        const w = res[0].width
-        const h = res[0].height
-        canvas.width = Math.max(1, Math.floor(w * dpr))
-        canvas.height = Math.max(1, Math.floor(h * dpr))
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-        callback(ctx, w, h)
-      }
-    })
-  },
-
-  _arrow(ctx, x1, y1, x2, y2, color, width) {
-    const a = Math.atan2(y2 - y1, x2 - x1)
-    ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = width
-    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke()
-    ctx.beginPath()
-    ctx.moveTo(x2, y2)
-    ctx.lineTo(x2 - 10 * Math.cos(a - 0.45), y2 - 10 * Math.sin(a - 0.45))
-    ctx.lineTo(x2 - 10 * Math.cos(a + 0.45), y2 - 10 * Math.sin(a + 0.45))
-    ctx.closePath(); ctx.fill()
-  },
-
+  // ═══ 绘制 ═══
   draw() {
-    this._queryCanvas((ctx, w, h) => {
-      const S = this.data.S
+    lc.mount(this, '#mainCanvas', (ctx, w, h) => {
+      lc.clear(ctx, w, h)
       const v = this.values()
-      ctx.fillStyle = '#080d14'; ctx.fillRect(0, 0, w, h)
-
-      if (S.mode === 'budget') this._drawBudget(ctx, w, h, v)
-      else if (S.mode === 'field') this._drawField(ctx, w, h, v)
+      const mode = this.data.S.mode
+      if (mode === 'budget') this._drawBudget(ctx, w, h, v)
+      else if (mode === 'field') this._drawField(ctx, w, h, v)
       else this._drawSmall(ctx, w, h, v)
     })
   },
 
+  // ── 模式 1：功率分账（真实守恒的预算条图）──
   _drawBudget(ctx, w, h, v) {
-    // 节点位置
-    const nodes = [
-      { name: '输入功率', x: 60, y: h * 0.42, color: '#edf3ff' },
-      { name: '反射', x: w * 0.5, y: h * 0.16, color: '#ff7a90' },
-      { name: '热损耗', x: w * 0.5, y: h * 0.34, color: '#ffd166' },
-      { name: '近场储能', x: w * 0.5, y: h * 0.54, color: '#7ca0ff' },
-      { name: '远场辐射', x: w * 0.5, y: h * 0.74, color: '#65e4b1' },
+    const x0 = 96, x1 = w - 78
+    const bw = x1 - x0
+    const rows = [
+      { name: '输入', frac: 1, color: THEME.inkSoft, y: 36 },
+      { name: '反射', frac: v.reflected, color: THEME.gold, y: h * 0.34, note: '|Γ|²' },
+      { name: '热损耗', frac: v.heat, color: THEME.accent, y: h * 0.55, note: '(1−η)·接受' },
+      { name: '辐射', frac: v.radiated, color: THEME.teal, y: h * 0.76, note: 'η·接受' },
     ]
-    nodes.forEach(n => {
-      ctx.fillStyle = 'rgba(13,20,34,0.95)'
-      ctx.strokeStyle = n.color; ctx.lineWidth = 1.5
+    // 输入 → 三路的引导线
+    ctx.strokeStyle = THEME.grid
+    ctx.lineWidth = 1
+    rows.slice(1).forEach((r) => {
       ctx.beginPath()
-      // roundRect 兼容
-      const rx = n.x - 40, ry = n.y - 20, rw = 100, rh = 40, rr = 8
-      ctx.moveTo(rx + rr, ry)
-      ctx.arcTo(rx + rw, ry, rx + rw, ry + rh, rr)
-      ctx.arcTo(rx + rw, ry + rh, rx, ry + rh, rr)
-      ctx.arcTo(rx, ry + rh, rx, ry, rr)
-      ctx.arcTo(rx, ry, rx + rw, ry, rr)
-      ctx.closePath(); ctx.fill(); ctx.stroke()
-      ctx.fillStyle = n.color; ctx.font = '12px sans-serif'; ctx.textAlign = 'center'
-      ctx.fillText(n.name, n.x, n.y + 4)
+      ctx.moveTo(x0 + 8, rows[0].y + 22)
+      ctx.lineTo(x0 + 8, r.y + 9)
+      ctx.stroke()
     })
-    // 箭头
-    const src = nodes[0]
-    this._arrow(ctx, src.x + 50, src.y, nodes[1].x - 40, nodes[1].y, '#ff7a90', 2 + v.reflected * 10)
-    this._arrow(ctx, src.x + 50, src.y, nodes[2].x - 40, nodes[2].y, '#ffd166', 2 + v.heat * 10)
-    this._arrow(ctx, src.x + 50, src.y, nodes[3].x - 40, nodes[3].y, '#7ca0ff', 2 + v.stored * 10)
-    this._arrow(ctx, src.x + 50, src.y, nodes[4].x - 40, nodes[4].y, '#65e4b1', 2 + v.radiated * 10)
-
-    // 百分比标签
-    ctx.font = '11px sans-serif'; ctx.textAlign = 'center'
-    ctx.fillStyle = '#ffb0bd'; ctx.fillText('反射 ' + Math.round(v.reflected * 100) + '%', w * 0.28, h * 0.12)
-    ctx.fillStyle = '#ffe29b'; ctx.fillText('损耗 ' + Math.round(v.heat * 100) + '%', w * 0.28, h * 0.30)
-    ctx.fillStyle = '#aebfff'; ctx.fillText('储能 ' + Math.round(v.stored * 100) + '%', w * 0.28, h * 0.50)
-    ctx.fillStyle = '#b8ffe6'; ctx.fillText('辐射 ' + Math.round(v.radiated * 100) + '%', w * 0.28, h * 0.70)
+    rows.forEach((r, i) => {
+      // 行名（左）
+      lc.label(ctx, r.name, x0 - 10, r.y + 13, {
+        align: 'right', color: THEME.inkSoft, font: THEME.fontNote,
+      })
+      // 底槽 + 数据条（4px 圆头）
+      ctx.fillStyle = alpha('#20201c', 0.05)
+      ctx.fillRect(x0, r.y, bw, 18)
+      lc.barH(ctx, x0, r.y, Math.max(2, bw * r.frac), 18, i === 0 ? alpha('#20201c', 0.35) : r.color)
+      // 数值直接标注（右）
+      const pct = (r.frac * 100).toFixed(1) + '%'
+      lc.label(ctx, pct, x1 + 8, r.y + 13, {
+        color: THEME.ink, font: THEME.fontTitle,
+      })
+      // 公式小注
+      if (r.note) {
+        lc.label(ctx, r.note, x0 + 4, r.y + 32, {
+          color: THEME.muted, font: THEME.fontTick,
+        })
+      }
+    })
+    // 守恒校验行
+    lc.label(ctx, '守恒校验：' + (v.reflected * 100).toFixed(1) + ' + ' +
+      (v.heat * 100).toFixed(1) + ' + ' + (v.radiated * 100).toFixed(1) + ' = 100%',
+      w / 2, h - 12, { align: 'center', color: THEME.muted, font: THEME.fontLabel })
   },
 
+  // ── 模式 2：近场储能 vs 远场辐射 ──
   _drawField(ctx, w, h, v) {
-    const cx = w * 0.5, cy = h * 0.45
-    // 源
-    ctx.fillStyle = '#ffd166'
-    ctx.beginPath(); ctx.arc(cx, cy, 10, 0, Math.PI * 2); ctx.fill()
+    const cx = w * 0.5, cy = h * 0.46
+    const rNear = Math.min(w, h) * 0.17      // 辐射球 r = λ/2π
+    const rMax = Math.min(w, h) * 0.44
 
-    // 同心环
-    for (let r = 45; r <= 180; r += 35) {
-      ctx.strokeStyle = r < 95 ? 'rgba(124,160,255,0.4)' : 'rgba(101,228,177,0.32)'
+    // 近区底色
+    ctx.fillStyle = alpha(THEME.indigo, 0.06)
+    ctx.beginPath(); ctx.arc(cx, cy, rNear, 0, Math.PI * 2); ctx.fill()
+    // 辐射球边界（虚线）
+    ctx.save()
+    ctx.setLineDash([5, 4])
+    ctx.strokeStyle = alpha(THEME.indigo, 0.55)
+    ctx.lineWidth = 1.5
+    ctx.beginPath(); ctx.arc(cx, cy, rNear, 0, Math.PI * 2); ctx.stroke()
+    ctx.restore()
+    // 等相位面（远区）
+    ctx.strokeStyle = THEME.grid
+    for (let r = rNear + 26; r <= rMax; r += 26) {
       ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke()
     }
 
-    // Poynting 矢量箭头
-    for (let i = 0; i < 20; i++) {
-      const a = i * Math.PI * 2 / 20
-      const r1 = 55 + 14 * Math.sin(i)
-      const r2 = r1 + 38 + 60 * v.radiated
-      const color = i % 3 === 0 ? '#7ca0ff' : '#65e4b1'
-      this._arrow(ctx,
-        cx + r1 * Math.cos(a), cy + r1 * Math.sin(a),
+    // 源（偶极子）
+    ctx.strokeStyle = THEME.ink
+    ctx.lineWidth = 3; ctx.lineCap = 'round'
+    ctx.beginPath(); ctx.moveTo(cx, cy - 9); ctx.lineTo(cx, cy + 9); ctx.stroke()
+
+    // 近区：双向往返箭头（无功储能），强度 ∝ Q 指示
+    const qNorm = Math.min(1, Math.log10(Math.max(1, v.qMin)) / 3) // 0..1
+    const nReact = 6
+    for (let i = 0; i < nReact; i++) {
+      const a = Math.PI * 2 * i / nReact + Math.PI / nReact
+      const r1 = rNear * 0.42, r2 = rNear * 0.86
+      const c = alpha(THEME.indigo, 0.35 + 0.5 * qNorm)
+      lc.arrow(ctx, cx + r1 * Math.cos(a), cy + r1 * Math.sin(a),
+        cx + r2 * Math.cos(a), cy + r2 * Math.sin(a), c, 1.5)
+      lc.arrow(ctx, cx + r2 * Math.cos(a + 0.16), cy + r2 * Math.sin(a + 0.16),
+        cx + r1 * Math.cos(a + 0.16), cy + r1 * Math.sin(a + 0.16), c, 1.5)
+    }
+    // 远区：单向外流箭头（有功辐射），长度 ∝ 辐射份额
+    const nRad = 12
+    for (let i = 0; i < nRad; i++) {
+      const a = Math.PI * 2 * i / nRad
+      const r1 = rNear + 12
+      const r2 = r1 + 16 + (rMax - r1 - 16) * v.radiated
+      lc.arrow(ctx, cx + r1 * Math.cos(a), cy + r1 * Math.sin(a),
         cx + r2 * Math.cos(a), cy + r2 * Math.sin(a),
-        color, 1.5 + v.radiated * 3)
+        alpha(THEME.teal, 0.5 + 0.5 * v.radiated), 2)
     }
 
-    ctx.fillStyle = '#aebfff'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center'
-    ctx.fillText('近区：储能往返交换（无功）', cx, h - 30)
-    ctx.fillStyle = '#b8ffe6'
-    ctx.fillText('远区：净功率外流（有功辐射）', cx, h - 14)
+    // 标注
+    lc.label(ctx, 'r = λ/2π', cx + rNear * 0.72, cy - rNear - 6, {
+      color: THEME.indigo, font: THEME.fontLabel,
+    })
+    lc.legend(ctx, [
+      { name: '近区储能（无功往返）', color: THEME.indigo },
+      { name: '远区辐射（净流出 ' + (v.radiated * 100).toFixed(0) + '%）', color: THEME.teal },
+    ], 14, h - 16)
+    lc.label(ctx, '储能/每周期辐射 ≈ Q ≈ ' + (v.q >= 100 ? v.q.toFixed(0) : v.q.toFixed(1)),
+      w - 14, 20, { align: 'right', color: THEME.inkSoft, font: THEME.fontLabel })
   },
 
+  // ── 模式 3：Chu–McLean Q 极限（对数轴真曲线）──
   _drawSmall(ctx, w, h, v) {
-    const x0 = 40, y0 = h - 40, pw = w - 80, ph = h - 80
+    const box = { x: 52, y: 26, w: w - 70, h: h - 70 }
+    const p = lc.plot(ctx, box, [0.1, 1.2], [0, 3])   // y = log10(Q) ∈ [1, 1000]
+    p.axes({
+      xTicks: [0.2, 0.4, 0.6, 0.8, 1.0, 1.2],
+      yTicks: [0, 1, 2, 3],
+      yFmt: (t) => ['1', '10', '100', '1000'][t] || '',
+      xLabel: 'ka（电尺寸）',
+      yLabel: 'Q（对数）',
+    })
 
-    // 坐标轴
-    ctx.strokeStyle = '#253044'; ctx.lineWidth = 1
-    ctx.beginPath(); ctx.rect(x0, y0 - ph, pw, ph); ctx.stroke()
-
-    // Chu Q 曲线
-    ctx.beginPath()
-    for (let i = 0; i <= 200; i++) {
-      const ka = 0.08 + 1.12 * i / 200
-      const q = Math.min(12, 1 / Math.pow(ka, 3) + 1 / ka)
-      const x = x0 + pw * i / 200
-      const y = y0 - ph * q / 12
-      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y)
+    const N = 160
+    const xs = [], ysMin = [], ysEta = []
+    for (let i = 0; i <= N; i++) {
+      const ka = 0.1 + 1.1 * i / N
+      xs.push(ka)
+      ysMin.push(Math.log10(rf.chuQmin(ka)))
+      ysEta.push(Math.log10(Math.max(1, v.eta * rf.chuQmin(ka))))
     }
-    ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 3; ctx.stroke()
+    p.area(xs, ysMin, THEME.accent, 0)
+    p.line(xs, ysMin, THEME.accent, 2)
+    // 含损曲线（η·Qmin）虚线
+    ctx.save(); ctx.setLineDash([5, 4])
+    p.line(xs, ysEta, THEME.teal, 2)
+    ctx.restore()
 
-    // 当前 ka 标记
-    const qNow = Math.min(12, 1 / Math.pow(v.ka, 3) + 1 / v.ka)
-    const px = x0 + pw * (v.ka - 0.08) / 1.12
-    const py = y0 - ph * qNow / 12
-    ctx.fillStyle = '#65e4b1'
-    ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI * 2); ctx.fill()
+    // 当前点 + 参考虚线
+    const qNow = rf.chuQmin(v.ka)
+    p.guideX(v.ka)
+    p.guideY(Math.log10(qNow))
+    p.dot(v.ka, Math.log10(qNow), THEME.accent)
 
-    // 虚线
-    ctx.setLineDash([4, 4]); ctx.strokeStyle = 'rgba(255,255,255,0.3)'
-    ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, y0); ctx.stroke()
-    ctx.beginPath(); ctx.moveTo(x0, py); ctx.lineTo(px, py); ctx.stroke()
-    ctx.setLineDash([])
-
-    ctx.fillStyle = '#9aa8bd'; ctx.font = '11px sans-serif'; ctx.textAlign = 'left'
-    ctx.fillText('ka →', x0 + pw - 30, y0 + 18)
-    ctx.fillText('Q ↑', x0 - 4, y0 - ph - 6)
-    ctx.fillStyle = '#ffd166'; ctx.font = '13px sans-serif'
-    ctx.fillText('当前 Q ≈ ' + qNow.toFixed(1), x0, y0 - ph - 20)
+    lc.label(ctx, 'Qmin（无耗下界）', p.X(0.16), p.Y(Math.log10(rf.chuQmin(0.16))) - 10, {
+      color: THEME.accent, font: THEME.fontLabel,
+    })
+    lc.label(ctx, 'η·Qmin（η=' + Math.round(v.eta * 100) + '%）',
+      p.X(0.52), p.Y(Math.log10(Math.max(1, v.eta * rf.chuQmin(0.52)))) + 16, {
+      color: THEME.teal, font: THEME.fontLabel,
+    })
+    lc.label(ctx, 'ka=' + v.ka.toFixed(2) + ' → Qmin≈' +
+      (qNow >= 100 ? qNow.toFixed(0) : qNow.toFixed(1)) +
+      ' · FBW≈' + (v.fbw * 100).toFixed(1) + '%',
+      box.x + box.w, box.y - 8, { align: 'right', color: THEME.ink, font: THEME.fontTitle })
   },
 
   onShareAppMessage() {

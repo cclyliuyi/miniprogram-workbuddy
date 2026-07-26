@@ -1,0 +1,197 @@
+/* styles/tool-ui.wxss —— 工具模块共享 UI（tp-* 前缀）
+   所有工具页 @import 本文件，删除各自重复的 section/slider/stats 样板。
+   页面结构约定：
+   .tp-page > .tp-head / .tp-canvas-card / .tp-section / .tp-stats / .tp-note */
+
+.tp-page { padding-top: 20rpx; padding-bottom: 40rpx; }
+
+/* ── 页头 ── */
+.tp-head { padding: 20rpx 12rpx 24rpx; }
+.tp-title { font-size: 40rpx; margin: 8rpx 0 4rpx; }
+.tp-sub { font-size: 24rpx; color: var(--muted); }
+
+/* ── 画布卡（图面装裱）── */
+.tp-canvas-card {
+  margin: 0 12rpx 20rpx;
+  padding: 16rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32, 32, 28, 0.05);
+}
+.tp-canvas-caption {
+  font-size: 22rpx;
+  color: var(--muted);
+  margin-bottom: 8rpx;
+  padding-left: 8rpx;
+}
+.tp-canvas { width: 100%; height: 480rpx; }
+.tp-canvas-tall { width: 100%; height: 560rpx; }
+.tp-canvas-short { width: 100%; height: 360rpx; }
+
+/* ── 通用分区卡 ── */
+.tp-section {
+  margin: 0 12rpx 20rpx;
+  padding: 24rpx 28rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+  box-shadow: 0 2rpx 16rpx rgba(32, 32, 28, 0.04);
+}
+.tp-section .kicker { margin-bottom: 16rpx; }
+
+/* ── 模式/选项按钮组 ── */
+.tp-btns { display: flex; gap: 10rpx; flex-wrap: wrap; }
+.tp-btn {
+  flex: 1;
+  min-width: 150rpx;
+  text-align: center;
+  padding: 14rpx 8rpx;
+  font-size: 24rpx;
+  color: var(--muted);
+  background: var(--paper);
+  border: 1rpx solid var(--line-soft);
+  border-radius: 14rpx;
+  transition: all 0.2s;
+}
+.tp-btn.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(176, 106, 79, 0.06);
+  font-weight: 600;
+}
+
+/* ── 滑杆行 ── */
+.tp-slider-row { display: flex; align-items: center; padding: 8rpx 0; }
+.tp-slider-label {
+  font-size: 26rpx;
+  color: var(--ink-soft);
+  width: 176rpx;
+  flex-shrink: 0;
+}
+.tp-slider { flex: 1; margin: 0 12rpx; }
+.tp-slider-val {
+  font-size: 24rpx;
+  color: var(--accent);
+  font-weight: 600;
+  width: 130rpx;
+  text-align: right;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 输入行（计算器）── */
+.tp-input-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 12rpx 0;
+}
+.tp-input-label {
+  font-size: 26rpx;
+  color: var(--ink-soft);
+  width: 176rpx;
+  flex-shrink: 0;
+}
+.tp-input {
+  flex: 1;
+  min-width: 0;
+  height: 72rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  background: var(--paper);
+  border: 1rpx solid var(--line-soft);
+  border-radius: 12rpx;
+}
+.tp-unit-group { display: flex; gap: 6rpx; flex-shrink: 0; }
+.tp-unit {
+  padding: 8rpx 18rpx;
+  font-size: 22rpx;
+  color: var(--muted);
+  background: var(--paper);
+  border: 1rpx solid var(--line-soft);
+  border-radius: 10rpx;
+}
+.tp-unit.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(176, 106, 79, 0.06);
+  font-weight: 600;
+}
+
+/* ── 主按钮 ── */
+.tp-cta {
+  margin-top: 20rpx;
+  padding: 20rpx;
+  text-align: center;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 16rpx rgba(176, 106, 79, 0.25);
+  transition: transform var(--dur-fast) var(--ease-spring);
+}
+.tp-cta:active { transform: scale(0.97); }
+
+/* ── 读数网格 ── */
+.tp-stats-grid { display: flex; flex-wrap: wrap; gap: 12rpx; }
+.tp-stat {
+  width: calc(50% - 6rpx);
+  padding: 18rpx 20rpx;
+  background: var(--paper);
+  border-radius: 14rpx;
+  box-sizing: border-box;
+}
+.tp-stat-wide { width: 100%; }
+.tp-stat-label { font-size: 22rpx; color: var(--muted); margin-bottom: 6rpx; }
+.tp-stat-value {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+/* 语义色（与画布系列同源，仅用于读数强调） */
+.tp-c-accent { color: #b85c38; }
+.tp-c-teal { color: #1f8a70; }
+.tp-c-gold { color: #b07d1e; }
+.tp-c-indigo { color: #4a63a8; }
+.tp-c-plum { color: #a04f7d; }
+.tp-c-danger { color: #b3403a; }
+
+/* ── 公式注脚（每个工具必须标明所用公式与适用条件）── */
+.tp-formula {
+  margin: 0 12rpx 20rpx;
+  padding: 22rpx 26rpx;
+  background: var(--paper-2);
+  border-radius: 16rpx;
+  border: 1rpx solid var(--line-soft);
+}
+.tp-formula-title {
+  font-size: 22rpx;
+  color: var(--muted);
+  letter-spacing: 2rpx;
+  margin-bottom: 10rpx;
+}
+.tp-formula-line {
+  font-size: 25rpx;
+  color: var(--ink-soft);
+  font-family: var(--serif);
+  line-height: 1.8;
+}
+.tp-formula-cond {
+  font-size: 22rpx;
+  color: var(--muted);
+  margin-top: 8rpx;
+  line-height: 1.6;
+}
+
+/* ── 解释卡 ── */
+.tp-note {
+  margin: 0 12rpx 20rpx;
+  padding: 24rpx;
+  background: var(--card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--line-soft);
+}
+.tp-note-text { font-size: 24rpx; color: var(--muted); line-height: 1.7; }
