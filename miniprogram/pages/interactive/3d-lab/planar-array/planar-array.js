@@ -160,7 +160,7 @@ Page({
         this.matFrame = new THREE.MeshPhongMaterial({ color: 0x9aa6b2, shininess: 40 });
         this.matSub = new THREE.MeshPhongMaterial({ color: 0x4a5a52, shininess: 15 });
         this.matMast = new THREE.MeshPhongMaterial({ color: 0x6a7480, shininess: 30 });
-        this.matPatch = new THREE.MeshPhongMaterial({ vertexColors: true, shininess: 30 });
+        // 注：贴片材质不再共享——每个贴片需独立相位色，故 rebuildFace 里各建一个
         this.matBeam = new THREE.MeshPhongMaterial({
           vertexColors: true, transparent: true, opacity: 0.55,
           side: THREE.DoubleSide, shininess: 5, depthWrite: false,
@@ -255,20 +255,17 @@ Page({
       this.arrayGroup.add(post);
     }
 
-    // N×N 贴片阵列（每个贴片独立 geometry 以支持 vertexColors 相位着色）
-    // ⚠️ r108 BoxGeometry 的 .attributes 不可靠（threejs-miniprogram bundle 差异）
-    //    BoxGeometry 固定 24 个顶点（每面 4 顶点 × 6 面）→ color 数组大小固定 72
-    //    color 数组引用存到 userData.colorArr，避免后续访问 .attributes.color
-    const PATCH_VERTS = 24;
+    // N×N 贴片阵列
+    // ⚠️ r108 BoxGeometry 既不暴露 .attributes 也没有 addAttribute 方法
+    //    （threejs-miniprogram bundle 里 BoxGeometry 没继承 BufferGeometry 原型）
+    //    故放弃 vertexColors 方案，改用「每贴片一个独立材质实例 + .color.setHSL」
+    //    视觉上仍是相位色环着色，只是全部面同色（足够表达馈电相位）
     const pw = PITCH * 0.62;
     for (let m = 0; m < n; m++) for (let q = 0; q < n; q++) {
-      const g = new THREE.BoxGeometry(pw, 0.007, pw);
-      const colorArr = new Float32Array(PATCH_VERTS * 3);
-      const colorAttr = new THREE.BufferAttribute(colorArr, 3);
-      g.addAttribute('color', colorAttr);
-      const p = new THREE.Mesh(g, this.matPatch);
+      const mat = new THREE.MeshPhongMaterial({ color: 0x88a0a8, shininess: 30 });
+      const p = new THREE.Mesh(new THREE.BoxGeometry(pw, 0.007, pw), mat);
       p.position.set((m - (n - 1) / 2) * PITCH, 0.0125, (q - (n - 1) / 2) * PITCH);
-      p.userData = { m, q, colorArr, colorAttr };
+      p.userData = { m, q, material: mat };
       this.arrayGroup.add(p);
       this.patches.push(p);
     }
@@ -344,22 +341,16 @@ Page({
     this.beamGeo.computeVertexNormals();
 
     // ── 贴片相位着色（HSL 色环）──
+    // 每贴片一个独立 MeshPhongMaterial 实例，直接改 .color（避开 BoxGeometry API 陷阱）
     const c = N > 1 ? (N - 1) / 2 : 0;
     const maxW = Math.max.apply(null, w);
-    const colObj = new THREE.Color();
     for (const p of this.patches) {
       const m = p.userData.m, q = p.userData.q;
       let ps = -kd * ((m - c) * u0 + (q - c) * w0);
       ps = ((ps % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
       const amp = 0.30 + 0.42 * (w[m] * w[q]) / (maxW * maxW);
-      // r108 Color 有 setHSL
-      colObj.setHSL(0.55 - 0.55 * (ps / (2 * Math.PI)), 0.72, amp);
-      // 用 userData.colorArr（在 rebuildFace 时保存的引用）而非 .attributes.color
-      const arr = p.userData.colorArr;
-      for (let k = 0; k < arr.length; k += 3) {
-        arr[k] = colObj.r; arr[k + 1] = colObj.g; arr[k + 2] = colObj.b;
-      }
-      if (p.userData.colorAttr) p.userData.colorAttr.needsUpdate = true;
+      // r108 Color.setHSL 存在；material.color.setHSL 直接在 GPU 端生效，无需 needsUpdate
+      p.userData.material.color.setHSL(0.55 - 0.55 * (ps / (2 * Math.PI)), 0.72, amp);
     }
 
     // ── 波束指向轴（防 setFromUnitVectors 零角度 NaN：dir 与 (0,1,0) 共线时跳过旋转）──
