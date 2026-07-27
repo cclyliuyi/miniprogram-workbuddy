@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh"><head>
+<meta charset="utf-8">
+<title>相控阵天线 · 波束成形</title>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.184.0/build/three.module.js",
+    "three/addons/controls/OrbitControls.js": "https://unpkg.com/three@0.184.0/examples/jsm/controls/OrbitControls.js",
+    "three/addons/exporters/OBJExporter.js": "https://unpkg.com/three@0.184.0/examples/jsm/exporters/OBJExporter.js",
+    "three/addons/exporters/GLTFExporter.js": "https://unpkg.com/three@0.184.0/examples/jsm/exporters/GLTFExporter.js"
+  },
+  "integrity": {
+    "https://unpkg.com/three@0.184.0/build/three.module.js": "sha384-8FCZ1eVO6it4+pbec2aDtnTrwjWXZLJRC+MAGCIPDgsYnUrl/E0A2YlF8ioMKI/J",
+    "https://unpkg.com/three@0.184.0/build/three.core.js": "sha384-dw2ooPewaEIrAgl6oFDBmmBWCE9oW9LxRGcfwZ0hLvEprzo202wXl7vCYHRlSnOT",
+    "https://unpkg.com/three@0.184.0/examples/jsm/controls/OrbitControls.js": "sha384-4rziNxOBZKQ69i+w+f89KJ55TCYquwchVbByQwmaOeIOXdOU2PLDn3kOfXHwIJC9",
+    "https://unpkg.com/three@0.184.0/examples/jsm/exporters/OBJExporter.js": "sha384-nbwtoZENJD3Vq+ACK0CuGQdPMuDWHkamC2KJD70EV5nfg6jQjfppKOea07YJN+N3",
+    "https://unpkg.com/three@0.184.0/examples/jsm/exporters/GLTFExporter.js": "sha384-VofkvpG6HERhFCYbsUOHeNXBCqID2nfqkQqnVzE1jc/oPcz+qJ13ADdXH08hE+cQ"
+  }
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<style>/* cyrillic-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("5459e692-cd6c-4c58-b7b4-6256cddfb8a7") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("7ebbe4ad-e81b-4aa7-98c9-dec7f3608627") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("c06a5df4-b99d-4e67-92cf-e9aa1141d89c") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("caf12484-180b-4e71-bfb6-83bfd9db5495") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("7c5e87b7-d6c6-4e1c-810e-2138e9793be9") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("ca0fb19a-2952-4533-b467-032fde83df9c") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("cc669740-faf5-4b42-8aeb-aa00e1d49d2b") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("d8467836-773c-4480-86b7-8c52075e6b3a") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("c80c8315-7925-444a-9d1e-be2286361879") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("15d0ee31-2d2d-487e-bab5-649ded9f8dc6") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("a81603af-9499-4c94-94e1-eb13a2f19a97") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("f8fa02cf-0951-4370-b916-f74bdd0cdf03") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("463fd4cc-a363-42cd-be0f-90809dbbee61") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("2d803218-db02-4f89-af0b-5e6ff863b1b4") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("52c333da-aab0-4952-be06-debda9d74c81") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+</style>
+<style>
+  three-d-stage:not(:defined){visibility:hidden}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#0b0e12;overflow:hidden}
+  body{font-family:"IBM Plex Sans SC","IBM Plex Mono",Helvetica,sans-serif;color:#e6edf3}
+  three-d-stage{position:absolute;inset:0;width:100%;height:100%}
+  .ui{position:absolute;z-index:10;pointer-events:none}
+  .ui *{pointer-events:auto}
+  #title{top:24px;left:26px;max-width:380px}
+  #title h1{margin:0;font-size:19px;font-weight:600;letter-spacing:.06em}
+  #title p{margin:6px 0 0;font-size:12.5px;line-height:1.55;color:#8a97a6}
+  .mono{font-family:"IBM Plex Mono",monospace}
+  #panel{left:26px;bottom:64px;width:286px;background:rgba(16,21,27,.82);
+    backdrop-filter:blur(14px);border:1px solid rgba(140,170,200,.16);border-radius:4px;padding:16px 16px 14px}
+  .lbl{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.16em;color:#6f7f8f;text-transform:uppercase;margin-bottom:9px}
+  .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:16px}
+  .pad button{height:38px;border:1px solid rgba(140,170,200,.18);background:rgba(255,255,255,.03);
+    color:#9fb0c0;font-size:16px;border-radius:3px;cursor:pointer;transition:.15s;font-family:"IBM Plex Mono",monospace}
+  .pad button:hover{background:rgba(94,234,212,.10);border-color:rgba(94,234,212,.45);color:#5eead4}
+  .pad button[data-on]{background:rgba(94,234,212,.16);border-color:#5eead4;color:#5eead4}
+  .row{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+  .row span{font-family:"IBM Plex Mono",monospace;font-size:11px;color:#6f7f8f;width:48px;white-space:nowrap}
+  .row output{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:#e6edf3;width:44px;text-align:right}
+  input[type=range]{flex:1;-webkit-appearance:none;height:2px;background:rgba(140,170,200,.25);border-radius:2px}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;
+    background:#5eead4;cursor:pointer;box-shadow:0 0 0 3px rgba(94,234,212,.18)}
+  .acts{display:flex;gap:6px;margin-top:14px}
+  .acts button{flex:1;padding:8px 0;font-size:11.5px;font-family:"IBM Plex Mono",monospace;letter-spacing:.06em;
+    border:1px solid rgba(140,170,200,.18);background:rgba(255,255,255,.03);color:#9fb0c0;border-radius:3px;cursor:pointer;transition:.15s}
+  .acts button:hover{border-color:rgba(94,234,212,.45);color:#5eead4}
+  .acts button[data-on]{background:rgba(251,191,36,.14);border-color:#fbbf24;color:#fbbf24}
+  #readout{right:26px;bottom:64px;background:rgba(16,21,27,.82);backdrop-filter:blur(14px);
+    border:1px solid rgba(140,170,200,.16);border-radius:4px;padding:14px 16px;min-width:216px}
+  #readout div{display:flex;justify-content:space-between;gap:20px;font-family:"IBM Plex Mono",monospace;font-size:11.5px;padding:3px 0}
+  #readout div b{color:#5eead4;font-weight:500}
+  #readout div i{color:#6f7f8f;font-style:normal}
+  #hint{right:26px;top:26px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:#586472;letter-spacing:.08em;text-align:right;line-height:1.8}
+</style>
+</head>
+<body>
+<three-d-stage name="phased-array-antenna" background="#0b0e12"></three-d-stage>
+
+<div class="ui" id="title">
+  <h1>相控阵天线 · 波束成形</h1>
+  <p>微带贴片平面阵，单元间距 0.5λ。方向图由实时阵因子计算生成，贴片颜色表示各单元的馈电相位。</p>
+</div>
+
+<div class="ui" id="hint">拖拽旋转 · 滚轮缩放 · 右键平移</div>
+
+<div class="ui" id="panel">
+  <div class="lbl">波束指向预设</div>
+  <div class="pad" id="pad"></div>
+  <div class="lbl">手动扫描</div>
+  <div class="row"><span>θ 俯仰</span><input type="range" id="sTheta" min="0" max="60" step="1" value="0"><output id="oTheta">0°</output></div>
+  <div class="row"><span>φ 方位</span><input type="range" id="sPhi" min="0" max="359" step="1" value="0"><output id="oPhi">0°</output></div>
+  <div class="acts">
+    <button id="bScan">连续扫描</button>
+    <button id="bLobe" data-on="">旁瓣显示</button>
+  </div>
+</div>
+
+<div class="ui" id="readout">
+  <div><i>阵列规模</i><b id="rN">8 × 8</b></div>
+  <div><i>指向 θ / φ</i><b id="rDir">0.0° / 0°</b></div>
+  <div><i>主瓣宽度</i><b id="rBw">12.8°</b></div>
+  <div><i>阵列增益</i><b id="rGain">18.1 dB</b></div>
+  <div><i>峰值旁瓣</i><b id="rSll">−13.2 dB</b></div>
+  <div><i>工作频率</i><b>1.500 GHz</b></div>
+</div>
+
+<div id="tweaks-root"></div>
+
+
+
+<script src="b88d33c4-785e-48df-b21a-052ff403954e"></script>
+<script type="module">
+const stage = document.querySelector('three-d-stage');
+const { THREE } = await stage.ready;
+
+const D = 0.5;                     // 单元间距 (λ)
+const LAMBDA = 0.2;                // 1.5 GHz → 0.2 m
+const PITCH = D * LAMBDA;
+const TOP = 0.34;                  // 阵面高度
+const R = 1.15;                    // 波瓣最大半径
+const kd = 2 * Math.PI * D;
+
+// 热力标度：峰值为红，强度衰减依次过渡到黄、青、蓝
+const PALETTES = {
+  'cyan':    { stops:[0x081f52, 0x1878c8, 0x22d3ee, 0xf3d64e, 0xff2d1f], axis:0xff3b2f },
+  'magenta': { stops:[0x140a2e, 0x5b2a8f, 0xc0448a, 0xf58a3c, 0xff1f1f], axis:0xff4d3d },
+  'steel':   { stops:[0x121b28, 0x2f5f96, 0x7fb2dd, 0xe8d9a8, 0xff3b30], axis:0xff5a4a }
+};
+
+const root = new THREE.Group();
+root.name = 'phased_array_antenna';
+
+const matFrame = new THREE.MeshStandardMaterial({ name:'frame_aluminum', color:0x9aa6b2, roughness:0.42, metalness:0.35 });
+const matSub   = new THREE.MeshStandardMaterial({ name:'substrate_laminate', color:0x14342f, roughness:0.85, metalness:0.05 });
+const matPatch = new THREE.MeshStandardMaterial({ name:'emitter_patch', vertexColors:true, roughness:0.35, metalness:0.3 });
+const matMast  = new THREE.MeshStandardMaterial({ name:'mast_steel', color:0x59636e, roughness:0.55, metalness:0.3 });
+const matBeam  = new THREE.MeshStandardMaterial({ name:'beam_field', vertexColors:true, transparent:true, opacity:0.5,
+  side:THREE.DoubleSide, roughness:0.9, metalness:0, depthWrite:false });
+
+const array = new THREE.Group(); array.name = 'array_face'; array.position.y = TOP; root.add(array);
+const support = new THREE.Group(); support.name = 'support'; root.add(support);
+
+let N = 8, patches = [];
+
+function clear(group) {
+  for (const c of [...group.children]) { group.remove(c); c.geometry && c.geometry.dispose(); }
+}
+
+/* ---------- 阵面几何（随阵列规模重建） ---------- */
+function buildFace(n) {
+  clear(array); clear(support); patches = [];
+  N = n;
+  const ap = n * PITCH, plate = ap + 0.12, frame = plate + 0.04;
+
+  const back = new THREE.Mesh(new THREE.BoxGeometry(plate, 0.05, plate), matFrame);
+  back.name = 'backplate'; back.position.y = -0.026; array.add(back);
+
+  const sub = new THREE.Mesh(new THREE.BoxGeometry(ap + 0.06, 0.01, ap + 0.06), matSub);
+  sub.name = 'substrate'; sub.position.y = 0.004; array.add(sub);
+
+  for (let i = 0; i < 4; i++) {
+    const long = i % 2 === 0, e = plate / 2;
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(long ? frame : 0.04, 0.07, long ? 0.04 : frame), matFrame);
+    rail.name = 'frame_rail_' + i;
+    rail.position.set(long ? 0 : (i === 1 ? e : -e), -0.01, long ? (i === 0 ? e : -e) : 0);
+    array.add(rail);
+  }
+  for (let sx = -1; sx <= 1; sx += 2) for (let sz = -1; sz <= 1; sz += 2) {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.022, 0.1, 24), matFrame);
+    post.name = `standoff_${sx > 0 ? 'p' : 'm'}${sz > 0 ? 'p' : 'm'}`;
+    post.position.set(sx * (plate / 2 - 0.05), 0.03, sz * (plate / 2 - 0.05)); array.add(post);
+  }
+  const fins = Math.max(7, Math.round(plate / 0.08));
+  for (let f = 0; f < fins; f++) {
+    const fin = new THREE.Mesh(new THREE.BoxGeometry(plate - 0.06, 0.09, 0.012), matFrame);
+    fin.name = 'heatsink_fin_' + f;
+    fin.position.set(0, -0.096, -plate / 2 + 0.03 + f * ((plate - 0.06) / (fins - 1))); array.add(fin);
+  }
+  for (let c = 0; c < 2; c++) {
+    const con = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.07, 24), matMast);
+    con.name = 'rf_connector_' + c; con.rotation.x = Math.PI / 2;
+    con.position.set((c ? 1 : -1) * plate * 0.3, -0.055, -plate / 2 - 0.01); array.add(con);
+  }
+  const pw = PITCH * 0.62;
+  for (let m = 0; m < n; m++) for (let q = 0; q < n; q++) {
+    const g = new THREE.BoxGeometry(pw, 0.007, pw);
+    g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * 3), 3));
+    const p = new THREE.Mesh(g, matPatch);
+    p.name = `patch_${m}_${q}`;
+    p.position.set((m - (n - 1) / 2) * PITCH, 0.0125, (q - (n - 1) / 2) * PITCH);
+    p.userData = { m, n: q }; array.add(p); patches.push(p);
+  }
+
+  const mr = Math.max(0.055, plate * 0.07);
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(mr, mr * 1.35, 0.26, 32), matMast);
+  mast.name = 'mast'; mast.position.y = 0.17; support.add(mast);
+  const br = Math.max(0.3, plate * 0.3);
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(br, br * 1.1, 0.04, 48), matMast);
+  base.name = 'base_plate'; base.position.y = 0.02; support.add(base);
+  const collar = new THREE.Mesh(new THREE.TorusGeometry(mr * 1.35, 0.014, 16, 40), matFrame);
+  collar.name = 'mast_collar'; collar.rotation.x = Math.PI / 2; collar.position.y = 0.29; support.add(collar);
+
+  document.getElementById('rN').textContent = `${n} × ${n}`;
+}
+
+/* ---------- 波瓣曲面 ---------- */
+const NT = 76, NP = 150;
+const beamGeo = new THREE.BufferGeometry();
+const pos = new Float32Array((NT + 1) * (NP + 1) * 3);
+const col = new Float32Array((NT + 1) * (NP + 1) * 3);
+const idx = [];
+for (let i = 0; i < NT; i++) for (let j = 0; j < NP; j++) {
+  const a = i * (NP + 1) + j, b = a + NP + 1;
+  idx.push(a, b, a + 1, a + 1, b, b + 1);
+}
+beamGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+beamGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+beamGeo.setIndex(idx);
+const beam = new THREE.Mesh(beamGeo, matBeam);
+beam.name = 'radiation_pattern'; beam.position.y = TOP; beam.renderOrder = 2; root.add(beam);
+
+const matAxis = new THREE.MeshStandardMaterial({ name:'beam_axis', color:0xfbbf24, emissive:0xfbbf24, emissiveIntensity:0.8, roughness:0.4, metalness:0 });
+const axis = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 1, 12), matAxis);
+axis.name = 'beam_axis'; root.add(axis);
+
+let stops = [], tmp = new THREE.Color(), tmp2 = new THREE.Color();
+function setPalette(key) {
+  const pal = PALETTES[key] || PALETTES.cyan;
+  stops = pal.stops.map(hx => new THREE.Color(hx));
+  matAxis.color.setHex(pal.axis); matAxis.emissive.setHex(pal.axis);
+}
+function heat(v) {
+  const x = Math.min(0.9999, Math.max(0, v)) * (stops.length - 1);
+  const i = Math.floor(x);
+  return tmp.copy(stops[i]).lerp(tmp2.copy(stops[i + 1]), x - i);
+}
+setPalette('cyan');
+
+/* 幅度加权 */
+let weights = [], sumW = 1;
+function setTaper(kind) {
+  weights = new Array(N);
+  for (let m = 0; m < N; m++) {
+    const x = N > 1 ? m / (N - 1) : 0.5;
+    weights[m] = kind === 'cosine' ? Math.sin(Math.PI * (x * (N - 1) + 0.5) / N)
+      : kind === 'hamming' ? 0.54 - 0.46 * Math.cos(2 * Math.PI * x)
+      : 1;
+  }
+  sumW = weights.reduce((a, b) => a + b, 0);
+}
+
+// 加权线阵因子（相位递推，无逐单元三角函数）
+function afAxis(dpsi) {
+  let a = Math.cos(-(N - 1) / 2 * dpsi), b = Math.sin(-(N - 1) / 2 * dpsi);
+  const c = Math.cos(dpsi), s = Math.sin(dpsi);
+  let re = 0, im = 0;
+  for (let m = 0; m < N; m++) {
+    re += weights[m] * a; im += weights[m] * b;
+    const na = a * c - b * s; b = a * s + b * c; a = na;
+  }
+  return Math.hypot(re, im) / sumW;
+}
+
+let theta = 0, phi = 0, showSide = true;
+
+function update() {
+  const t0 = theta * Math.PI / 180, p0 = phi * Math.PI / 180;
+  const u0 = Math.sin(t0) * Math.cos(p0), w0 = Math.sin(t0) * Math.sin(p0);
+  let sll = 0;
+
+  for (let i = 0; i <= NT; i++) {
+    const th = (i / NT) * Math.PI / 2, st = Math.sin(th), ct = Math.cos(th);
+    for (let j = 0; j <= NP; j++) {
+      const ph = (j / NP) * Math.PI * 2;
+      const u = st * Math.cos(ph), w = st * Math.sin(ph);
+      let mag = afAxis(kd * (u - u0)) * afAxis(kd * (w - w0)) * Math.pow(Math.max(ct, 0), 0.6);
+      const ang = Math.acos(Math.max(-1, Math.min(1, u * u0 + w * w0 + ct * Math.cos(t0))));
+      if (ang > 0.35 && mag > sll) sll = mag;
+      if (!showSide) mag = mag > 0.25 ? mag : 0;
+      const r = 0.02 + R * mag;
+      const o = (i * (NP + 1) + j) * 3;
+      pos[o] = r * u; pos[o + 1] = r * ct; pos[o + 2] = r * w;
+      const c = heat(Math.pow(Math.min(1, mag), 0.75));
+      col[o] = c.r; col[o + 1] = c.g; col[o + 2] = c.b;
+    }
+  }
+  beamGeo.attributes.position.needsUpdate = true;
+  beamGeo.attributes.color.needsUpdate = true;
+  beamGeo.computeVertexNormals();
+  beamGeo.computeBoundingSphere();
+
+  const hsl = new THREE.Color();
+  for (const p of patches) {
+    const { m, n } = p.userData;
+    let ps = -kd * ((m - (N - 1) / 2) * u0 + (n - (N - 1) / 2) * w0);
+    ps = ((ps % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    const amp = 0.30 + 0.42 * (weights[m] * weights[n]) / (Math.max(...weights) ** 2);
+    hsl.setHSL(0.55 - 0.55 * (ps / (2 * Math.PI)), 0.72, amp);
+    const arr = p.geometry.attributes.color.array;
+    for (let v = 0; v < arr.length; v += 3) { arr[v] = hsl.r; arr[v + 1] = hsl.g; arr[v + 2] = hsl.b; }
+    p.geometry.attributes.color.needsUpdate = true;
+  }
+
+  const dir = new THREE.Vector3(u0, Math.cos(t0), w0);
+  axis.position.set(0, TOP, 0).addScaledVector(dir, 0.7);
+  axis.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+
+  const ct0 = Math.max(Math.cos(t0), 0.05);
+  const eff = (sumW * sumW) / (N * weights.reduce((a, b) => a + b * b, 0));
+  document.getElementById('rDir').textContent = `${theta.toFixed(1)}° / ${phi.toFixed(0)}°`;
+  document.getElementById('rBw').textContent = (0.886 * 57.2958 / (N * D * ct0 * Math.sqrt(eff))).toFixed(1) + '°';
+  document.getElementById('rGain').textContent = (10 * Math.log10(N * N * ct0 * eff)).toFixed(1) + ' dB';
+  document.getElementById('rSll').textContent = '−' + Math.abs(20 * Math.log10(Math.max(sll, 1e-4))).toFixed(1) + ' dB';
+  document.getElementById('oTheta').value = theta.toFixed(0) + '°';
+  document.getElementById('oPhi').value = phi.toFixed(0) + '°';
+  sTheta.value = theta; sPhi.value = phi;
+}
+
+/* ---------- 控件 ---------- */
+const arrows = [[-1,-1,'↖'],[0,-1,'↑'],[1,-1,'↗'],[-1,0,'←'],[0,0,'●'],[1,0,'→'],[-1,1,'↙'],[0,1,'↓'],[1,1,'↘']];
+const pad = document.getElementById('pad');
+arrows.forEach(([dx, dz, gl]) => {
+  const b = document.createElement('button');
+  b.textContent = gl;
+  const t = dx === 0 && dz === 0 ? 0 : (dx && dz ? 42 : 34);
+  const p = ((Math.atan2(dz, dx) * 180 / Math.PI) + 360) % 360;
+  b.onclick = () => { stopScan(); theta = t; phi = p; mark(b); update(); };
+  pad.appendChild(b);
+});
+function mark(b) { [...pad.children].forEach(x => x.removeAttribute('data-on')); if (b) b.setAttribute('data-on', ''); }
+mark(pad.children[4]);
+
+const sTheta = document.getElementById('sTheta'), sPhi = document.getElementById('sPhi');
+sTheta.oninput = () => { stopScan(); theta = +sTheta.value; mark(null); update(); };
+sPhi.oninput   = () => { stopScan(); phi   = +sPhi.value;   mark(null); update(); };
+
+let scanning = 0;
+const bScan = document.getElementById('bScan');
+function stopScan() { if (scanning) { cancelAnimationFrame(scanning); scanning = 0; bScan.removeAttribute('data-on'); } }
+bScan.onclick = () => {
+  if (scanning) return stopScan();
+  bScan.setAttribute('data-on', ''); mark(null);
+  theta = 38;
+  const tick = () => { phi = (phi + 0.8) % 360; update(); scanning = requestAnimationFrame(tick); };
+  scanning = requestAnimationFrame(tick);
+};
+const bLobe = document.getElementById('bLobe');
+bLobe.onclick = () => { showSide = !showSide; showSide ? bLobe.setAttribute('data-on','') : bLobe.removeAttribute('data-on'); update(); };
+
+/* ---------- Tweaks 接口 ---------- */
+let mounted = false, lastSize = 0;
+function applyTweaks(t) {
+  const size = +t.arraySize || 8;
+  if (size !== lastSize) { buildFace(size); lastSize = size; }
+  setTaper(t.taper || 'uniform');
+  setPalette(t.beamPalette || 'cyan');
+  const wire = t.beamStyle === 'lattice';
+  matBeam.wireframe = wire;
+  matBeam.opacity = wire ? 0.85 : 0.5;
+  update();
+  if (!mounted || size !== lastSize) { stage.setObject(root); mounted = true; }
+}
+window.applyAntennaTweaks = (t) => { applyTweaks(t); stage.setObject(root); };
+applyTweaks(window.__pendingTweaks || {});
+stage.setObject(root);
+mounted = true;
+</script>
+
+<script crossorigin="" src="f4982eb6-8114-4079-8b79-66a9ed6d1f51"></script>
+<script crossorigin="" src="e0178c60-6191-461b-9920-94e8f2ee0d95"></script>
+<script src="3ff40875-93d9-45b9-acee-063ec20f95b2"></script>
+<script>
+(async () => {
+  const src = await (await fetch('./tweaks-panel.jsx')).text();
+  (0, eval)(Babel.transform(src, { presets: [['react', { runtime: 'classic' }]] }).code);
+
+  const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+    "arraySize": 16,
+    "taper": "hamming",
+    "beamPalette": "cyan",
+    "beamStyle": "surface"
+  }/*EDITMODE-END*/;
+
+  const SIZE_OPTS = { '4 × 4': 4, '8 × 8': 8, '16 × 16': 16 };
+  const TAPER_OPTS = { '均匀': 'uniform', '余弦': 'cosine', '低旁瓣': 'hamming' };
+  const PAL_OPTS = { '热力': 'cyan', '岩浆': 'magenta', '冷钢': 'steel' };
+  const STYLE_OPTS = { '实体场': 'surface', '等值网格': 'lattice' };
+  const keyOf = (map, v) => Object.keys(map).find(k => map[k] === v) || Object.keys(map)[0];
+  const e = React.createElement;
+
+  function App() {
+    const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+    React.useEffect(() => {
+      if (window.applyAntennaTweaks) window.applyAntennaTweaks(t);
+      else window.__pendingTweaks = t;
+    }, [t.arraySize, t.taper, t.beamPalette, t.beamStyle]);
+    const radio = (label, map, key) => e(TweakRadio, {
+      label, value: keyOf(map, t[key]), options: Object.keys(map),
+      onChange: (v) => setTweak(key, map[v])
+    });
+    return e(TweaksPanel, null,
+      e(TweakSection, { label: '阵列' }),
+      radio('规模', SIZE_OPTS, 'arraySize'),
+      radio('幅度加权', TAPER_OPTS, 'taper'),
+      e(TweakSection, { label: '辐射场' }),
+      radio('配色', PAL_OPTS, 'beamPalette'),
+      radio('渲染', STYLE_OPTS, 'beamStyle')
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('tweaks-root')).render(e(App));
+})();
+</script>
+
+
+</body></html>

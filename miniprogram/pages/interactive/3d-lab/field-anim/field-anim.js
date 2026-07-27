@@ -23,13 +23,14 @@ Page({
     sclSlider: 30, sclVal: '3.0 λ',
     normalize: true, showZones: true,
     fieldMode: 'both',
+    poyntingMode: false,
     glReady: false,
   },
 
   THREE: null, canvasNode: null, renderer: null, scene: null,
   camera: null, uniforms: null,
   animId: null,
-  state: { playing: true, speed: 1.0, scale: 3.0, normalize: true, showZones: true, fieldMode: 'both', time: 0 },
+  state: { playing: true, speed: 1.0, scale: 3.0, normalize: true, showZones: true, fieldMode: 'both', poyntingMode: false, time: 0 },
   _ov: null,
 
   onReady() { this.initThree(); this.initOverlay(); },
@@ -79,11 +80,15 @@ Page({
         'uniform float uScale;',
         'uniform float uNorm;',
         'uniform float uMode;',
+        'uniform float uPoynting;',   // 1.0 = 显示瞬时 Poynting 矢量方向（能流）
         'const float TAU=6.28318530718;',
         'const vec3 PAPER=' + glslColor(THEME.bgSoft) + ';',
         'const vec3 POS=' + glslColor(THEME.divergePos) + ';',
         'const vec3 NEG=' + glslColor(THEME.divergeNeg) + ';',
         'const vec3 INK=' + glslColor(THEME.ink) + ';',
+        // Poynting 模式专用色：橙=外流（+S_r），蓝紫=回流（−S_r）
+        'const vec3 OUTFLOW=' + glslColor('#c8782d') + ';',
+        'const vec3 INFLOW=' + glslColor('#5a3a8a') + ';',
         'const vec3 GOLD=' + glslColor(THEME.gold) + ';',
         'vec3 field_color(float v){',
         '  v=clamp(v,-1.0,1.0);',
@@ -116,10 +121,30 @@ Page({
         '  float sinT=abs(x)/max(r,1e-5);',     // 方向因子 sinθ（臂沿竖直）
         '  float rr=max(r,0.045);',
         '  float invR=1.0/rr;',
-        '  float radiation=sinT*(k*k*cos(tau)*invR);',              // 1/r 辐射项
-        '  float induction=sinT*(-k*sin(tau)*invR*invR);',          // 1/r² 感应项
-        '  float electrostatic=sinT*(-cos(tau)*invR*invR*invR);',   // 1/r³ 静电项
+        '  float radiation=sinT*(k*k*cos(tau)*invR);',              // Eθ 1/r 辐射项
+        '  float induction=sinT*(-k*sin(tau)*invR*invR);',          // Eθ 1/r² 感应项
+        '  float electrostatic=sinT*(-cos(tau)*invR*invR*invR);',   // Eθ 1/r³ 静电项
         '  float E=radiation+induction+electrostatic;',
+        // Hφ 的三项展开（Balanis 4-63，η 归一化后 Hφ = Eθ/η 形式但相位项不同）：
+        //   1/r 项: cos τ（与 Eθ 辐射项同相 → 远场 EH 同相 → Poynting 恒正）
+        //   1/r² 项: sin τ（与 Eθ 感应项反号 → 近场 EH 近正交 → Poynting 振荡）
+        '  float H_r1=sinT*(k*cos(tau)*invR);',                     // Hφ 1/r
+        '  float H_r2=sinT*(sin(tau)*invR*invR);',                  // Hφ 1/r²（注意 sin τ，非 −sin τ）
+        '  float H=H_r1+H_r2;',
+        // 瞬时径向 Poynting: S_r ∝ Eθ · Hφ（同号=外流正值，异号=回流负值）
+        // 近场区 Eθ 和 Hφ 的相位差 → S_r 在一周期内正负交替 → 能量来回交换
+        // 远场区 Eθ 和 Hφ 同相 → S_r 恒正 → 能量单向流出
+        '  if(uPoynting>0.5){',
+        '    float S=E*H;',
+        // Poynting 量纲补偿：近场 1/r⁴ 发散严重，用 r² 补偿让结构可辨
+        '    float dispS=S*rr*rr*0.3;',
+        '    float vs=soft_tanh(dispS*1.2);',
+        '    float av=abs(vs);',
+        '    float bs=av*av*(3.0-2.0*av);',
+        '    vec3 col=(vs>=0.0)?mix(PAPER,OUTFLOW,bs):mix(PAPER,INFLOW,bs);',
+        '    gl_FragColor=vec4(col,1.0);',
+        '    return;',
+        '  }',
         '  if(uMode>1.5){E=radiation;}',
         '  else if(uMode>0.5){E=induction+electrostatic;}',
         '  float disp;',
@@ -136,6 +161,7 @@ Page({
         uScale: { value: this.state.scale },
         uNorm: { value: 1.0 },
         uMode: { value: 0.0 },
+        uPoynting: { value: 0.0 },
       };
       this.uniforms = uniforms;
 
@@ -214,19 +240,44 @@ Page({
     lc.label(ctx, (barL === 1 ? '1' : String(barL)) + ' λ', bx + bw / 2, by - 8,
       { align: 'center', color: THEME.inkSoft, font: THEME.fontLabel });
 
-    // 色标：靛蓝（E<0）↔ 纸色 ↔ 赤陶（E>0）
+    // 色标：能流模式 = 橙（外流）↔ 纸 ↔ 蓝紫（回流）；默认 = 靛蓝（E<0）↔ 纸 ↔ 赤陶（E>0）
     const cbW = 64, cbH = 8, cbX = w - cbW - 14, cbY = 14;
-    for (let i = 0; i < cbW; i++) {
-      ctx.fillStyle = divergeColor((i / (cbW - 1)) * 2 - 1);
-      ctx.fillRect(cbX + i, cbY, 1.5, cbH);
+    if (st.poyntingMode) {
+      // Poynting 色标：橙 (#c8782d) ↔ 纸 ↔ 蓝紫 (#5a3a8a)
+      const cOut = [0xc8, 0x78, 0x2d];
+      const cIn = [0x5a, 0x3a, 0x8a];
+      const cPaper = [0xf3, 0xef, 0xe6];
+      for (let i = 0; i < cbW; i++) {
+        const t = (i / (cbW - 1)) * 2 - 1;   // -1..+1
+        const target = t >= 0 ? cOut : cIn;
+        const mix = Math.abs(t);
+        const r = Math.round(cPaper[0] + (target[0] - cPaper[0]) * mix);
+        const g = Math.round(cPaper[1] + (target[1] - cPaper[1]) * mix);
+        const b = Math.round(cPaper[2] + (target[2] - cPaper[2]) * mix);
+        ctx.fillStyle = 'rgb(' + r + ',' + g + ',' + b + ')';
+        ctx.fillRect(cbX + i, cbY, 1.5, cbH);
+      }
+      ctx.strokeStyle = THEME.axis;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(cbX - 0.5, cbY - 0.5, cbW + 1, cbH + 1);
+      lc.label(ctx, '回流', cbX - 30, cbY + cbH, { color: THEME.inkSoft, font: THEME.fontLabel });
+      lc.label(ctx, '外流', cbX + cbW + 4, cbY + cbH, { color: THEME.inkSoft, font: THEME.fontLabel });
+      lc.label(ctx, 'S_r', cbX + cbW / 2, cbY + cbH + 14,
+        { align: 'center', color: THEME.muted, font: THEME.fontTick });
+    } else {
+      // Eθ 发散色标：靛蓝（E<0）↔ 纸 ↔ 赤陶（E>0）
+      for (let i = 0; i < cbW; i++) {
+        ctx.fillStyle = divergeColor((i / (cbW - 1)) * 2 - 1);
+        ctx.fillRect(cbX + i, cbY, 1.5, cbH);
+      }
+      ctx.strokeStyle = THEME.axis;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(cbX - 0.5, cbY - 0.5, cbW + 1, cbH + 1);
+      lc.label(ctx, '−', cbX - 10, cbY + cbH, { color: THEME.inkSoft, font: THEME.fontLabel });
+      lc.label(ctx, '+', cbX + cbW + 4, cbY + cbH, { color: THEME.inkSoft, font: THEME.fontLabel });
+      lc.label(ctx, 'Eθ', cbX + cbW / 2, cbY + cbH + 14,
+        { align: 'center', color: THEME.muted, font: THEME.fontTick });
     }
-    ctx.strokeStyle = THEME.axis;
-    ctx.lineWidth = 1;
-    ctx.strokeRect(cbX - 0.5, cbY - 0.5, cbW + 1, cbH + 1);
-    lc.label(ctx, '−', cbX - 10, cbY + cbH, { color: THEME.inkSoft, font: THEME.fontLabel });
-    lc.label(ctx, '+', cbX + cbW + 4, cbY + cbH, { color: THEME.inkSoft, font: THEME.fontLabel });
-    lc.label(ctx, 'Eθ', cbX + cbW / 2, cbY + cbH + 14,
-      { align: 'center', color: THEME.muted, font: THEME.fontTick });
   },
 
   // ── 动画 ──
@@ -295,6 +346,17 @@ Page({
     const modeVal = mode === 'near' ? 1 : mode === 'far' ? 2 : 0;
     if (this.uniforms) this.uniforms.uMode.value = modeVal;
     this.setData({ fieldMode: mode });
+  },
+
+  // 能流模式：显示瞬时 Poynting 矢量方向
+  // 近场区 Eθ 与 Hφ 相位差 → S_r 正负交替 → 能量来回交换（橙=外流 / 蓝紫=回流）
+  // 远场区 Eθ 与 Hφ 同相 → S_r 恒正 → 能量单向辐射（全橙）
+  onPoynting() {
+    haptic.light();
+    this.state.poyntingMode = !this.state.poyntingMode;
+    if (this.uniforms) this.uniforms.uPoynting.value = this.state.poyntingMode ? 1 : 0;
+    this.setData({ poyntingMode: this.state.poyntingMode });
+    this.drawOverlay();   // 切换色标（Eθ 发散 ↔ Poynting 橙紫）
   },
 
   onShareAppMessage() {

@@ -44,11 +44,40 @@
       <view class="lab3d-toggle {{showZones?'on':''}}" bindtap="onZones">
         <text class="lab3d-toggle-dot"></text><text class="lab3d-toggle-text">场区边界</text>
       </view>
+      <view class="lab3d-toggle {{poyntingMode?'on':''}}" bindtap="onPoynting">
+        <text class="lab3d-toggle-dot"></text><text class="lab3d-toggle-text">能流（Poynting）</text>
+      </view>
     </view>
     <view class="tp-btns" style="margin-top:12rpx">
       <view class="tp-btn {{fieldMode==='near'?'active':''}}" data-m="near" bindtap="onMode">仅近场</view>
       <view class="tp-btn {{fieldMode==='far'?'active':''}}" data-m="far" bindtap="onMode">仅远场</view>
       <view class="tp-btn {{fieldMode==='both'?'active':''}}" data-m="both" bindtap="onMode">近+远</view>
+    </view>
+  </view>
+
+  <!-- 能流模式说明（仅 poyntingMode 开启时显示）-->
+  <view class="lab3d-stats pop" wx:if="{{poyntingMode}}">
+    <view class="kicker lab3d-stats-title">能流（Poynting 矢量 S = E × H）</view>
+    <view class="fa-zone">
+      <view class="fa-dot" style="background:#c8782d"></view>
+      <view>
+        <view class="fa-zone-text">橙色 = 能量外流（S_r &gt; 0）</view>
+        <view class="fa-zone-val">Eθ 与 Hφ 同号 · 远场区恒为外流</view>
+      </view>
+    </view>
+    <view class="fa-zone">
+      <view class="fa-dot" style="background:#5a3a8a"></view>
+      <view>
+        <view class="fa-zone-text">蓝紫 = 能量回流（S_r &lt; 0）</view>
+        <view class="fa-zone-val">Eθ 与 Hφ 反号 · 近场区交替振荡</view>
+      </view>
+    </view>
+    <view class="fa-zone">
+      <view class="fa-dot fa-c-accent"></view>
+      <view>
+        <view class="fa-zone-text">近场储能的物理本质</view>
+        <view class="fa-zone-val">S_r 在一周期内正负交替 → 电能↔磁能来回交换（无功场）</view>
+      </view>
     </view>
   </view>
 
