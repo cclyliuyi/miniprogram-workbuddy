@@ -149,13 +149,12 @@ Page({
         axes.add(new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), O, 0.8, C.warmGray, 0.08, 0.04));
         this.scene.add(axes);
 
-        // 根 Group
-        this.root = new THREE.Group();
-        this.scene.add(this.root);
+        // 场景图扁平化（参考 phased-array/horn 能工作的结构：Group 直接 add 到 scene，
+        // 不做多层嵌套——r108 小程序版多层 Group 嵌套曾导致矩阵更新异常）
         this.arrayGroup = new THREE.Group();
         this.arrayGroup.position.y = TOP;
         this.supportGroup = new THREE.Group();
-        this.root.add(this.arrayGroup, this.supportGroup);
+        this.scene.add(this.arrayGroup, this.supportGroup);
 
         // 共享材质（减少 draw call）
         this.matFrame = new THREE.MeshPhongMaterial({ color: 0x9aa6b2, shininess: 40 });
@@ -184,20 +183,29 @@ Page({
         this.beamMesh = new THREE.Mesh(beamGeo, this.matBeam);
         this.beamMesh.position.y = TOP;
         this.beamMesh.renderOrder = 2;
-        this.root.add(this.beamMesh);
+        this.scene.add(this.beamMesh);
 
         // 波束指向轴
         this.axisMesh = new THREE.Mesh(
           new THREE.CylinderGeometry(0.006, 0.006, 1, 12), this.matAxis
         );
-        this.root.add(this.axisMesh);
+        this.scene.add(this.axisMesh);
 
-        // 首次构建
-        this.rebuildFace(this.state.N);
-        this.setTaper('uniform');
-        this.update();
+        // 首次构建（包 try-catch，任何异常都不能阻塞渲染循环启动）
+        try {
+          console.log('[planar-array] building face N=' + this.state.N);
+          this.rebuildFace(this.state.N);
+          console.log('[planar-array] setting taper');
+          this.setTaper('uniform');
+          console.log('[planar-array] update()');
+          this.update();
+          console.log('[planar-array] scene ready, meshes=', this.scene.children.length);
+        } catch (err) {
+          console.error('[planar-array] init scene error:', err);
+        }
         this.startAnim();
         stage.ready(this);
+        console.log('[planar-array] anim started, glReady=true');
       },
     });
   },
@@ -347,10 +355,15 @@ Page({
       p.geometry.attributes.color.needsUpdate = true;
     }
 
-    // ── 波束指向轴 ──
+    // ── 波束指向轴（防 setFromUnitVectors 零角度 NaN：dir 与 (0,1,0) 共线时跳过旋转）──
     const dir = new THREE.Vector3(u0, Math.cos(t0), w0);
     this.axisMesh.position.set(0, TOP, 0).addScaledVector(dir, 0.5);
-    this.axisMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+    const fromAxis = new THREE.Vector3(0, 1, 0);
+    if (fromAxis.dot(dir) < 0.9999) {
+      this.axisMesh.quaternion.setFromUnitVectors(fromAxis, dir);
+    } else {
+      this.axisMesh.quaternion.set(0, 0, 0, 1);  // identity
+    }
     this.axisMesh.scale.y = 1.4;
 
     // ── 读数统计 ──
@@ -392,22 +405,31 @@ Page({
     const tick = () => {
       this.animId = this.canvasNode.requestAnimationFrame(tick);
 
-      if (this.data.scanOn) {
-        this.state.phi = (this.state.phi + 0.8) % 360;
-        if (this.state.theta < 38) this.state.theta = Math.min(38, this.state.theta + 0.4);
-        const now = Date.now();
-        if (now - (this._scanSync || 0) > 90) {
-          this._scanSync = now;
-          this.update();
-          this.setData({ 'S.theta': Math.round(this.state.theta), 'S.phi': Math.round(this.state.phi) });
-        } else {
-          // 轻量更新（只算几何，不 setData）
-          this._updateGeometryOnly();
+      try {
+        if (this.data.scanOn) {
+          this.state.phi = (this.state.phi + 0.8) % 360;
+          if (this.state.theta < 38) this.state.theta = Math.min(38, this.state.theta + 0.4);
+          const now = Date.now();
+          if (now - (this._scanSync || 0) > 90) {
+            this._scanSync = now;
+            this.update();
+            this.setData({ 'S.theta': Math.round(this.state.theta), 'S.phi': Math.round(this.state.phi) });
+          } else {
+            this._updateGeometryOnly();
+          }
         }
+      } catch (err) {
+        console.error('[planar-array] tick update error:', err);
       }
 
-      this.controls.update();
-      this.renderer.render(this.scene, this.camera);
+      try {
+        if (this.controls) this.controls.update();
+      } catch (e) { /* controls 初始化前的帧 */ }
+      try {
+        this.renderer.render(this.scene, this.camera);
+      } catch (e) {
+        console.error('[planar-array] render error:', e);
+      }
     };
     tick();
   },
