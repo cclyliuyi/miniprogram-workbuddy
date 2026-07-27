@@ -256,13 +256,19 @@ Page({
     }
 
     // N×N 贴片阵列（每个贴片独立 geometry 以支持 vertexColors 相位着色）
+    // ⚠️ r108 BoxGeometry 的 .attributes 不可靠（threejs-miniprogram bundle 差异）
+    //    BoxGeometry 固定 24 个顶点（每面 4 顶点 × 6 面）→ color 数组大小固定 72
+    //    color 数组引用存到 userData.colorArr，避免后续访问 .attributes.color
+    const PATCH_VERTS = 24;
     const pw = PITCH * 0.62;
     for (let m = 0; m < n; m++) for (let q = 0; q < n; q++) {
       const g = new THREE.BoxGeometry(pw, 0.007, pw);
-      g.addAttribute('color', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * 3), 3));
+      const colorArr = new Float32Array(PATCH_VERTS * 3);
+      const colorAttr = new THREE.BufferAttribute(colorArr, 3);
+      g.addAttribute('color', colorAttr);
       const p = new THREE.Mesh(g, this.matPatch);
       p.position.set((m - (n - 1) / 2) * PITCH, 0.0125, (q - (n - 1) / 2) * PITCH);
-      p.userData = { m, q };
+      p.userData = { m, q, colorArr, colorAttr };
       this.arrayGroup.add(p);
       this.patches.push(p);
     }
@@ -348,11 +354,12 @@ Page({
       const amp = 0.30 + 0.42 * (w[m] * w[q]) / (maxW * maxW);
       // r108 Color 有 setHSL
       colObj.setHSL(0.55 - 0.55 * (ps / (2 * Math.PI)), 0.72, amp);
-      const arr = p.geometry.attributes.color.array;
+      // 用 userData.colorArr（在 rebuildFace 时保存的引用）而非 .attributes.color
+      const arr = p.userData.colorArr;
       for (let k = 0; k < arr.length; k += 3) {
         arr[k] = colObj.r; arr[k + 1] = colObj.g; arr[k + 2] = colObj.b;
       }
-      p.geometry.attributes.color.needsUpdate = true;
+      if (p.userData.colorAttr) p.userData.colorAttr.needsUpdate = true;
     }
 
     // ── 波束指向轴（防 setFromUnitVectors 零角度 NaN：dir 与 (0,1,0) 共线时跳过旋转）──
