@@ -71,6 +71,7 @@ Page({
       const vert = 'void main(){gl_Position=vec4(position.xy,0.,1.);}';
 
       // 场色：暖纸底 ↔ 正=赤陶 / 负=靛蓝（与 lab-theme 发散色同源）
+      // ⚠️ WebGL 1 (GLSL ES 1.00) 无内置 tanh()，需手动实现
       const frag = [
         'precision highp float;',
         'uniform float uTime;',
@@ -89,6 +90,12 @@ Page({
         '  float a=abs(v);',
         '  float b=a*a*(3.0-2.0*a);',
         '  return (v>=0.0)?mix(PAPER,POS,b):mix(PAPER,NEG,b);',
+        '}',
+        // tanh 手工实现（WebGL 1 兼容）：用 1 - 2/(e^(2x)+1)，防溢出钳到 ±10
+        'float soft_tanh(float x){',
+        '  x=clamp(x,-10.0,10.0);',
+        '  float e=exp(2.0*x);',
+        '  return (e-1.0)/(e+1.0);',
         '}',
         'void main(){',
         '  vec2 fc=gl_FragCoord.xy;',
@@ -118,7 +125,7 @@ Page({
         '  float disp;',
         '  if(uNorm>0.5){disp=E*r/(k*k);}',     // ×r 振幅补偿（仅显示）
         '  else{disp=E/(k*k*2.0);}',
-        '  float v=tanh(disp*2.8);',            // 动态范围压缩（仅显示）
+        '  float v=soft_tanh(disp*2.8);',       // 动态范围压缩（手工 tanh，WebGL1 兼容）
         '  gl_FragColor=vec4(field_color(v),1.0);',
         '}'
       ].join('\n');
@@ -132,10 +139,19 @@ Page({
       };
       this.uniforms = uniforms;
 
-      scene.add(new THREE.Mesh(
-        new THREE.PlaneGeometry(2, 2),
-        new THREE.ShaderMaterial({ vertexShader: vert, fragmentShader: frag, uniforms })
-      ));
+      // 创建 shader material（r108 ShaderMaterial 无 onError，靠手动检测 programInfo）
+      const material = new THREE.ShaderMaterial({ vertexShader: vert, fragmentShader: frag, uniforms });
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+      scene.add(mesh);
+
+      // 立即渲染一帧触发 shader 编译，捕获编译错误
+      renderer.render(scene, camera);
+      // r108：编译失败时 material.program 为 null 或 gl 里有 error log
+      if (material.program === null || material.program === undefined) {
+        console.error('[field-anim] Shader 编译失败！检查 GLSL 语法 / WebGL 1 兼容性');
+      } else {
+        console.log('[field-anim] Shader 编译成功');
+      }
 
       this.startAnim();
       this.setData({ glReady: true });
