@@ -165,6 +165,7 @@
         "field-anim/field-anim",
         "array-synthesis/array-synthesis",
         "phased-array/phased-array",
+        "planar-array/planar-array",
         "polarization/polarization"
       ]
     }

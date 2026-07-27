@@ -51,6 +51,7 @@ const SECTIONS = [
       { key: 'ch3d',   icon: '⊟', cls: 'tl-icon-radar', name: '微波暗室',     desc: '转台扫描 · 方向图采集', is3d: true, url: '/pages/interactive/3d-lab/anechoic/anechoic' },
       { key: 'dip3d',  icon: '≈', cls: 'tl-icon-radar', name: '偶极子辐射',   desc: '近场 → 远场过渡',     is3d: true, url: '/pages/interactive/3d-lab/field-anim/field-anim' },
       { key: 'as3d',   icon: 'Σ', cls: 'tl-icon-array', name: '方向图综合',   desc: 'Chebyshev · Taylor',  is3d: true, url: '/pages/interactive/3d-lab/array-synthesis/array-synthesis' },
+      { key: 'pla3d',  icon: '▦', cls: 'tl-icon-array', name: '平面相控阵',   desc: 'N×N 贴片阵 · θ/φ 扫描 · 相位着色', is3d: true, url: '/pages/interactive/3d-lab/planar-array/planar-array' },
     ],
   },
 ]

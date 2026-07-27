@@ -1,0 +1,130 @@
+<!-- pages/interactive/3d-lab/planar-array/planar-array.wxml —— 平面相控阵 3D -->
+<view class="screen lab3d">
+
+  <view class="lab3d-head rise">
+    <view class="kicker">PLANAR PHASED ARRAY · 2D BEAM STEERING</view>
+    <view class="lab3d-title display">平面相控阵</view>
+    <view class="lab3d-sub">N×N 微带贴片阵 · θ/φ 双角扫描 · 单元相位着色</view>
+  </view>
+
+  <!-- 3D Canvas -->
+  <view class="lab3d-canvas-wrap rise">
+    <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
+      catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
+    <view wx:if="{{!glReady}}" class="lab3d-skel">
+      <view class="lab3d-skel-ring"></view>
+      <text class="lab3d-skel-text">正在初始化 3D 场景…</text>
+    </view>
+    <view class="lab3d-hint {{showHint ? '' : 'fade'}}">双击复位 · 金轴=阵面法向 · 贴片色=馈电相位</view>
+  </view>
+
+  <!-- 阵列配置 -->
+  <view class="lab3d-section rise">
+    <view class="kicker">阵列配置</view>
+
+    <!-- 阵列规模 -->
+    <view class="pla-row">
+      <text class="pla-row-label">阵列规模</text>
+      <view class="pla-seg">
+        <view class="pla-seg-item {{S.sizeIdx === idx ? 'on' : ''}}"
+          wx:for="{{sizeOpts}}" wx:key="*this" wx:for-index="idx"
+          data-idx="{{idx}}" bindtap="onSizeTap">{{item}}</view>
+      </view>
+    </view>
+
+    <!-- 幅度加权 -->
+    <view class="pla-row">
+      <text class="pla-row-label">幅度加权</text>
+      <view class="pla-seg">
+        <view class="pla-seg-item {{S.taperIdx === idx ? 'on' : ''}}"
+          wx:for="{{taperOpts}}" wx:key="*this" wx:for-index="idx"
+          data-idx="{{idx}}" bindtap="onTaperTap">{{item}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 波束扫描 -->
+  <view class="lab3d-section rise">
+    <view class="kicker">波束指向</view>
+
+    <!-- 9 宫格预设 -->
+    <view class="pla-pad">
+      <view class="pla-pad-item" data-dx="-1" data-dz="-1" bindtap="onPad">↖</view>
+      <view class="pla-pad-item" data-dx="0" data-dz="-1" bindtap="onPad">↑</view>
+      <view class="pla-pad-item" data-dx="1" data-dz="-1" bindtap="onPad">↗</view>
+      <view class="pla-pad-item" data-dx="-1" data-dz="0" bindtap="onPad">←</view>
+      <view class="pla-pad-item {{S.theta === 0 ? 'on' : ''}}" data-dx="0" data-dz="0" bindtap="onPad">●</view>
+      <view class="pla-pad-item" data-dx="1" data-dz="0" bindtap="onPad">→</view>
+      <view class="pla-pad-item" data-dx="-1" data-dz="1" bindtap="onPad">↙</view>
+      <view class="pla-pad-item" data-dx="0" data-dz="1" bindtap="onPad">↓</view>
+      <view class="pla-pad-item" data-dx="1" data-dz="1" bindtap="onPad">↘</view>
+    </view>
+
+    <!-- θ 滑块 -->
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">θ 俯仰</text>
+      <slider class="tp-slider" min="0" max="60" step="1" value="{{S.theta}}" bindchanging="onThetaChanging" bindchange="onTheta" />
+      <text class="tp-slider-val">{{S.theta}}°</text>
+    </view>
+    <!-- φ 滑块 -->
+    <view class="tp-slider-row">
+      <text class="tp-slider-label">φ 方位</text>
+      <slider class="tp-slider" min="0" max="359" step="1" value="{{S.phi}}" bindchanging="onPhiChanging" bindchange="onPhi" />
+      <text class="tp-slider-val">{{S.phi}}°</text>
+    </view>
+
+    <view class="tp-btns">
+      <view class="tp-btn {{scanOn ? 'active' : ''}}" bindtap="toggleScan">连续扫描 {{scanOn ? '●' : '○'}}</view>
+      <view class="tp-btn {{showSide ? 'active' : ''}}" bindtap="toggleSide">旁瓣显示 {{showSide ? '●' : '○'}}</view>
+    </view>
+  </view>
+
+  <!-- 统计 -->
+  <view class="lab3d-stats pop" wx:if="{{stats}}">
+    <view class="kicker lab3d-stats-title">阵列参数</view>
+    <view class="lab3d-stats-grid">
+      <view class="lab3d-stat">
+        <view class="lab3d-stat-value num tp-c-teal">{{stats.dir}}</view>
+        <view class="lab3d-stat-name">指向 θ / φ</view>
+      </view>
+      <view class="lab3d-stat">
+        <view class="lab3d-stat-value num">{{stats.hpbw}}°</view>
+        <view class="lab3d-stat-name">主瓣宽度 HPBW</view>
+      </view>
+      <view class="lab3d-stat">
+        <view class="lab3d-stat-value num">{{stats.gain}} dB</view>
+        <view class="lab3d-stat-name">阵列增益</view>
+      </view>
+      <view class="lab3d-stat">
+        <view class="lab3d-stat-value num tp-c-gold">{{stats.sll}} dB</view>
+        <view class="lab3d-stat-name">峰值旁瓣</view>
+      </view>
+    </view>
+    <view class="pla-eta-line">幅度锥削效率 ηtaper = {{stats.eta}}%（影响增益与 HPBW）</view>
+  </view>
+
+  <!-- 2D 子图 -->
+  <view class="tp-canvas-card rise">
+    <view class="tp-canvas-caption">φ₀ 切面方向图 · dB 刻度 · θ 自阵面法向起量</view>
+    <canvas type="2d" id="plot" class="tp-canvas"></canvas>
+  </view>
+
+  <!-- 公式注脚 -->
+  <view class="tp-formula rise">
+    <view class="tp-formula-title">所用公式</view>
+    <view class="tp-formula-line">AF(θ,φ) = AFx · AFy（可分离乘积）　·　kd = 2πd/λ = 2π</view>
+    <view class="tp-formula-line">AFx = |Σ wm·exp(j·kd·sinθ·cosφ·(m−c))| / Σwm　·　c = (N−1)/2</view>
+    <view class="tp-formula-line">波束指向：(u₀,w₀) = (sinθ₀cosφ₀, sinθ₀sinφ₀)　·　渐进相移 βx = −kd·u₀</view>
+    <view class="tp-formula-line">D ≈ N²·cosθ₀·ηtaper　·　HPBW ≈ 0.886λ/(Nd·cosθ₀·√ηtaper)　·　ηtaper = (Σw)²/(N·Σw²)</view>
+    <view class="tp-formula-cond">单元间距 d = 0.5λ（无栅瓣条件：d/λ &lt; 1/(1+|cosθ₀|)，θ₀ ≤ 60° 满足）。贴片颜色采用 HSL 色环表示馈电相位 ψmn mod 2π（0 → 青、π → 红），亮度叠加幅度加权。扫描时 θ 递增至 38°，φ 连续旋转。</view>
+  </view>
+
+  <!-- 说明 -->
+  <view class="lab3d-note rise">
+    <view class="kicker">图例与坐标约定</view>
+    <view class="lab3d-note-item">3D：金属框+介质基板+N×N 贴片 = 微带贴片平面阵物理外观；赭金轴 = 波束指向</view>
+    <view class="lab3d-note-item">贴片色：HSL 色环表示各单元馈电相位（青=0、绿=π/2、红=π），亮度反映幅度加权</view>
+    <view class="lab3d-note-item">曲面色：暖色深浅 = 归一化场强（浅弱深强）；关闭"旁瓣显示"可聚焦主瓣区域</view>
+  </view>
+
+</view>
