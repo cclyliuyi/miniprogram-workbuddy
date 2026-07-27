@@ -80,15 +80,15 @@ Page({
         'uniform float uScale;',
         'uniform float uNorm;',
         'uniform float uMode;',
-        'uniform float uPoynting;',   // 1.0 = 显示瞬时 Poynting 矢量方向（能流）
+        'uniform float uEnergy;',    // 1.0 = 能量交换模式（显示 E/H 储能主导）
         'const float TAU=6.28318530718;',
         'const vec3 PAPER=' + glslColor(THEME.bgSoft) + ';',
         'const vec3 POS=' + glslColor(THEME.divergePos) + ';',
         'const vec3 NEG=' + glslColor(THEME.divergeNeg) + ';',
         'const vec3 INK=' + glslColor(THEME.ink) + ';',
-        // Poynting 模式专用色：橙=外流（+S_r），蓝紫=回流（−S_r）
-        'const vec3 OUTFLOW=' + glslColor('#c8782d') + ';',
-        'const vec3 INFLOW=' + glslColor('#5a3a8a') + ';',
+        // 能量模式专用色：暖橙=电能主导，冷青=磁能主导
+        'const vec3 ELEC=' + glslColor('#d4642a') + ';',
+        'const vec3 MAG=' + glslColor('#2a8a96') + ';',
         'const vec3 GOLD=' + glslColor(THEME.gold) + ';',
         'vec3 field_color(float v){',
         '  v=clamp(v,-1.0,1.0);',
@@ -121,27 +121,35 @@ Page({
         '  float sinT=abs(x)/max(r,1e-5);',     // 方向因子 sinθ（臂沿竖直）
         '  float rr=max(r,0.045);',
         '  float invR=1.0/rr;',
-        '  float radiation=sinT*(k*k*cos(tau)*invR);',              // Eθ 1/r 辐射项
-        '  float induction=sinT*(-k*sin(tau)*invR*invR);',          // Eθ 1/r² 感应项
-        '  float electrostatic=sinT*(-cos(tau)*invR*invR*invR);',   // Eθ 1/r³ 静电项
+        // ⚠️ 正确的赫兹偶极子时域公式（Stutzman & Thiele / Balanis e^{jωt} 约定）：
+        //   Eθ ∝ sinθ · [ k²cos τ/r  −  k sin τ/r²  −  cos τ/r³ ]
+        //   Hφ ∝ sinθ · [ k cos τ/r   −  sin τ/r²            ]
+        // 注意 E 的 1/r² 项是 +sin τ（不是 −sin τ），之前符号写反过一次。
+        // 验证：<S_r> = k³/(2r²) > 0 恒成立（辐射功率恒正）。
+        '  float cosTau=cos(tau),sinTau=sin(tau);',
+        '  float radiation=sinT*(k*k*cosTau*invR);',              // Eθ 1/r 辐射项
+        '  float induction=sinT*(-k*sinTau*invR*invR);',          // Eθ 1/r² 感应项
+        '  float electrostatic=sinT*(-cosTau*invR*invR*invR);',   // Eθ 1/r³ 静电项
         '  float E=radiation+induction+electrostatic;',
-        // Hφ 的三项展开（Balanis 4-63，η 归一化后 Hφ = Eθ/η 形式但相位项不同）：
-        //   1/r 项: cos τ（与 Eθ 辐射项同相 → 远场 EH 同相 → Poynting 恒正）
-        //   1/r² 项: sin τ（与 Eθ 感应项反号 → 近场 EH 近正交 → Poynting 振荡）
-        '  float H_r1=sinT*(k*cos(tau)*invR);',                     // Hφ 1/r
-        '  float H_r2=sinT*(sin(tau)*invR*invR);',                  // Hφ 1/r²（注意 sin τ，非 −sin τ）
-        '  float H=H_r1+H_r2;',
-        // 瞬时径向 Poynting: S_r ∝ Eθ · Hφ（同号=外流正值，异号=回流负值）
-        // 近场区 Eθ 和 Hφ 的相位差 → S_r 在一周期内正负交替 → 能量来回交换
-        // 远场区 Eθ 和 Hφ 同相 → S_r 恒正 → 能量单向流出
-        '  if(uPoynting>0.5){',
-        '    float S=E*H;',
-        // Poynting 量纲补偿：近场 1/r⁴ 发散严重，用 r² 补偿让结构可辨
-        '    float dispS=S*rr*rr*0.3;',
-        '    float vs=soft_tanh(dispS*1.2);',
-        '    float av=abs(vs);',
-        '    float bs=av*av*(3.0-2.0*av);',
-        '    vec3 col=(vs>=0.0)?mix(PAPER,OUTFLOW,bs):mix(PAPER,INFLOW,bs);',
+        // Hφ（Balanis 4-63，η 归一化）：
+        //   1/r 项: −k cos τ/r（与 E 辐射项差一个负号 → 但 E 也有负号所以实际同相）
+        //   1/r² 项: −sin τ/r²（与 E 感应项同号 → 近场 EH 部分同相）
+        '  float H=sinT*(k*cosTau*invR - sinTau*invR*invR);',
+        // 能量交换模式：显示瞬时电能密度 vs 磁能密度哪个主导
+        // uE = εE²/2, uH = μH²/2（ε=μ=1 归一化）
+        // 近场：E 以 1/r³ 静电项主导（cos τ），H 以 1/r² 感应项主导（sin τ）
+        //   → uE 峰值在 τ=0,π，uH 峰值在 τ=π/2,3π/2 → 90° 相位差 → 能量来回交换
+        // 远场：E≈−k²cos τ/r, H≈−k cos τ/r → 同相 → uE/uH 同步涨落 → 传播态
+        '  if(uEnergy>0.5){',
+        '    float uE=0.5*E*E;',
+        '    float uH=0.5*H*H;',
+        '    float uTot=uE+uH;',
+        // 用 r³ 补偿让近场结构可见（uE 在 r=0.1 处 ~1e5，远场 ~1e-1）
+        '    float uDisp=uTot*rr*rr*rr*0.02;',
+        '    float eFrac=uE/max(uTot,1e-15);',  // 1=纯电，0=纯磁
+        '    float bright=soft_tanh(uDisp);',
+        '    vec3 basecol=mix(MAG,ELEC,eFrac);', // 橙=电，青=磁
+        '    vec3 col=mix(PAPER,basecol,abs(bright));',
         '    gl_FragColor=vec4(col,1.0);',
         '    return;',
         '  }',
@@ -161,7 +169,7 @@ Page({
         uScale: { value: this.state.scale },
         uNorm: { value: 1.0 },
         uMode: { value: 0.0 },
-        uPoynting: { value: 0.0 },
+        uEnergy: { value: 0.0 },
       };
       this.uniforms = uniforms;
 
@@ -240,29 +248,29 @@ Page({
     lc.label(ctx, (barL === 1 ? '1' : String(barL)) + ' λ', bx + bw / 2, by - 8,
       { align: 'center', color: THEME.inkSoft, font: THEME.fontLabel });
 
-    // 色标：能流模式 = 橙（外流）↔ 纸 ↔ 蓝紫（回流）；默认 = 靛蓝（E<0）↔ 纸 ↔ 赤陶（E>0）
+    // 色标：能量模式 = 青（磁能主导）↔ 纸 ↔ 橙（电能主导）；默认 = 靛蓝（E<0）↔ 纸 ↔ 赤陶（E>0）
     const cbW = 64, cbH = 8, cbX = w - cbW - 14, cbY = 14;
     if (st.poyntingMode) {
-      // Poynting 色标：橙 (#c8782d) ↔ 纸 ↔ 蓝紫 (#5a3a8a)
-      const cOut = [0xc8, 0x78, 0x2d];
-      const cIn = [0x5a, 0x3a, 0x8a];
+      // 能量交换色标：青 (#2a8a96) ↔ 纸 ↔ 橙 (#d4642a)
+      const cElec = [0xd4, 0x64, 0x2a];
+      const cMag = [0x2a, 0x8a, 0x96];
       const cPaper = [0xf3, 0xef, 0xe6];
       for (let i = 0; i < cbW; i++) {
         const t = (i / (cbW - 1)) * 2 - 1;   // -1..+1
-        const target = t >= 0 ? cOut : cIn;
+        const target = t >= 0 ? cElec : cMag;
         const mix = Math.abs(t);
-        const r = Math.round(cPaper[0] + (target[0] - cPaper[0]) * mix);
-        const g = Math.round(cPaper[1] + (target[1] - cPaper[1]) * mix);
-        const b = Math.round(cPaper[2] + (target[2] - cPaper[2]) * mix);
-        ctx.fillStyle = 'rgb(' + r + ',' + g + ',' + b + ')';
+        const rr2 = Math.round(cPaper[0] + (target[0] - cPaper[0]) * mix);
+        const gg = Math.round(cPaper[1] + (target[1] - cPaper[1]) * mix);
+        const bb = Math.round(cPaper[2] + (target[2] - cPaper[2]) * mix);
+        ctx.fillStyle = 'rgb(' + rr2 + ',' + gg + ',' + bb + ')';
         ctx.fillRect(cbX + i, cbY, 1.5, cbH);
       }
       ctx.strokeStyle = THEME.axis;
       ctx.lineWidth = 1;
       ctx.strokeRect(cbX - 0.5, cbY - 0.5, cbW + 1, cbH + 1);
-      lc.label(ctx, '回流', cbX - 30, cbY + cbH, { color: THEME.inkSoft, font: THEME.fontLabel });
-      lc.label(ctx, '外流', cbX + cbW + 4, cbY + cbH, { color: THEME.inkSoft, font: THEME.fontLabel });
-      lc.label(ctx, 'S_r', cbX + cbW / 2, cbY + cbH + 14,
+      lc.label(ctx, '磁能', cbX - 32, cbY + cbH, { color: THEME.inkSoft, font: THEME.fontLabel });
+      lc.label(ctx, '电能', cbX + cbW + 4, cbY + cbH, { color: THEME.inkSoft, font: THEME.fontLabel });
+      lc.label(ctx, '储能', cbX + cbW / 2, cbY + cbH + 14,
         { align: 'center', color: THEME.muted, font: THEME.fontTick });
     } else {
       // Eθ 发散色标：靛蓝（E<0）↔ 纸 ↔ 赤陶（E>0）
@@ -348,15 +356,16 @@ Page({
     this.setData({ fieldMode: mode });
   },
 
-  // 能流模式：显示瞬时 Poynting 矢量方向
-  // 近场区 Eθ 与 Hφ 相位差 → S_r 正负交替 → 能量来回交换（橙=外流 / 蓝紫=回流）
-  // 远场区 Eθ 与 Hφ 同相 → S_r 恒正 → 能量单向辐射（全橙）
+  // 能量交换模式：显示瞬时电能 vs 磁能哪个主导
+  // 近场：E 以 1/r³ 静电项主导(cos τ)，H 以 1/r² 感应项主导(sin τ) → uE/uH 相位差90° → 来回交换
+  // 远场：E≈H 同相 → uE/uH 同步 → 传播态
+  // 橙=电能主导，青=磁能主导，亮度=总能量密度
   onPoynting() {
     haptic.light();
     this.state.poyntingMode = !this.state.poyntingMode;
-    if (this.uniforms) this.uniforms.uPoynting.value = this.state.poyntingMode ? 1 : 0;
+    if (this.uniforms) this.uniforms.uEnergy.value = this.state.poyntingMode ? 1 : 0;
     this.setData({ poyntingMode: this.state.poyntingMode });
-    this.drawOverlay();   // 切换色标（Eθ 发散 ↔ Poynting 橙紫）
+    this.drawOverlay();   // 切换色标（Eθ 发散 ↔ 能量 橙青）
   },
 
   onShareAppMessage() {

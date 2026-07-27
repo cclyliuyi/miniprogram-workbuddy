@@ -45,7 +45,7 @@
         <text class="lab3d-toggle-dot"></text><text class="lab3d-toggle-text">场区边界</text>
       </view>
       <view class="lab3d-toggle {{poyntingMode?'on':''}}" bindtap="onPoynting">
-        <text class="lab3d-toggle-dot"></text><text class="lab3d-toggle-text">能流（Poynting）</text>
+        <text class="lab3d-toggle-dot"></text><text class="lab3d-toggle-text">能量交换（E↔H）</text>
       </view>
     </view>
     <view class="tp-btns" style="margin-top:12rpx">
@@ -55,28 +55,35 @@
     </view>
   </view>
 
-  <!-- 能流模式说明（仅 poyntingMode 开启时显示）-->
+  <!-- 能量交换模式说明（仅 poyntingMode 开启时显示）-->
   <view class="lab3d-stats pop" wx:if="{{poyntingMode}}">
-    <view class="kicker lab3d-stats-title">能流（Poynting 矢量 S = E × H）</view>
+    <view class="kicker lab3d-stats-title">能量交换（电能 ↔ 磁能）</view>
     <view class="fa-zone">
-      <view class="fa-dot" style="background:#c8782d"></view>
+      <view class="fa-dot" style="background:#d4642a"></view>
       <view>
-        <view class="fa-zone-text">橙色 = 能量外流（S_r &gt; 0）</view>
-        <view class="fa-zone-val">Eθ 与 Hφ 同号 · 远场区恒为外流</view>
+        <view class="fa-zone-text">橙色 = 电能主导（u_E &gt; u_H）</view>
+        <view class="fa-zone-val">Eθ 较强时 · 近场静电项(1/r³)峰值</view>
       </view>
     </view>
     <view class="fa-zone">
-      <view class="fa-dot" style="background:#5a3a8a"></view>
+      <view class="fa-dot" style="background:#2a8a96"></view>
       <view>
-        <view class="fa-zone-text">蓝紫 = 能量回流（S_r &lt; 0）</view>
-        <view class="fa-zone-val">Eθ 与 Hφ 反号 · 近场区交替振荡</view>
+        <view class="fa-zone-text">青色 = 磁能主导（u_H &gt; u_E）</view>
+        <view class="fa-zone-val">Hφ 较强时 · 近场感应项(1/r²)峰值</view>
       </view>
     </view>
     <view class="fa-zone">
       <view class="fa-dot fa-c-accent"></view>
       <view>
         <view class="fa-zone-text">近场储能的物理本质</view>
-        <view class="fa-zone-val">S_r 在一周期内正负交替 → 电能↔磁能来回交换（无功场）</view>
+        <view class="fa-zone-val">u_E 与 u_H 相位差 ≈ 90° → 颜色在橙↔青间来回切换（无功场）</view>
+      </view>
+    </view>
+    <view class="fa-zone">
+      <view class="fa-dot fa-c-teal"></view>
+      <view>
+        <view class="fa-zone-text">远场传播态对比</view>
+        <view class="fa-zone-val">u_E ≈ u_H 同相涨落 → 颜色基本不变，只亮度脉动（有功场）</view>
       </view>
     </view>
   </view>
