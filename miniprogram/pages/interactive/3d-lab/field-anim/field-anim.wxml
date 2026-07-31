@@ -83,7 +83,7 @@
       <view class="fa-dot fa-c-teal"></view>
       <view>
         <view class="fa-zone-text">远场传播态对比</view>
-        <view class="fa-zone-val">u_E ≈ u_H 同相涨落 → 颜色基本不变，只亮度脉动（有功场）</view>
+        <view class="fa-zone-val">u_E ≈ u_H 同相涨落 → 颜色趋于中性（橙青混合），只亮度脉动（有功场）</view>
       </view>
     </view>
   </view>

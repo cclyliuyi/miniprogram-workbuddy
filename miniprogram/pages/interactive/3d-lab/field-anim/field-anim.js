@@ -136,16 +136,17 @@ Page({
         //   1/r² 项: −sin τ/r²（与 E 感应项同号 → 近场 EH 部分同相）
         '  float H=sinT*(k*cosTau*invR - sinTau*invR*invR);',
         // 能量交换模式：显示瞬时电能密度 vs 磁能密度哪个主导
-        // uE = εE²/2, uH = μH²/2（ε=μ=1 归一化）
+        // uE = εE²/2，uH = μH²/2（ε=μ=1；但 shader 归一化中 E 的辐射项比 H 多一个 k 因子，
+        // 真实物理 E/H = η（波阻抗），为公平比较需给 uH 乘 k² → 远场 uE = uH' 恒等）
         // 近场：E 以 1/r³ 静电项主导（cos τ），H 以 1/r² 感应项主导（sin τ）
-        //   → uE 峰值在 τ=0,π，uH 峰值在 τ=π/2,3π/2 → 90° 相位差 → 能量来回交换
-        // 远场：E≈−k²cos τ/r, H≈−k cos τ/r → 同相 → uE/uH 同步涨落 → 传播态
+        //   → uE 峰值在 τ≈0,π，uH 峰值在 τ≈π/2,3π/2 → ≈90° 相位差 → 能量来回交换
+        // 远场：E≈k·H 同相 → uE ≈ uH' → eFrac≈0.5 中性（传播态，能量均分）
         '  if(uEnergy>0.5){',
         '    float uE=0.5*E*E;',
-        '    float uH=0.5*H*H;',
+        '    float uH=0.5*k*k*H*H;',           // ⚠️ k² 因子：补偿 E/H 归一化差，让远场 uE=uH
         '    float uTot=uE+uH;',
         // 用 r³ 补偿让近场结构可见（uE 在 r=0.1 处 ~1e5，远场 ~1e-1）
-        '    float uDisp=uTot*rr*rr*rr*0.02;',
+        '    float uDisp=uTot*rr*rr*rr*0.003;',
         '    float eFrac=uE/max(uTot,1e-15);',  // 1=纯电，0=纯磁
         '    float bright=soft_tanh(uDisp);',
         '    vec3 basecol=mix(MAG,ELEC,eFrac);', // 橙=电，青=磁
