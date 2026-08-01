@@ -37,6 +37,7 @@
   font-size: 24rpx; line-height: 1.8; color: var(--ink, #20201c);
   background: var(--paper, #f3efe6); padding: 20rpx 24rpx; border-radius: 10rpx;
   margin-bottom: 24rpx;
+  white-space: pre-line;
 }
 
 /* ═══ 长按预览浮层 ═══ */

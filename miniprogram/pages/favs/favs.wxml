@@ -11,7 +11,7 @@
   <view wx:if="{{isEmpty && !loading}}" class="fv-empty rise">
     <view class="fv-empty-heart"></view>
     <view class="fv-empty-title display">还没有收藏</view>
-    <view class="fv-empty-desc">在每日详情页点击右上的心形按钮，<br/>收藏喜欢的日子，它们会出现在这里。</view>
+    <view class="fv-empty-desc">在每日详情页点击右上的心形按钮，收藏喜欢的日子，它们会出现在这里。</view>
   </view>
 
   <!-- 加载中（骨架屏 shimmer） -->
