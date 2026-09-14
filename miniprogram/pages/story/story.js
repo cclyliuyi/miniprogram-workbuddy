@@ -1,5 +1,5 @@
 // pages/story/story.js —— 故事流（全屏左右滑浏览某月）
-// 已升级为 tabBar 页面：onLoad 初始化，onShow 响应月份切换
+// 子包页面（navigateTo 进入）：onLoad 初始化，onShow 响应月份切换
 const { getMonthPhotos } = require('../../utils/db');
 const haptic = require('../../utils/haptic');
 
@@ -38,9 +38,11 @@ Page({
   },
 
   async loadMonth(month) {
+    const token = this._reqToken = (this._reqToken || 0) + 1; // 请求令牌：切月后丢弃旧回包
     wx.showLoading({ title: '加载中' });
     try {
       const res = await getMonthPhotos(month);
+      if (token !== this._reqToken) return; // 已切月，旧响应迟到，丢弃
       const list = (res.data || [])
         .map((p) => ({
           day: p.day,
@@ -51,10 +53,11 @@ Page({
         .sort((a, b) => a.day - b.day);
       this.setData({ list, current: 0, flipped: false });
     } catch (e) {
+      if (token !== this._reqToken) return;
       console.error(e);
       wx.showToast({ title: '加载失败', icon: 'none' });
     } finally {
-      wx.hideLoading();
+      if (token === this._reqToken) wx.hideLoading(); // 只由最新请求收尾，避免误关后启动的 loading
     }
   },
 

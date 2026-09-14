@@ -4,9 +4,9 @@
 //   fd = 2·vr/λ（vr>0 = 接近雷达 → fd 为正）
 //   Ru = c/(2·PRF)   ±va = λ·PRF/4
 const haptic = require('../../../utils/haptic')
-const rf = require('../../../utils/rf-math')
-const lc = require('../../../utils/lab-canvas')
-const { THEME } = require('../../../utils/lab-theme')
+const rf = require('./pkg-utils/rf-math')
+const lc = require('./pkg-utils/lab-canvas')
+const { THEME } = require('./pkg-utils/lab-theme')
 
 // R–σ 图参考目标（教学典型量级，m²）
 const REF_TARGETS = [

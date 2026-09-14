@@ -10,9 +10,9 @@
 //   指向性：线源 D₀ = (2L/λ)·η；圆口径 D₀ = (πD/λ)²·η（rf.circAperGain）
 
 const haptic = require('../../../utils/haptic')
-const rf = require('../../../utils/rf-math')
-const lc = require('../../../utils/lab-canvas')
-const { THEME, alpha } = require('../../../utils/lab-theme')
+const rf = require('./pkg-utils/rf-math')
+const lc = require('./pkg-utils/lab-canvas')
+const { THEME, alpha } = require('./pkg-utils/lab-theme')
 
 const ILLUM_NAMES = { uniform: '均匀', cosine: '余弦', tapered: '抛物线锥削' }
 

@@ -17,6 +17,7 @@ Page({
 
   onLoad() { this.update() },
   onReady() { this.update() },
+  onHide() { this._stopScan(); this.setData({ scanOn: false }) }, // 页面隐藏即停扫描，避免后台空转
   onUnload() { this._stopScan() },
 
   // ═══ 参数 ═══

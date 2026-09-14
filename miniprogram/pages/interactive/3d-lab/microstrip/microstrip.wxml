@@ -1,13 +1,13 @@
 <!-- pages/interactive/3d-lab/microstrip/microstrip.wxml —— 微带贴片天线 -->
 <view class="screen lab3d">
 
-  <view class="lab3d-head rise">
+  <view class="lab3d-head ">
     <view class="kicker">3D PATCH LAYOUT · TM10 EDGE FIELDS</view>
     <view class="lab3d-title display">微带贴片天线</view>
     <view class="lab3d-sub">一阶尺寸设计 · 馈点匹配 · S11 参数</view>
   </view>
 
-  <view class="lab3d-canvas-wrap rise">
+  <view class="lab3d-canvas-wrap ">
     <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
     <view wx:if="{{!glReady}}" class="lab3d-skel">
@@ -17,7 +17,15 @@
     <view class="lab3d-hint {{showHint ? '' : 'fade'}}">单指旋转 · 双指缩放 · 双击复位</view>
   </view>
 
-  <view class="lab3d-section rise">
+  <view class="lab-viewbar">
+    <view class="lab-view-choice {{labView==='perspective'?'selected':''}}" data-view="perspective" bindtap="onLabView">立体全景</view>
+    <view class="lab-view-choice {{labView==='front'?'selected':''}}" data-view="front" bindtap="onLabView">正视</view>
+    <view class="lab-view-choice {{labView==='top'?'selected':''}}" data-view="top" bindtap="onLabView">俯视</view>
+    <view class="lab-view-choice {{autoRotate?'selected':''}}" bindtap="onLabRotate">{{autoRotate?'停止环视':'自动环视'}}</view>
+  </view>
+<view class="lab-scene-caption">铜贴片 · 介质基板 · 边缘场</view>
+
+  <view class="lab3d-section ">
     <view class="kicker">基板预设</view>
     <view class="tp-btns">
       <view class="tp-btn {{preset==='fr4' ? 'active' : ''}}" data-p="fr4" bindtap="onPreset">FR4 · 4.40/1.6</view>
@@ -26,7 +34,7 @@
     </view>
   </view>
 
-  <view class="lab3d-section rise">
+  <view class="lab3d-section ">
     <view class="kicker">设计参数</view>
     <view class="tp-slider-row">
       <text class="tp-slider-label">工作频率 f₀</text>
@@ -51,7 +59,7 @@
     <view wx:if="{{warn}}" class="ms-warn">{{warn}}</view>
   </view>
 
-  <view class="lab3d-stats pop">
+  <view class="lab3d-stats ">
     <view class="kicker lab3d-stats-title">尺寸与端口读数</view>
     <view class="lab3d-stats-grid">
       <view class="lab3d-stat"><view class="lab3d-stat-value num">{{W}}</view><view class="lab3d-stat-name">贴片宽 W</view></view>
@@ -65,12 +73,12 @@
     </view>
   </view>
 
-  <view class="tp-canvas-card rise">
+  <view class="tp-canvas-card ">
     <view class="tp-canvas-caption">S11 扫频曲线（单谐振并联 RLC 模型，绿带 = −10 dB 带宽）</view>
     <canvas type="2d" id="s11" class="tp-canvas-short"></canvas>
   </view>
 
-  <view class="tp-formula rise">
+  <view class="tp-formula ">
     <view class="tp-formula-title">所用公式（Balanis 4th §14.2）</view>
     <view class="tp-formula-line">W = c/(2f₀)·√(2/(εᵣ+1))　·　εeff = (εᵣ+1)/2 + (εᵣ−1)/2·(1+12h/W)^(−½)　·　L = c/(2f₀√εeff) − 2ΔL</view>
     <view class="tp-formula-line">Redge = 1/(2(G₁+G₁₂))（缝隙电导 14-12/14-18a 数值积分）　·　Rin = Redge·cos²(π·y₀/L)</view>
@@ -78,11 +86,11 @@
     <view class="tp-formula-cond">适用条件：εeff/ΔL 近似要求 W/h &gt; 1 且 h ≪ λ₀；S11 为 TM₁₀ 单谐振并联 RLC 教学模型（不含馈线电抗与高次模），真实设计仍需全波仿真。</view>
   </view>
 
-  <view class="lab3d-note rise">
+  <view class="lab3d-note ">
     <view class="kicker">原理</view>
     <view class="lab3d-note-item">贴片沿 L 半波谐振：两条辐射缝的等效磁流同相叠加，形成边射方向图</view>
     <view class="lab3d-note-item">表面电流沿谐振长度 L 呈 sin(πz/L) 分布（中间最大、两缝为零），横向近似均匀</view>
-    <view class="lab3d-note-item">赤陶 = 贴片/馈线（铜） · 青绿 = 介质基板 · 靛蓝弧线 = 缝隙场 · 赭金 = 表面电流 · 暖灰 = W/L 尺寸标注</view>
+    <view class="lab3d-note-item">铜金色 = 贴片/馈线 · 青绿 = 介质基板 · 靛蓝弧线 = 缝隙场 · 赭金 = 表面电流 · 暖灰 = W/L 尺寸标注</view>
   </view>
 
 </view>

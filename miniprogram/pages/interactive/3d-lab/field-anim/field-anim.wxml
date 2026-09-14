@@ -1,13 +1,13 @@
 <!-- pages/interactive/3d-lab/field-anim/field-anim.wxml —— 电偶极子辐射动画 -->
 <view class="screen lab3d">
 
-  <view class="lab3d-head rise">
+  <view class="lab3d-head ">
     <view class="kicker">OSCILLATING DIPOLE · NEAR/FAR FIELD</view>
     <view class="lab3d-title display">电偶极子辐射</view>
     <view class="lab3d-sub">近场 → 远场过渡 · E 面截面 · 推迟相位</view>
   </view>
 
-  <view class="lab3d-canvas-wrap rise">
+  <view class="lab3d-canvas-wrap ">
     <canvas type="webgl" id="three-canvas" class="lab3d-canvas"></canvas>
     <canvas type="2d" id="fa-overlay" class="fa-overlay"></canvas>
     <view wx:if="{{!glReady}}" class="lab3d-skel">
@@ -17,10 +17,10 @@
   </view>
 
   <!-- 播放控制 -->
-  <view class="lab3d-section rise">
+  <view class="lab3d-section ">
     <view class="kicker">播放控制</view>
     <view class="tp-btns">
-      <view class="tp-btn {{playing?'active':''}}" bindtap="onPlay">{{playText}}</view>
+      <view class="tp-btn {{playing?'active':''}}" bindtap="onPlay"><view class="lab-motion-icon {{playing?'pause':'play'}}"></view>{{playText}}</view>
     </view>
     <view class="tp-slider-row" style="margin-top:12rpx">
       <text class="tp-slider-label">播放速度</text>
@@ -35,7 +35,7 @@
   </view>
 
   <!-- 显示控制 -->
-  <view class="lab3d-section rise">
+  <view class="lab3d-section ">
     <view class="kicker">显示控制</view>
     <view class="lab3d-toggles">
       <view class="lab3d-toggle {{normalize?'on':''}}" bindtap="onNorm">
@@ -56,7 +56,7 @@
   </view>
 
   <!-- 能量交换模式说明（仅 poyntingMode 开启时显示）-->
-  <view class="lab3d-stats pop" wx:if="{{poyntingMode}}">
+  <view class="lab3d-stats " wx:if="{{poyntingMode}}">
     <view class="kicker lab3d-stats-title">能量交换（电能 ↔ 磁能）</view>
     <view class="fa-zone">
       <view class="fa-dot" style="background:#d4642a"></view>
@@ -76,7 +76,7 @@
       <view class="fa-dot fa-c-accent"></view>
       <view>
         <view class="fa-zone-text">近场储能的物理本质</view>
-        <view class="fa-zone-val">u_E 与 u_H 相位差 ≈ 90° → 颜色在橙↔青间来回切换（无功场）</view>
+        <view class="fa-zone-val">近场 E 与 H 近似正交 → 颜色在橙↔青间来回切换（无功场）</view>
       </view>
     </view>
     <view class="fa-zone">
@@ -89,7 +89,7 @@
   </view>
 
   <!-- 场区说明（边界圈颜色与画面标注一致）-->
-  <view class="lab3d-stats pop">
+  <view class="lab3d-stats ">
     <view class="kicker lab3d-stats-title">场区（以偶极子为中心）</view>
     <view class="fa-zone">
       <view class="fa-dot fa-c-accent"></view>
@@ -115,7 +115,7 @@
   </view>
 
   <!-- 公式注脚 -->
-  <view class="tp-formula rise">
+  <view class="tp-formula ">
     <view class="tp-formula-title">场的公式</view>
     <view class="tp-formula-line">Eθ ∝ sinθ · [ k²·cos τ / r − k·sin τ / r² − cos τ / r³ ]，τ = ωt − kr，k = 2π/λ</view>
     <view class="tp-formula-line">三项依次为：辐射场（1/r）· 感应场（1/r²）· 静电场（1/r³）；kr = 1 即 r = λ/2π 处辐射项与感应项等幅</view>

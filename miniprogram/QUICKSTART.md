@@ -1,64 +1,37 @@
-# 快速上线指南（照片日历小程序 · 完整版）
+# 天线与电磁波知识平台
 
-本目录是一个**可直接在微信开发者工具中运行的微信小程序脚手架**（云开发版，含完整版功能）。
+原生微信小程序，包含 365 张知识卡、12 张电磁信息论卡、12 张方法论卡、工程计算与交互实验。
 
-## 一、前置准备
-1. 注册微信小程序账号：https://mp.weixin.qq.com → 拿到 **AppID**。
-2. 安装[微信开发者工具](https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html)。
-3. 安装 Node.js（≥16）。
+## 运行
 
-## 二、导入并配置
-1. 微信开发者工具 → 导入项目 → 选择本 `miniprogram` 目录 → 填 AppID。
-2. 顶部点「云开发」→ 开通 → 创建环境 → 复制**环境 ID**。
-3. 打开 `app.js`，把 `globalData.env` 的 `'your-cloud-env-id'` 改成你的环境 ID。
-4. 云开发控制台 → 数据库 → 新建集合 `calendar_photos`。
+在微信开发者工具中导入当前目录。环境配置位于 `app.js`，图片来自云开发的 `calendar_photos` 和云存储；部署云函数 `cloudfunctions/getPhotos` 后可读取图片。3D 依赖按 `project.config.json` 中两组 npm 配置构建。不要将环境密钥写入源码。
 
-## 三、把 730 张照片灌进云开发
-在 `miniprogram/tools` 目录下执行：
+## 新入口
 
-```bash
-npm init -y
-npm i sharp @cloudbase/node-sdk
+- 日历保留原有搜索图标；已移除新增的两个入口框。
+- 统一搜索：422 项资源，支持英文大小写、VSWR/驻波比、Smith/史密斯检索；结果右侧可收藏。
+- 收藏页：保留原有日历收藏，增加前沿、方法论、工具、实验收藏。
 
-# 1) 生成缩略图 + 预览图 + manifest.json
-node preprocess.js
+## 架构
 
-# 2) 上传到云存储并写库（填入你的云环境密钥）
-TCB_ENV=你的环境ID TCB_SECRET_ID=xxx TCB_SECRET_KEY=xxx node upload.js
-```
+- `app.json`：5 个主包页面、30 个分包，共 45 页。
+- `utils/quotes/`：365 张课程卡，按月组织，兼容入口仍加载全部数据。
+- `utils/tool-registry.js`：工具与实验注册表。
+- `utils/resources.js`：稳定资源 ID、搜索目录与资源链接。
+- `utils/progress.js`：已读与学习日分开计算；复习计入连续打卡。
+- `utils/resource-favs.js`：非日历资源收藏，不覆盖旧收藏。
+- `utils/db.js`：缓存、同请求合并、8 秒云请求超时、直查回退和旧缓存兜底。
+- `utils/rf-math.js`、`lab-canvas.js`、`lab-theme.js`：公式与公共绘图。
+- `utils/lab3d-stage.js`：主包公共场景；两个 3D 分包通过本地适配层注入各自的 Three.js，避免分包之间互相引用。
 
-> 说明：`preprocess.js` 读取 **miniprogram 上一级目录**里的 `X月X日正面/反面.png`（即你的 730 张原图），生成 `thumb/`、`preview/` 与 `manifest.json`；`upload.js` 把三档图上传到云存储（`calendar/` 前缀）并写入 `calendar_photos` 集合。
+## 日期与离线策略
 
-## 四、运行与上线
-1. 编译预览 → 真机调试（重点测 iOS / Android 中低端机）。
-2. 性能要点：首屏只拉当月缩略图；年视图一次拉全量但仅渲染 12 张代表图；翻卡用 CSS 3D（Skyline 更顺）；日签卡用 Canvas 2D。
-3. 提交审核前准备：隐私保护指引、账号用途说明；不要在无场景页申请相册/位置权限（保存相册权限仅在「日签卡」页触发，合规）。
-4. 审核通过即发布。
+日历显示设备当前年份；课程固定为 365 张，2 月 29 日复习 2 月 28 日内容。节气表只对 2027 年显示，其他年份保留农历与节日。图片尚未加载时仍可进入日期阅读文字。学习与收藏记录存于本设备，尚无跨设备同步。
 
-## 五、目录结构（完整版）
-```
-miniprogram/
-├── app.js / app.json / app.wxss       # 全局配置 + 云开发初始化 + tabBar(日历/年视图)
-├── project.config.json / sitemap.json
-├── utils/
-│   ├── date.js      # 文件名解析 / 月历网格 / 当月天数
-│   ├── db.js        # 云查询：按月、按天、拉全量(分页)
-│   ├── auth.js      # 登录封装
-│   └── quotes.js    # 日签文案库
-├── pages/
-│   ├── calendar/    # 【tab】月历网格主页 + 历史上的今天 banner + 入口
-│   ├── year/        # 【tab】年视图（12 月缩略拼图，点月跳日历）
-│   ├── day-detail/  # 翻卡详情（正面↔反面双图 + 大图 + 日签卡入口）
-│   ├── story/       # 故事流（全屏左右滑某月，可翻正/反面）
-│   └── card/        # 日签分享卡（canvas 合成 + 存相册 + 分享）
-└── tools/           # 图片预处理 + 上传云开发脚本
-```
+## 验证
 
-## 六、功能一览
-- **月历网格**：7 列标准日历，每天格显示正面缩略图，今天高亮。
-- **历史上的今天**：主页顶部 banner 自动定位当天照片，点开即看。
-- **年视图**：12 个月缩略拼图（按"同一日期跨月"对角线排布），点月跳到对应日历。
-- **故事流**：全屏左右滑浏览某月，点击翻正/反面，可一键生成日签卡。
-- **翻卡详情**：正面↔反面双图翻转 + 查看大图。
-- **日签卡**：canvas 合成"照片 + 日期 + 文案"长图，保存相册 / 分享好友 / 朋友圈。
-- **分享**：各页均实现 `onShareAppMessage` / `onShareTimeline`，形成裂变回流。
+执行 `node tools/regression-test.js`，测试不访问云端、不读取凭据。微信编译、图片签名实际刷新与真机视觉性能需要在开发者工具和设备中验收，见 `docs/learning-platform-delivery.md`。
+
+## 图片维护
+
+`tools/` 保存预处理、上传和检查脚本。运行上传或清理脚本前先确认目标环境与输入目录；普通开发不需要重新上传图片。

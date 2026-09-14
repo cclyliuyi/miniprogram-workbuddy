@@ -7,7 +7,7 @@
     <input
       class="sr-input"
       type="text"
-      placeholder="搜索知识点，如「偶极子」「增益」「相控阵」"
+      placeholder="搜索知识、前沿、方法论、工具与实验"
       placeholder-class="sr-ph"
       value="{{keyword}}"
       bindinput="onInput"
@@ -35,7 +35,7 @@
   <!-- 搜索结果 -->
   <view class="sr-results" wx:if="{{keyword}}">
     <view class="sr-count kicker" wx:if="{{results.length}}">
-      找到 {{results.length}} 条结果
+      找到 {{total}} 条结果{{total > results.length ? '，已显示前 ' + results.length + ' 条' : ''}}
     </view>
     <view class="sr-count kicker" wx:elif="{{!searching}}">
       未找到「{{keyword}}」相关内容
@@ -43,10 +43,10 @@
 
     <view
       wx:for="{{results}}"
-      wx:key="date"
+      wx:key="id"
       class="sr-card"
       bindtap="openResult"
-      data-month="{{item.month}}"
+      data-id="{{item.id}}"
       data-day="{{item.day}}">
 
       <view class="sr-card-left">
@@ -60,7 +60,11 @@
         <view class="sr-card-tag" wx:if="{{item.tag}}">{{item.tag}}</view>
       </view>
 
-      <view class="sr-arrow">›</view>
+      <view class="sr-arrow" catchtap="toggleResource" data-id="{{item.id}}">{{item.saved ? '已收藏' : '收藏'}}</view>
+    </view>
+
+    <view class="sr-more kicker" wx:if="{{results.length < total}}" bindtap="showMore">
+      显示更多（{{total - results.length}} 条）
     </view>
   </view>
 

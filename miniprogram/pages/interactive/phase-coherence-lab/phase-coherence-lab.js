@@ -6,9 +6,9 @@
 //   Ruze：G/G₀ = exp(−δ_rms²)，δ 为口径相位误差 RMS（rad）
 
 const haptic = require('../../../utils/haptic')
-const rf = require('../../../utils/rf-math')
-const lc = require('../../../utils/lab-canvas')
-const { THEME, alpha, divergeColor } = require('../../../utils/lab-theme')
+const rf = require('./pkg-utils/rf-math')
+const lc = require('./pkg-utils/lab-canvas')
+const { THEME, alpha, divergeColor } = require('./pkg-utils/lab-theme')
 
 const MODE_INFO = {
   phasor: {

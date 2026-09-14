@@ -8,15 +8,18 @@
 const { registerOrbitControls } = require('../orbit-controls');
 const stage = require('../lab3d-stage');
 const haptic = require('../../../../utils/haptic');
-const lc = require('../../../../utils/lab-canvas');
-const { THEME, alpha } = require('../../../../utils/lab-theme');
-const rf = require('../../../../utils/rf-math');
+const lc = require('../pkg-utils/lab-canvas');
+const { THEME, alpha } = require('../pkg-utils/lab-theme');
+const rf = require('../pkg-utils/rf-math');
 
 const ASTEP = 2;                 // 方向图角度步长（°），全圆 180 点
 const WIRE_SCALE = 0.32;         // 场景缩放：1λ = 0.32 单位
 
+const visual = require('../pkg-utils/lab3d-visual');
+const plots = require('../pkg-utils/lab3d-plots');
 Page({
   data: {
+    labView: 'perspective', autoRotate: false,
     geo: 'line',
     lSlider: 30, lVal: '3.0 λ',
     gSlider: 15, gVal: '0.15',
@@ -174,7 +177,8 @@ Page({
         new THREE.Vector3(0, 0, 0),
         new THREE.Vector3(d.x * S.L * WIRE_SCALE, 0, d.z * S.L * WIRE_SCALE),
       ];
-      this.wireGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), wireMat));
+      visual.rod(THREE,this.wireGroup,pts[0].toArray(),pts[1].toArray(),.009,0xc4a16c);
+      const terminal=new THREE.Mesh(new THREE.CylinderGeometry(.022,.022,.09,12),new THREE.MeshStandardMaterial({color:0x536776,roughness:.45}));terminal.position.copy(pts[1]);terminal.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),pts[1].clone().normalize());this.wireGroup.add(terminal);
     }
 
     // 方向图切面曲线（x-z 面，与导线同平面）· 赤陶
@@ -191,12 +195,13 @@ Page({
     if (S.geo === 'line') {
       const half = [];                             // θ ∈ [0,180°]
       for (let i = 0; i <= 180 / p.step; i++) half.push(p.vals[(i + 180 / p.step) % p.vals.length]);
-      const nphi = 40, pos = [], idx = [];
+      const nphi = 48, pos = [], idx = [], values=[];
       for (let i = 0; i < half.length; i++) {
         const th = i * p.step * Math.PI / 180;
         const rr = 0.8 * half[i];
         for (let j = 0; j <= nphi; j++) {
           const ph = j / nphi * Math.PI * 2;
+          values.push(half[i]);
           pos.push(rr * Math.sin(th) * Math.cos(ph), rr * Math.sin(th) * Math.sin(ph), rr * Math.cos(th));
         }
       }
@@ -208,10 +213,11 @@ Page({
       }
       const geo = new THREE.BufferGeometry();
       geo.addAttribute('position', new THREE.Float32BufferAttribute(pos, 3));  // r108 API
+      visual.heatGeometry(THREE,geo,values);
       geo.setIndex(idx);
       geo.computeVertexNormals();
       this.patternGroup.add(new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
-        color: C.teal, transparent: true, opacity: 0.12, side: THREE.DoubleSide,
+        vertexColors: THREE.VertexColors, transparent: true, opacity: 0.5, depthWrite:false, side: THREE.DoubleSide,
       })));
     }
 
@@ -261,6 +267,7 @@ Page({
   dispose() {
     this.stopAnim();
     stage.clearTimers(this);
+    if (this.scene) stage.clearGroup(this.scene);
     if (this.renderer) { this.renderer.dispose(); this.renderer = null; }
     if (this.controls) { this.controls.dispose(); this.controls = null; }
   },
@@ -331,10 +338,10 @@ Page({
     const w = this.plotW, h = this.plotH;
     lc.clear(ctx, w, h);
     const cx = w / 2, cy = h / 2 + 4;
-    const R = Math.min(w / 2 - 46, h / 2 - 22);
+    const R = Math.min(w / 2 - 36, h / 2 - 40);
     const FLOOR = -30;
 
-    lc.polarGrid(ctx, cx, cy, R, { rings: [0, -10, -20, -30], full: true });
+    plots.polarGrid(ctx,cx,cy,R);
 
     const toXY = (deg, v) => {
       const db = Math.max(FLOOR, 20 * Math.log10(Math.max(v, 1e-6)));
@@ -361,12 +368,11 @@ Page({
     lc.dot(ctx, mxy[0], mxy[1], THEME.accent, 3.5);
     lc.label(ctx, 'θmax=' + p.mainFold.toFixed(0) + '°', mxy[0] + 6, mxy[1] - 6, { color: THEME.accent });
 
-    lc.label(ctx, '0°（线轴/角平分线）', cx, cy - R - 8, { align: 'center', color: THEME.inkSoft });
-    lc.label(ctx, '180°（后向）', cx, cy + R + 14, { align: 'center', color: THEME.muted, font: THEME.fontTick });
-    lc.label(ctx, '径向刻度：dB', cx - R - 6, cy - R - 8, { align: 'left', color: THEME.muted, font: THEME.fontTick });
     lc.legend(ctx, [{ name: '归一化 |E(θ)|（dB，含元因子 sinΘ）', color: THEME.accent }], 10, h - 12);
   },
 
+  onLabView(e) { visual.fitView(this,e.currentTarget.dataset.view); this._home=stage.saveHome(this.controls); },
+  onLabRotate() { const value=!this.data.autoRotate; this.setData({autoRotate:value}); if(this.controls)this.controls.autoRotate=value; },
   onShareAppMessage() {
     return { title: '行波天线 3D 实验室', path: '/pages/interactive/3d-lab/traveling-wave/traveling-wave' };
   },

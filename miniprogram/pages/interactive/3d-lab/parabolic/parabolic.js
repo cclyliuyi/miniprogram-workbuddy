@@ -9,17 +9,19 @@
 const { registerOrbitControls } = require('../orbit-controls');
 const stage = require('../lab3d-stage');
 const haptic = require('../../../../utils/haptic');
-const lc = require('../../../../utils/lab-canvas');
-const { THEME, divergeColor } = require('../../../../utils/lab-theme');
+const lc = require('../pkg-utils/lab-canvas');
+const { THEME, divergeColor } = require('../pkg-utils/lab-theme');
 
 const NERR = 80;   // 口面相位误差径向采样数
 
+const visual = require('../pkg-utils/lab3d-visual');
 Page({
   data: {
+    labView: 'perspective', autoRotate: false,
     fdSlider: 40, fdVal: '0.40',
     raySlider: 18, rayVal: '18 条',
     dzSlider: 0, dzVal: '0.00 f',
-    showIn: true, showOut: true, showPhase: true,
+    showIn: true, showOut: true, showPhase: false,
     focal: '—', theta: '—', phase: '—', gain: '—',
     showHint: true,
     glReady: false,
@@ -29,7 +31,7 @@ Page({
   camera: null, controls: null, root: null,
   dishGroup: null, rayGroup: null,
   animId: null,
-  state: { fd: 0.40, rays: 18, dz: 0, show: { in: true, out: true, phase: true } },
+  state: { fd: 0.40, rays: 18, dz: 0, show: { in: true, out: true, phase: false } },
   plotCtx: null, plotW: 0, plotH: 0,
   lastKey: '', _cache: null,
 
@@ -49,7 +51,7 @@ Page({
 
   initThree() {
     stage.initThree(this, '#three-canvas', {
-      cameraPos: [4.0, -4.3, 3.5],
+      cameraPos: [5, 3.5, 9],
       onReady: (env) => {
         const THREE = env.THREE;
         registerOrbitControls(THREE);
@@ -169,9 +171,9 @@ Page({
     geo.setIndex(idx);
     geo.computeVertexNormals();
     const dishMat = S.show.phase
-      ? new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide })
+      ? new THREE.MeshBasicMaterial({ vertexColors: THREE.VertexColors, side: THREE.DoubleSide })
       : new THREE.MeshStandardMaterial({
-          color: C.gold, metalness: 0.35, roughness: 0.55, side: THREE.DoubleSide,
+          color: 0xadbfc9, metalness: 0.28, roughness: 0.44, side: THREE.DoubleSide,
         });
     this.dishGroup.add(new THREE.Mesh(geo, dishMat));
 
@@ -199,6 +201,9 @@ Page({
     feedMesh.position.copy(feed);
     this.dishGroup.add(feedMesh);
 
+    const rim=new THREE.Mesh(new THREE.TorusGeometry(m.D/2,.035,10,128),new THREE.MeshStandardMaterial({color:0x536776,metalness:.6,roughness:.4}));rim.position.z=m.zRef;this.dishGroup.add(rim);
+    for(let k=0;k<3;k++){const a=(k/3)*Math.PI*2;visual.rod(THREE,this.dishGroup,[Math.cos(a)*m.D*.46,Math.sin(a)*m.D*.46,m.zRef],[0,0,feed.z+.14],.022,0x657a86);}
+    const feedBody=new THREE.Mesh(new THREE.CylinderGeometry(.09,.23,.36,4,1,true),new THREE.MeshStandardMaterial({color:0xc4a16c,metalness:.5,roughness:.4,side:THREE.DoubleSide}));feedBody.rotation.x=Math.PI/2;feedBody.position.copy(feed);this.dishGroup.add(feedBody);
     // ── 射线：入射 靛蓝 / 反射 青绿；反射线延长到出口平面，离焦时可见汇聚/发散 ──
     const inMat = new THREE.LineBasicMaterial({ color: C.indigo, transparent: true, opacity: 0.55 });
     const outMat = new THREE.LineBasicMaterial({ color: C.teal, transparent: true, opacity: 0.75 });
@@ -248,6 +253,7 @@ Page({
   dispose() {
     this.stopAnim();
     stage.clearTimers(this);
+    if (this.scene) stage.clearGroup(this.scene);
     if (this.renderer) { this.renderer.dispose(); this.renderer = null; }
     if (this.controls) { this.controls.dispose(); this.controls = null; }
   },
@@ -296,7 +302,7 @@ Page({
     lc.clear(ctx, w, h);
     const maxAbs = Math.max(...m.err.map((x) => Math.abs(x)));
     const ySpan = Math.max(15, maxAbs * 1.2);
-    const box = { x: 52, y: 26, w: w - 66, h: h - 68 };
+    const box = { x: 52, y: 48, w: w - 66, h: h - 90 };
     const p = lc.plot(ctx, box, [0, 1], [-ySpan, ySpan]);
     p.axes({
       xTicks: [0, 0.25, 0.5, 0.75, 1],
@@ -313,10 +319,12 @@ Page({
     const lossDb = -10 * Math.log10(Math.max(m.etaPh, 1e-6));
     lc.label(ctx,
       'η_ph = ' + (m.etaPh * 100).toFixed(1) + '% → 相位损失 ' + lossDb.toFixed(2) + ' dB',
-      box.x + box.w, box.y - 8, { align: 'right', color: THEME.ink, font: THEME.fontTitle });
+      w/2, 15, { align: 'center', color: THEME.inkSoft, font: THEME.fontLabel });
     lc.legend(ctx, [{ name: 'δ(r) 路径相位误差（D = 6λ）', color: THEME.accent }], box.x, h - 12);
   },
 
+  onLabView(e) { visual.fitView(this,e.currentTarget.dataset.view); this._home=stage.saveHome(this.controls); },
+  onLabRotate() { const value=!this.data.autoRotate; this.setData({autoRotate:value}); if(this.controls)this.controls.autoRotate=value; },
   onShareAppMessage() {
     return { title: '抛物面反射天线 3D 实验室', path: '/pages/interactive/3d-lab/parabolic/parabolic' };
   },

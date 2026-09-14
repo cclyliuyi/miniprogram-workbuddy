@@ -1,0 +1,824 @@
+{
+  "eit": [
+    {
+      "id": "v2-e01",
+      "number": 1,
+      "title": "从电磁场到信号",
+      "stage": "口径与观测",
+      "subtitle": "天线是场与信号的接口",
+      "coreQuestion": "入射电磁场怎样成为接收机能处理的量？",
+      "knownConcept": "天线把入射场耦合为端口电压或电流；接收机观察到的是经过天线与电路响应后的信号。",
+      "frontierConcept": "观察量由方向、极化、频率和匹配共同决定。",
+      "oneSentence": "天线是场与信号的接口",
+      "misconception": "不要把穿过任意几何表面的功率积分直接等同于天线可用接收功率。",
+      "exercise": "同一入射场换一副天线，端口信号是否相同？",
+      "tags": [
+        "口径与观测"
+      ],
+      "keyFormula": "",
+      "status": "final",
+      "image": "e01.png",
+      "labels": [
+        "入射场",
+        "天线",
+        "端口信号"
+      ],
+      "scene": "Cyan incoming wavefronts approach a copper center-fed dipole connected by coax to a simple oscilloscope displaying one waveform."
+    },
+    {
+      "id": "v2-e02",
+      "number": 2,
+      "title": "口径决定看得多细",
+      "stage": "口径与观测",
+      "subtitle": "更大口径，通常更细分辨",
+      "coreQuestion": "为什么更大的口径能分辨更接近的方向？",
+      "knownConcept": "口径上的空间相位差提供方向线索。波长一定时，更大的有效观测范围通常能形成更窄的角响应。",
+      "frontierConcept": "先建立空间分辨能力，再问可以区分多少模式。",
+      "oneSentence": "更大口径，通常更细分辨",
+      "misconception": "角分辨率与口径尺寸、照明方式有关，不能只看面积数值。",
+      "exercise": "保持波长不变，把线口径加倍，主瓣宽度会怎样变化？",
+      "tags": [
+        "口径与观测"
+      ],
+      "keyFormula": "",
+      "status": "final",
+      "image": "e02.png",
+      "labels": [
+        "小口径",
+        "大口径",
+        "方向分辨"
+      ],
+      "scene": "Two simple receiving aperture openings vertically arranged: small opening with broad angular response, larger opening with narrow angular response. Two distant wave directions distinguished by large opening. Diagram is conceptual not a quantitative graph."
+    },
+    {
+      "id": "v2-e03",
+      "number": 3,
+      "title": "有效口径不是面积",
+      "stage": "口径与观测",
+      "subtitle": "几何尺寸还要经过耦合",
+      "coreQuestion": "天线画得更大，就一定接收更多功率吗？",
+      "knownConcept": "有效口径描述接收能力，几何面积描述实体尺寸。在匹配、方向和极化条件合适时，可用接收功率与入射功率密度及有效口径关联。",
+      "frontierConcept": "增益、有效口径和效率把几何结构连接到链路能量。",
+      "oneSentence": "几何尺寸还要经过耦合",
+      "misconception": "有效口径不等于任意天线的几何面积；失配与极化失配要另外说明。",
+      "exercise": "比较两副面积相同、效率不同的天线，它们的可用功率会一样吗？",
+      "tags": [
+        "口径与观测"
+      ],
+      "keyFormula": "",
+      "status": "final",
+      "image": "e03.png",
+      "labels": [
+        "几何口径",
+        "耦合效率",
+        "可用信号"
+      ],
+      "scene": "Large copper aperture catches cyan wave; some energy emerges as signal in cable while pale energy paths indicate uncoupled energy. Three simple labeled stages, no numeric ratios."
+    },
+    {
+      "id": "v2-e04",
+      "number": 4,
+      "title": "口径上的相位地图",
+      "stage": "口径与观测",
+      "subtitle": "看空间结构，也看总功率",
+      "coreQuestion": "为什么同一束波在阵列各位置的相位不同？",
+      "knownConcept": "不同位置的传播路程造成相位差。阵列利用这些相位关系估计来波方向，并通过相干合成增强选定方向。",
+      "frontierConcept": "信息保存在空间变化中，而不只在总接收功率里。",
+      "oneSentence": "看空间结构，也看总功率",
+      "misconception": "相位分布取决于波前、参考相位和频率；相位图并非信息量的直接读数。",
+      "exercise": "两束总功率相同、入射方向不同的波，相位地图有何区别？",
+      "tags": [
+        "口径与观测"
+      ],
+      "keyFormula": "",
+      "status": "final",
+      "image": "e04.png",
+      "labels": [
+        "波前",
+        "相位差",
+        "空间结构"
+      ],
+      "scene": "Oblique cyan plane wave striking five copper array sensors with clearly different colored phase circles across array, one broad clean slanted wavefront, not crowded."
+    },
+    {
+      "id": "v2-e05",
+      "number": 5,
+      "title": "传播把空间连起来",
+      "stage": "传播与散射",
+      "subtitle": "信道由物理环境塑造",
+      "coreQuestion": "从发射电流到接收场，中间发生了什么？",
+      "knownConcept": "传播响应把源区的电流分布映射到观测区的电磁场。环境中的材料、边界和几何都会改变这项映射。",
+      "frontierConcept": "格林函数或传播算子让电磁模型与信道模型相接。",
+      "oneSentence": "信道由物理环境塑造",
+      "misconception": "传播不是只有距离衰减；偏振变化、遮挡和反射也影响观测。",
+      "exercise": "保持天线不变，在路径中加入一面墙，改变的是哪一部分？",
+      "tags": [
+        "传播与散射"
+      ],
+      "keyFormula": "",
+      "status": "final",
+      "image": "e05.png",
+      "labels": [
+        "发射",
+        "环境",
+        "接收"
+      ],
+      "scene": "A copper transmitter on left and receiver on right with a single cyan propagating wave passing through an abstract clean environment region with one wall and one open path."
+    },
+    {
+      "id": "v2-e06",
+      "number": 6,
+      "title": "多径带来不同视角",
+      "stage": "传播与散射",
+      "subtitle": "多径的价值取决于可区分性",
+      "coreQuestion": "多径只能造成衰落吗？",
+      "knownConcept": "直达、反射和散射分量以不同方向、时延与相位到达接收端；它们可能提供可区分的观测，也可能相互抵消。",
+      "frontierConcept": "能分开的路径结构可以成为空间或时延多样性的资源。",
+      "oneSentence": "多径的价值取决于可区分性",
+      "misconception": "多径条数不等于独立数据流数，相关性和接收分辨能力同样重要。",
+      "exercise": "把两条到达方向几乎相同的路径与方向相差很大的路径比较。",
+      "tags": [
+        "传播与散射"
+      ],
+      "keyFormula": "",
+      "status": "final",
+      "image": "e06.png",
+      "labels": [
+        "直达",
+        "反射",
+        "不同视角"
+      ],
+      "scene": "Clean three-dimensional scene with transmitter and receiver plus two separate walls; three visible teal/copper paths, one direct and two reflections, arrive at receiver from clearly distinct directions."
+    },
+    {
+      "id": "v2-e07",
+      "number": 7,
+      "title": "富散射与空间自由度",
+      "stage": "传播与散射",
+      "subtitle": "可分辨的多径，支持空间复用",
+      "coreQuestion": "为什么富散射环境能为 MIMO 通信带来更多空间自由度？",
+      "knownConcept": "富散射指环境提供丰富的散射传播分量。若这些分量在收发阵列上形成可分辨、相关性较低的空间响应，就能支持更多独立空间通道，让多路数据在同一时频资源上传输。",
+      "frontierConcept": "相对于空间通道退化的环境，富散射可提高信道秩与空间复用自由度。收益取决于收发口径、出发与到达角分布，以及模式的独立性；有限信噪比下还要看弱模式能否使用。",
+      "oneSentence": "可分辨的多径，支持空间复用",
+      "misconception": "富散射不等于多重散射：前者强调传播分量的丰富性，后者强调电波经历多次散射。路径多不保证满秩，强相关或钥孔效应仍可能限制自由度。",
+      "exercise": "同样是两发两收，两条路径的空间响应几乎相同，和两条可分辨路径相比，能独立传几路数据？",
+      "tags": [
+        "传播与散射"
+      ],
+      "keyFormula": "",
+      "status": "final",
+      "image": "e07.png",
+      "labels": [
+        "发射阵列",
+        "丰富散射",
+        "接收阵列"
+      ],
+      "scene": "Transmit and receive antenna arrays connected through spatially distinct scatterers, with distinguishable departure and arrival directions illustrating rich scattering and spatial multiplexing."
+    },
+    {
+      "id": "v2-e08",
+      "number": 8,
+      "title": "散射丰富不等于容量高",
+      "stage": "传播与散射",
+      "subtitle": "既要分得开，也要收得到",
+      "coreQuestion": "富散射增加空间自由度，为什么容量仍要单独评估？",
+      "knownConcept": "富散射可以拓宽角谱、改善空间通道的独立性，为 MIMO 提供自由度收益。但额外路径也可能较弱或有较大损耗；在有限总功率和噪声条件下，容量还取决于各模式的信噪比与功率分配。",
+      "frontierConcept": "同时看独立性和能量，才能判断多径的通信价值。",
+      "oneSentence": "既要分得开，也要收得到",
+      "misconception": "不能在固定总功率与噪声条件之外，笼统断言散射越多越好。",
+      "exercise": "两条弱但独立的通道与一条强通道，哪个更好？还缺什么条件？",
+      "tags": [
+        "传播与散射"
+      ],
+      "keyFormula": "",
+      "status": "final",
+      "image": "e08.png",
+      "labels": [
+        "模式独立",
+        "传播损耗",
+        "一起衡量"
+      ],
+      "scene": "A balanced physical scale: left holds two clearly distinct colored wave channels, right holds a fading attenuated wave and subtle loss symbol; one elegant scientific tradeoff image, not text-heavy."
+    },
+    {
+      "id": "v2-e09",
+      "number": 9,
+      "title": "近场多了距离线索",
+      "stage": "传播与散射",
+      "subtitle": "波前曲率携带距离线索",
+      "coreQuestion": "近场为什么不能只用到达角描述？",
+      "knownConcept": "大口径附近的球面波前曲率不可忽略。同一方向、不同距离的源，可能在口径上留下不同相位结构。",
+      "frontierConcept": "距离聚焦与角度选择一起影响可分辨的空间模式。",
+      "oneSentence": "波前曲率携带距离线索",
+      "misconception": "近场不自动保证更多有效自由度；还受口径、距离、波长、噪声与耦合限制。",
+      "exercise": "两个用户在同一方向不同距离，何时仍可能被区分？",
+      "tags": [
+        "传播与散射"
+      ],
+      "keyFormula": "",
+      "status": "final",
+      "image": "e09.png",
+      "labels": [
+        "球面波",
+        "同方向",
+        "不同距离"
+      ],
+      "scene": "Two cyan/copper point sources on same radial axis but at different distances from a broad receiver aperture. Show distinct curvature of spherical wavefronts and two focusing distances, not plane waves."
+    },
+    {
+      "id": "v2-e10",
+      "number": 10,
+      "title": "模式是独立的表达方式",
+      "stage": "模式与自由度",
+      "subtitle": "模式把复杂场拆成结构",
+      "coreQuestion": "很多测量值为什么可以用较少的模式表达？",
+      "knownConcept": "把复杂场分解到一组基函数上，可以分开描述不同空间结构。合适的模式让传输关系更容易理解。",
+      "frontierConcept": "模式分解是描述工具；可用模式数还取决于实际传输强度。",
+      "oneSentence": "模式把复杂场拆成结构",
+      "misconception": "换一套数学基并不会凭空增加物理通道。",
+      "exercise": "多个测点高度相关时，是否一定需要同样多个独立模式？",
+      "tags": [
+        "模式与自由度"
+      ],
+      "keyFormula": "",
+      "status": "final",
+      "image": "e10.png",
+      "labels": [
+        "复杂场",
+        "模式一",
+        "模式二"
+      ],
+      "scene": "A translucent complex wave ribbon separates smoothly into two distinctly shaped orthogonal-looking wave ribbons, teal and copper, balanced simple physical decomposition."
+    },
+    {
+      "id": "v2-e11",
+      "number": 11,
+      "title": "奇异值看通道强弱",
+      "stage": "模式与自由度",
+      "subtitle": "独立通道也有强弱之分",
+      "coreQuestion": "哪些发射模式能有效到达接收端？",
+      "knownConcept": "在适当离散化与功率归一化下，对信道做奇异值分解，可得到配对的发射与接收模式及其传输强度。",
+      "frontierConcept": "大奇异值对应较强耦合，小奇异值模式可能淹没在噪声中。",
+      "oneSentence": "独立通道也有强弱之分",
+      "misconception": "奇异值依赖模型与归一化；模式数和模式强度必须一起看。",
+      "exercise": "两个信道秩相同，但奇异值分布不同，性能会一样吗？",
+      "tags": [
+        "模式与自由度"
+      ],
+      "keyFormula": "",
+      "status": "final",
+      "image": "e11.png",
+      "labels": [
+        "强通道",
+        "中通道",
+        "弱通道"
+      ],
+      "scene": "Three parallel smooth transmission channels from left aperture to right aperture: bright broad teal strong channel, medium copper channel, thin faded weak channel. Their weights are visually distinct, no decorative bar chart numbers."
+    },
+    {
+      "id": "v2-e12",
+      "number": 12,
+      "title": "自由度不是阵元数",
+      "stage": "模式与自由度",
+      "subtitle": "端口多，不代表独立信息多",
+      "coreQuestion": "为什么增加天线数量不一定等比例增加独立信道？",
+      "knownConcept": "阵元数描述采样端口数，信道秩描述线性独立性，有效自由度还要指定噪声或阈值。它们回答不同问题。",
+      "frontierConcept": "有限口径和环境约束下，过密采样可能主要增加相关观测。",
+      "oneSentence": "端口多，不代表独立信息多",
+      "misconception": "严格高信噪比自由度、代数秩和有限信噪比有效自由度不可混用。",
+      "exercise": "把同一根天线信号复制十份，独立信息增加了吗？",
+      "tags": [
+        "模式与自由度"
+      ],
+      "keyFormula": "",
+      "status": "final",
+      "image": "e12.png",
+      "labels": [
+        "采样端口",
+        "独立模式",
+        "有效自由度"
+      ],
+      "scene": "Many small copper sensor dots on one fixed-size aperture converge into only three broad independent colored ribbons. Make three ribbons obvious and keep dots count modest. Single concept diagram."
+    },
+    {
+      "id": "v2-e13",
+      "number": 13,
+      "title": "角谱决定可见空间",
+      "stage": "模式与自由度",
+      "subtitle": "口径与环境共同决定模式",
+      "coreQuestion": "口径同样大，为什么不同环境的空间自由度不同？",
+      "knownConcept": "有限口径只能分辨有限的空间变化；环境的到达角范围又决定哪些空间频率被有效激励。",
+      "frontierConcept": "空间自由度由观测范围与角谱共同限制，而非单独由阵元数决定。",
+      "oneSentence": "口径与环境共同决定模式",
+      "misconception": "具体自由度公式依赖线阵或面阵、单侧或双侧、极化与波场模型。",
+      "exercise": "狭窄角度来波和宽角度来波，在同一阵列上留下的相关性有何不同？",
+      "tags": [
+        "模式与自由度"
+      ],
+      "keyFormula": "",
+      "status": "final",
+      "image": "e13.png",
+      "labels": [
+        "有限口径",
+        "到达角谱",
+        "共同约束"
+      ],
+      "scene": "One clean receiving aperture with a fan of incoming directions above; narrow inner fan copper and broad outer fan cyan, emphasizing angular spread and finite observation width."
+    },
+    {
+      "id": "v2-e14",
+      "number": 14,
+      "title": "采得更密，也有边界",
+      "stage": "模式与自由度",
+      "subtitle": "连续描述不等于无限信息",
+      "coreQuestion": "连续口径是否意味着无限可用自由度？",
+      "knownConcept": "更密采样能更充分逼近连续场，但相邻端口相关、互耦和接收电路代价会变得重要。可用信息仍受物理和噪声约束。",
+      "frontierConcept": "先问空间变化能否被观测，再设计采样与射频实现。",
+      "oneSentence": "连续描述不等于无限信息",
+      "misconception": "半波长采样并非适用于所有近场与倏逝场问题的万能规则。",
+      "exercise": "在固定口径内把阵元间距减半，哪些收益可能饱和？",
+      "tags": [
+        "模式与自由度"
+      ],
+      "keyFormula": "",
+      "status": "final",
+      "image": "e14.png",
+      "labels": [
+        "稀疏采样",
+        "密集采样",
+        "收益趋缓"
+      ],
+      "scene": "Two equal-width copper apertures vertically aligned, upper with 5 sensors lower with 11 sensors, both observing same smooth teal spatial wave. Equal physical length is very explicit."
+    },
+    {
+      "id": "v2-e15",
+      "number": 15,
+      "title": "噪声决定哪些模式可用",
+      "stage": "从场到信息",
+      "subtitle": "看得到，才谈得上利用",
+      "coreQuestion": "数学上存在的模式，接收机都能使用吗？",
+      "knownConcept": "弱模式可能被热噪声、干扰或硬件误差掩盖。有限信噪比下，能可靠区分的模式通常少于数学模型中的全部模式。",
+      "frontierConcept": "有效自由度必须说明功率、噪声和判定标准。",
+      "oneSentence": "看得到，才谈得上利用",
+      "misconception": "噪声可能有空间相关性，不能总当成各端口独立白噪声。",
+      "exercise": "降低噪声之后，是产生了新物理模式，还是看见了原本的弱模式？",
+      "tags": [
+        "从场到信息"
+      ],
+      "keyFormula": "",
+      "status": "final",
+      "image": "e15.png",
+      "labels": [
+        "强模式",
+        "噪声底",
+        "弱模式"
+      ],
+      "scene": "Three luminous wave peaks at different heights above a clearly labeled soft gray noise floor; one high teal mode, one medium copper mode, one faint submerged mode. Large sparse labels, no quantitative axes."
+    },
+    {
+      "id": "v2-e16",
+      "number": 16,
+      "title": "从接收功率到信息容量",
+      "stage": "从场到信息",
+      "subtitle": "能量预算之外，还要看模式",
+      "coreQuestion": "接收功率相同，能传的信息一定一样吗？",
+      "knownConcept": "容量还取决于带宽、噪声、信道模式以及输入功率分配。在理想独立高斯子信道模型下，可按各模式信噪比相加计算频谱效率。",
+      "frontierConcept": "由“收到多少能量”转向“能区分多少可靠的输入”。",
+      "oneSentence": "能量预算之外，还要看模式",
+      "misconception": "不能把模式数直接当成容量；也不能把频谱效率和 bit/s 混为一谈。",
+      "exercise": "相同总功率集中在一个模式或分到多个模式，怎样比较？",
+      "tags": [
+        "从场到信息"
+      ],
+      "keyFormula": "",
+      "status": "final",
+      "image": "e16.png",
+      "labels": [
+        "功率",
+        "模式与噪声",
+        "信息容量"
+      ],
+      "scene": "A single copper energy stream enters a central clean channel prism and emerges as three distinguishable teal information-bearing wave lanes. One broad linking arrow, no binary-digit clutter."
+    },
+    {
+      "id": "v2-e17",
+      "number": 17,
+      "title": "把功率分给合适的模式",
+      "stage": "从场到信息",
+      "subtitle": "资源分配也是信息问题",
+      "coreQuestion": "为什么最弱的模式不一定值得投入功率？",
+      "knownConcept": "固定总功率时，把资源分给不同模式会改变总信息率。理想已知信道与高斯噪声条件下，注水思想优先使用条件较好的模式。",
+      "frontierConcept": "资源优化建立在物理可达模式之上。",
+      "oneSentence": "资源分配也是信息问题",
+      "misconception": "注水依赖信道知识、噪声模型与约束；实际还受功放、每端口功率和调制限制。",
+      "exercise": "总功率很小时，平均分给所有模式一定最优吗？",
+      "tags": [
+        "从场到信息"
+      ],
+      "keyFormula": "",
+      "status": "final",
+      "image": "e17.png",
+      "labels": [
+        "强模式",
+        "弱模式",
+        "功率分配"
+      ],
+      "scene": "Two open vessels with different raised floor heights, common horizontal teal water level, lower-floor vessel contains more water. Beautiful clear water-filling analogy with only two vessels, no misleading unlimited energy."
+    },
+    {
+      "id": "v2-e18",
+      "number": 18,
+      "title": "连续口径连接两种理论",
+      "stage": "从场到信息",
+      "subtitle": "从可辐射的场到可传输的信息",
+      "coreQuestion": "电磁信息论最终希望一起回答什么？",
+      "knownConcept": "把几何、材料、传播、端口、噪声和信息指标放进一致模型，研究什么信息可传、由哪些模式承载、代价是什么。",
+      "frontierConcept": "连续口径阵列与全息 MIMO 是研究方向；实现仍要考虑损耗、互耦、采样和电路。",
+      "oneSentence": "从可辐射的场到可传输的信息",
+      "misconception": "这是物理约束下的联合建模框架；前沿模型结论不等于已实现的工程性能。",
+      "exercise": "设计天线时，除了增益，还应增加哪些与信息有关的评价量？",
+      "tags": [
+        "从场到信息"
+      ],
+      "keyFormula": "",
+      "status": "final",
+      "image": "e18.png",
+      "labels": [
+        "电磁约束",
+        "可用模式",
+        "信息指标"
+      ],
+      "scene": "An elegant copper continuous aperture with smooth teal field surface on left, three mode ribbons in center, a simple receiver information display on right, integrated coherent scene like a bridge between physics and information."
+    }
+  ],
+  "method": [
+    {
+      "id": "v2-m01",
+      "number": 1,
+      "title": "经验可以换一种表达",
+      "stage": "重新认识专业能力",
+      "subtitle": "迁移方法，不必推倒重来",
+      "coreQuestion": "多年电子信息经验，在 AI 时代还能用在哪里？",
+      "coreProposition": "你熟悉的建模、实验、误差和权衡，能转化为定义任务、检查证据和判断结果的能力。",
+      "exercise": "把一个你擅长的问题写成“输入、目标、约束、怎么验收”四句话。",
+      "misconception": "经验需要重新检验适用条件；不要把类比当成两个领域严格等价。",
+      "philosophy": "迁移方法，不必推倒重来",
+      "keywords": [
+        "重新认识专业能力"
+      ],
+      "status": "final",
+      "image": "m01.png",
+      "labels": [
+        "专业经验",
+        "重新表达",
+        "AI协作"
+      ],
+      "scene": "A mature engineer workbench with copper antenna prototype and notebook transforms via a simple bridge into a clean AI-assisted workspace; no robot replacing person, no age stereotypes."
+    },
+    {
+      "id": "v2-m02",
+      "number": 2,
+      "title": "先定义问题，再提问",
+      "stage": "重新认识专业能力",
+      "subtitle": "把需求写成可判断的问题",
+      "coreQuestion": "为什么一句“帮我优化”常得不到可用结果？",
+      "coreProposition": "像建立电磁模型一样，先写清对象、激励、约束和观测量，再让 AI 处理。任务描述应让别人也能判断是否完成。",
+      "exercise": "让 AI 比较两种天线方案前，先明确频段、尺寸、效率、成本与交付格式。",
+      "misconception": "指令越长并不必然越好；缺少关键条件和堆砌无关条件都会带来偏差。",
+      "philosophy": "把需求写成可判断的问题",
+      "keywords": [
+        "重新认识专业能力"
+      ],
+      "status": "final",
+      "image": "m02.png",
+      "labels": [
+        "输入",
+        "约束",
+        "验收"
+      ],
+      "scene": "One professional notebook with three large labeled tabs surrounding a simple copper system block, then a small clean AI dialog window, physical engineering brief becomes clear request."
+    },
+    {
+      "id": "v2-m03",
+      "number": 3,
+      "title": "信号思维整理上下文",
+      "stage": "重新认识专业能力",
+      "subtitle": "让关键证据更突出",
+      "coreQuestion": "给 AI 的资料越多，回答就越可靠吗？",
+      "coreProposition": "借用信号处理的直觉，先筛选与任务相关、来源可靠、版本明确的材料。上下文要让关键证据容易被找到。",
+      "exercise": "为一次方案评审准备一页约束、三份核心资料和明确的版本日期。",
+      "misconception": "“上下文信噪比”是工程类比，不是可以直接套用通信容量公式的量。",
+      "philosophy": "让关键证据更突出",
+      "keywords": [
+        "重新认识专业能力"
+      ],
+      "status": "final",
+      "image": "m03.png",
+      "labels": [
+        "原始资料",
+        "筛选",
+        "任务上下文"
+      ],
+      "scene": "A stream of mixed pale document sheets passes through a teal filter, emerging as three clear structured navy documents. No tiny writing, only three large labels."
+    },
+    {
+      "id": "v2-m04",
+      "number": 4,
+      "title": "模型要标清适用范围",
+      "stage": "重新认识专业能力",
+      "subtitle": "先看假设，再看结论",
+      "coreQuestion": "为什么 AI 的答案换个条件就不成立？",
+      "coreProposition": "你熟悉模型假设与适用范围。使用 AI 时同样要区分事实、假设、估计和建议，检查它是否跨出了证据边界。",
+      "exercise": "要求一份计算结论分别列出“已知条件、采用假设、不适用情形”。",
+      "misconception": "模型自述“有把握”不构成校准置信度，也不能代替验证。",
+      "philosophy": "先看假设，再看结论",
+      "keywords": [
+        "重新认识专业能力"
+      ],
+      "status": "final",
+      "image": "m04.png",
+      "labels": [
+        "条件",
+        "模型",
+        "边界"
+      ],
+      "scene": "A precise copper model under a clear glass dome bounded by a teal ring; inside reliable simple geometry, outside pale uncertain terrain. Three large labels."
+    },
+    {
+      "id": "v2-m05",
+      "number": 5,
+      "title": "测量思维核验结果",
+      "stage": "测量与反馈",
+      "subtitle": "用外部证据检验输出",
+      "coreQuestion": "怎么知道 AI 输出真的可用？",
+      "coreProposition": "像校验仪器一样，使用已知答案、独立计算或原始记录验证结果。漂亮的解释与正确的输出是两回事。",
+      "exercise": "拿三个你已知答案的典型案例，让 AI 完成并逐项核对。",
+      "misconception": "再次询问同一个模型可能重复相同错误，不能当成独立证据。",
+      "philosophy": "用外部证据检验输出",
+      "keywords": [
+        "测量与反馈"
+      ],
+      "status": "final",
+      "image": "m05.png",
+      "labels": [
+        "AI结果",
+        "独立核验",
+        "可用结论"
+      ],
+      "scene": "A clean AI result document on one side and calibrated bench measurement instrument on other, both point to one verified result sheet; no fake numerical precision."
+    },
+    {
+      "id": "v2-m06",
+      "number": 6,
+      "title": "误差预算找到薄弱环节",
+      "stage": "测量与反馈",
+      "subtitle": "先定位误差，再换工具",
+      "coreQuestion": "出错时，究竟是资料、推理还是工具的问题？",
+      "coreProposition": "把整条工作过程拆成来源、提取、计算和表达，逐段定位误差。不要只用“模型不够聪明”概括所有失败。",
+      "exercise": "复盘一次错误：原文读错、单位换错、公式选错，还是结论写过头？",
+      "misconception": "误差来源可能相互影响，不能总用简单相加替代实际分析。",
+      "philosophy": "先定位误差，再换工具",
+      "keywords": [
+        "测量与反馈"
+      ],
+      "status": "final",
+      "image": "m06.png",
+      "labels": [
+        "资料",
+        "计算",
+        "表达"
+      ],
+      "scene": "Three clean workbench stations labeled documents calculation presentation, one copper warning magnifier highlights middle station, teal checkpoints connect stages."
+    },
+    {
+      "id": "v2-m07",
+      "number": 7,
+      "title": "闭环让协作可修正",
+      "stage": "测量与反馈",
+      "subtitle": "行动之后，要有真实反馈",
+      "coreQuestion": "一次提示没有成功，下一步怎样改？",
+      "coreProposition": "借用闭环控制思维：先定义目标，执行后观察差距，再根据真实结果修正。每轮改一个关键因素，更容易归因。",
+      "exercise": "让 AI 生成一版报告，用明确检查表指出缺口，再只修改最关键的问题。",
+      "misconception": "自然语言系统不是已知线性控制对象；不能未经分析照搬稳定性公式。",
+      "philosophy": "行动之后，要有真实反馈",
+      "keywords": [
+        "测量与反馈"
+      ],
+      "status": "final",
+      "image": "m07.png",
+      "labels": [
+        "目标",
+        "行动",
+        "反馈"
+      ],
+      "scene": "Three large stations arranged as one elegant circular feedback loop, target at top, action on right, measurement feedback on left; teal arrows and copper central adjustment dial."
+    },
+    {
+      "id": "v2-m08",
+      "number": 8,
+      "title": "观测过程，才能诊断",
+      "stage": "测量与反馈",
+      "subtitle": "留下证据，而不只留答案",
+      "coreQuestion": "长任务只给最终答案，为什么很难信任？",
+      "coreProposition": "保留关键输入、工具结果、版本和中间产物，让过程可检查、失败可定位。重点是外部执行证据。",
+      "exercise": "在一次数据分析中保留原始文件、计算脚本、关键图表与结论对应关系。",
+      "misconception": "可追溯记录不等于模型内部思维；无需索取隐藏推理也能审计结果。",
+      "philosophy": "留下证据，而不只留答案",
+      "keywords": [
+        "测量与反馈"
+      ],
+      "status": "final",
+      "image": "m08.png",
+      "labels": [
+        "输入记录",
+        "执行证据",
+        "结果追溯"
+      ],
+      "scene": "A tidy chronological row of three substantial evidence cards with simple icons file tool output, connected by a teal line above a notebook; no tiny logs or binary text."
+    },
+    {
+      "id": "v2-m09",
+      "number": 9,
+      "title": "约束比愿望更可执行",
+      "stage": "约束与实验",
+      "subtitle": "边界既要说清，也要落实",
+      "coreQuestion": "怎样让 AI 知道哪些操作不能做？",
+      "coreProposition": "像工程边界条件一样明确可操作范围；实际权限由系统和工具限制。只读检查、可逆修改与对外发布应区别处理。",
+      "exercise": "把“先分析，不发邮件，不改原始数据”落实为工具权限和副本工作区。",
+      "misconception": "提示词中的禁止语句不能替代真实权限控制或隔离。",
+      "philosophy": "边界既要说清，也要落实",
+      "keywords": [
+        "约束与实验"
+      ],
+      "status": "final",
+      "image": "m09.png",
+      "labels": [
+        "任务范围",
+        "工具权限",
+        "关键确认"
+      ],
+      "scene": "A clear work area enclosed by a copper boundary with a teal tool inside and an external publish gate locked at right. Human checkpoint at gate, no fear imagery."
+    },
+    {
+      "id": "v2-m10",
+      "number": 10,
+      "title": "优化要承认多目标",
+      "stage": "约束与实验",
+      "subtitle": "先定优先级，再谈最优",
+      "coreQuestion": "快、便宜、可靠，怎样做取舍？",
+      "coreProposition": "电子信息设计常在性能、成本、体积与功耗之间权衡。AI 工作同样要明确质量、时延、费用和人工复核成本。",
+      "exercise": "比较两个工作流程时，同时记录正确率、耗时、费用与返工次数。",
+      "misconception": "不要用一个总分掩盖关键失败，也不要默认更大模型对每个任务都更好。",
+      "philosophy": "先定优先级，再谈最优",
+      "keywords": [
+        "约束与实验"
+      ],
+      "status": "final",
+      "image": "m10.png",
+      "labels": [
+        "质量",
+        "时间",
+        "成本"
+      ],
+      "scene": "Three large balanced sliders or physical adjustable knobs arranged around one feasible design point, navy teal copper, no numerical claims."
+    },
+    {
+      "id": "v2-m11",
+      "number": 11,
+      "title": "用对照实验改进流程",
+      "stage": "约束与实验",
+      "subtitle": "改进要经得起对照",
+      "coreQuestion": "新提示词看起来更好，真的更好吗？",
+      "coreProposition": "保留固定测试案例，在相同条件下比较两种做法，统计成功与失败类型。区分开发时反复调试的案例和未见过的验收案例。",
+      "exercise": "准备十个常见任务，比较加不加资料检索对结果的影响。",
+      "misconception": "十个案例只是起点；小样本不能证明普遍有效，模型随机性也要考虑。",
+      "philosophy": "改进要经得起对照",
+      "keywords": [
+        "约束与实验"
+      ],
+      "status": "final",
+      "image": "m11.png",
+      "labels": [
+        "相同任务",
+        "两种方案",
+        "比较结果"
+      ],
+      "scene": "Two parallel clean test benches A and B but ONLY Chinese labels supplied, identical input document branches into teal and copper workflows, results side by side checked with a measuring ruler."
+    },
+    {
+      "id": "v2-m12",
+      "number": 12,
+      "title": "把失败变成检查项",
+      "stage": "约束与实验",
+      "subtitle": "经验沉淀为可重复的检查",
+      "coreQuestion": "同一种错误为什么总会重来？",
+      "coreProposition": "可靠性工程重视失效模式。把真实失败整理成检查清单、边界样例和回归任务，比只保存成功提示词更有价值。",
+      "exercise": "把“频率单位混用”写成每次计算前必须验证的一项，并加入测试样例。",
+      "misconception": "检查项应来自任务风险与历史失败，不是越长越好。",
+      "philosophy": "经验沉淀为可重复的检查",
+      "keywords": [
+        "约束与实验"
+      ],
+      "status": "final",
+      "image": "m12.png",
+      "labels": [
+        "失败案例",
+        "检查项",
+        "回归验证"
+      ],
+      "scene": "A copper cracked prototype transforms into a clear checklist and then a repaired teal prototype through two deliberate arrows; constructive calm tone, three objects only."
+    },
+    {
+      "id": "v2-m13",
+      "number": 13,
+      "title": "先做好一个小工作流",
+      "stage": "在真实工作中迁移",
+      "subtitle": "从可验收的小任务开始",
+      "coreQuestion": "一定要从自主 Agent 开始吗？",
+      "coreProposition": "选一个边界清楚的重复任务，从人能检查的步骤开始：资料整理、计算、结果复核。确有需要时再增加自主决策。",
+      "exercise": "先让 AI 整理测试记录并生成待核对摘要，不直接替你作最终技术承诺。",
+      "misconception": "工作流和自主 Agent 各有适用情形，自主性增加也会增加检查与恢复成本。",
+      "philosophy": "从可验收的小任务开始",
+      "keywords": [
+        "在真实工作中迁移"
+      ],
+      "status": "final",
+      "image": "m13.png",
+      "labels": [
+        "小任务",
+        "固定步骤",
+        "人工验收"
+      ],
+      "scene": "One modest three-step pipeline on a real engineering desk: file tray, AI helper tool, human review stamp. No giant robot or futuristic overload."
+    },
+    {
+      "id": "v2-m14",
+      "number": 14,
+      "title": "让知识成为可用资源",
+      "stage": "在真实工作中迁移",
+      "subtitle": "把隐性经验写成可查证的资料",
+      "coreQuestion": "多年经验怎样交给 AI 使用？",
+      "coreProposition": "把常见问题、参数范围、判断依据和典型失败整理成带来源的资料。资料通过检索提供给任务，重要决策仍由人核验。",
+      "exercise": "把最熟悉的一个专题整理成“问题—证据—判断—例外”四栏笔记。",
+      "misconception": "把文件放进知识库不等于模型学会了；检索质量、版本和授权仍要管理。",
+      "philosophy": "把隐性经验写成可查证的资料",
+      "keywords": [
+        "在真实工作中迁移"
+      ],
+      "status": "final",
+      "image": "m14.png",
+      "labels": [
+        "专业笔记",
+        "按需检索",
+        "任务使用"
+      ],
+      "scene": "A small elegant library of three engineering notebooks with copper tabs connects via a magnifying glass to a single active task sheet; clear source-to-use flow."
+    },
+    {
+      "id": "v2-m15",
+      "number": 15,
+      "title": "保留专业判断的位置",
+      "stage": "在真实工作中迁移",
+      "subtitle": "把经验放在关键判断处",
+      "coreQuestion": "AI 做得越来越多，人还负责什么？",
+      "coreProposition": "让 AI 承担检索、草拟和重复计算，把领域判断用于识别异常、确认约束、解释取舍和承担最终责任。",
+      "exercise": "审阅一份 AI 方案时，先检查最可能违背物理或工程条件的地方。",
+      "misconception": "年龄与既有经验并不决定能否适应；需要改变的是具体工作习惯，而非否定过去。",
+      "philosophy": "把经验放在关键判断处",
+      "keywords": [
+        "在真实工作中迁移"
+      ],
+      "status": "final",
+      "image": "m15.png",
+      "labels": [
+        "AI辅助",
+        "专业判断",
+        "共同交付"
+      ],
+      "scene": "An experienced adult engineer and a subtle non-humanoid AI display jointly inspect one copper antenna design, engineer pointing at one critical constraint; respectful grounded workspace."
+    },
+    {
+      "id": "v2-m16",
+      "number": 16,
+      "title": "用一个真实任务完成迁移",
+      "stage": "在真实工作中迁移",
+      "subtitle": "一次可验证的改进，就是起点",
+      "coreQuestion": "怎样开始，才不会只停留在学工具？",
+      "coreProposition": "选择低风险、可验证的真实任务，记录原流程基线；用 AI 完成一轮，比较质量与耗时，保留有效步骤，修正失败环节。",
+      "exercise": "本周选一次测试报告整理：先独立做一份基线，再用 AI 辅助，记录差异并复核结论。",
+      "misconception": "一次成功不代表可无人值守；扩大范围前要检查不同案例和失败恢复。",
+      "philosophy": "一次可验证的改进，就是起点",
+      "keywords": [
+        "在真实工作中迁移"
+      ],
+      "status": "final",
+      "image": "m16.png",
+      "labels": [
+        "真实任务",
+        "比较验证",
+        "积累方法"
+      ],
+      "scene": "A single engineering project notebook crosses a small bridge from familiar copper workbench to teal assisted workbench, three milestones along the bridge, grounded achievable progression."
+    }
+  ]
+}

@@ -5,18 +5,22 @@
 //   辐射电阻（参考电流波腹）Rr = (η₀/2π)·∫₀^π F²(θ)·sinθ dθ —— 半波 ≈73Ω、全波 ≈199Ω
 //   HPBW：先找全局最大辐射角 θmax，再向两侧搜 F² = F²max/2 交点
 const { registerOrbitControls } = require('./orbit-controls');
-const stage = require('../3d-lab/lab3d-stage');
+const stage = require('./lab3d-stage');
+const visual = require('./pkg-utils/lab3d-visual');
 const haptic = require('../../../utils/haptic');
-const rf = require('../../../utils/rf-math');
-const { rampColor } = require('../../../utils/lab-theme');
+const rf = require('./pkg-utils/rf-math');
+const { mixHex } = require('./pkg-utils/lab-theme');
+const HEAT_COLORS = ['#253494', '#167ac6', '#22bfd0', '#58ce8a', '#d9e85b', '#ffbf3f', '#f46d32', '#c9283e'];
 
 const T3 = stage.THEME3D;
 
-// 暖色顺序渐变 LUT（lab-theme rampColor → [r,g,b] 0..1，曲面顶点色用）
+// 蓝 → 青 → 绿 → 黄 → 红：归一化功率从弱到强。色标与曲面同源。
 const RAMP_LUT = (() => {
   const lut = [];
   for (let i = 0; i <= 64; i++) {
-    const hex = rampColor(i / 64).replace('#', '');
+    const x = i / 64 * (HEAT_COLORS.length - 1);
+    const j = Math.min(HEAT_COLORS.length - 2, Math.floor(x));
+    const hex = mixHex(HEAT_COLORS[j], HEAT_COLORS[j + 1], x - j).replace('#', '');
     lut.push([
       parseInt(hex.slice(0, 2), 16) / 255,
       parseInt(hex.slice(2, 4), 16) / 255,
@@ -52,12 +56,13 @@ const DB_FLOOR = -40;   // dB 上色下限
 
 Page({
   data: {
+    labView:'perspective', autoRotate:false,
     S: {
       type: 'halfwave',
       ptype: 'power',
-      cmap: 'db',
-      opacityVal: 85,
-      opacityText: '85%',
+      cmap: 'lin',
+      opacityVal: 100,
+      opacityText: '100%',
       rotate: false,
       showAxes: true,
       showCuts: true,
@@ -69,9 +74,11 @@ Page({
     statNote: '',
     captionText: TYPE_LABELS.halfwave + ' · 功率方向图',
     formulaF: F_FORMULA.halfwave,
-    legendTicks: DB_TICKS,
+    legendTicks: LIN_TICKS,
+    legendGradient: 'linear-gradient(to right, ' + HEAT_COLORS.join(', ') + ')',
     showHint: true,
     glReady: false,
+    glError: '',
   },
 
   THREE: null,
@@ -88,18 +95,27 @@ Page({
   animId: null,
   envDispose: null,
   state: {
-    type: 'halfwave', hl: 0.25, ptype: 'power', cmap: 'db',
-    opacity: 0.85, rotate: false, showAxes: true, showCuts: true, showAnt: true,
+    type: 'halfwave', hl: 0.25, ptype: 'power', cmap: 'lin',
+    opacity: 1, rotate: false, showAxes: true, showCuts: true, showAnt: true,
   },
 
-  onReady() {
+  onLoad() { this.refreshStats(); },
+  onReady() { this.initScene(); },
+  initScene() {
+    this.setData({glError: '', glReady: false});
     stage.initThree(this, '#three-canvas', {
       fov: 45,
       cameraPos: [3, 2.1, 3],
       onReady: (env) => this.setupScene(env),
+      onError: (err) => {
+        console.error('[radiation-3d] 初始化失败', err);
+        this.dispose();
+        this.setData({glError: '3D 场景加载失败，请点击重试'});
+      },
     });
   },
 
+  retryScene() { this.dispose(); this.initScene(); },
   onUnload() { this.dispose(); },
   onHide() { this.stopAnim(); stage.clearTimers(this); },
   onShow() {
@@ -152,6 +168,7 @@ Page({
       color: T3.warmGray, transparent: true, opacity: 0.22, depthWrite: false,
     }));
     grid.position.y = -1.4;
+    grid.userData.excludeFromFit = true;
     scene.add(grid);
   },
 
@@ -290,7 +307,7 @@ Page({
         );
         const t = cmap === 'db'
           ? Math.max(0, 1 + 20 * Math.log10(Math.max(rn, 1e-9)) / -DB_FLOOR)
-          : r;
+          : rn * rn;
         const c = rampRGB(t);
         col.push(c[0], c[1], c[2]);
       }
@@ -310,11 +327,12 @@ Page({
     geo.computeVertexNormals();
 
     this.patMesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
-      vertexColors: true,
+      vertexColors: THREE.VertexColors,
       side: THREE.DoubleSide,
       transparent: true,
       opacity: opacity,
-      shininess: 18,
+      shininess: 10,
+      specular: 0x161616,
     }));
     this.scene.add(this.patMesh);
 
@@ -561,7 +579,7 @@ Page({
   onRotate() {
     haptic.light();
     this.state.rotate = !this.state.rotate;
-    this.setData({ 'S.rotate': this.state.rotate });
+    this.setData({ 'S.rotate': this.state.rotate, autoRotate: this.state.rotate });
     if (this.controls) this.controls.autoRotate = this.state.rotate;
   },
 
@@ -590,6 +608,8 @@ Page({
   onTouchMove(e) { stage.touchMove(this, e); },
   onTouchEnd(e) { stage.touchEnd(this, e); },
 
+  onLabView(e) { visual.fitView(this,e.currentTarget.dataset.view); this.state.rotate=false; this.setData({'S.rotate':false}); this._home=stage.saveHome(this.controls); },
+  onLabRotate() { this.onRotate(); this.setData({autoRotate:this.state.rotate}); },
   onShareAppMessage() {
     return {
       title: '三维天线辐射方向图',

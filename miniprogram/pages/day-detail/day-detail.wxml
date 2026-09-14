@@ -18,12 +18,12 @@
             wx:if="{{item.front}}"
             class="flip-face flip-front"
             src="{{item.front}}"
-            mode="aspectFit" />
+            mode="aspectFit" data-index="{{index}}" binderror="onImageError" />
           <image
             wx:if="{{item.back}}"
             class="flip-face flip-back"
             src="{{item.back}}"
-            mode="aspectFit" />
+            mode="aspectFit" data-index="{{index}}" binderror="onImageError" />
         </view>
         <view wx:if="{{index === swiperCurrent}}" class="flip-tag num">{{flipped ? '反面' : '正面'}}</view>
         <view wx:if="{{index === swiperCurrent}}" class="zoom-btn" catchtap="preview">
@@ -34,13 +34,16 @@
     </swiper-item>
   </swiper>
 
+  <view wx:if="{{swiperList[swiperCurrent].status === 'error'}}" class="d-actions">
+    <button class="btn" bindtap="retrySlide">图片加载失败，点击重试</button>
+  </view>
   <!-- ═══ 知识盲盒：每天一个"诶？" ═══ -->
   <view class="kn-wrap {{cardAnim}}" wx:if="{{card}}">
     <view class="kn-month-bar" wx:if="{{card.monthTheme}}">
       <view class="kn-month-tag num">{{month}}月</view>
       <view class="kn-month-theme">{{card.monthTheme}}</view>
-      <view class="bar-fav {{isFav ? 'is-fav' : ''}} {{justChecked ? 'just-checked' : ''}}" bindtap="toggleFav">
-        <view class="fav-heart-sm"></view>
+      <view class="bar-fav {{isFav ? 'is-fav' : ''}} {{favAnimating ? 'fav-pop' : ''}}" bindtap="toggleFav">
+        <image class="fav-heart-sm" src="{{isFav ? '/assets/icons/heart-filled.png' : '/assets/icons/heart-outline.png'}}" mode="aspectFit" aria-label="{{isFav ? '已收藏，点击取消' : '收藏'}}" />
       </view>
     </view>
     <view class="kn-head">

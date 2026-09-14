@@ -5,15 +5,17 @@
 //   阵因子：rf.afWeighted；方向性 D ≈ (2d/λ)·(Σw)²/Σw²；HPBW / 实际 SLL / 零点数由方向图数值搜索
 const { registerOrbitControls } = require('../orbit-controls');
 const stage = require('../lab3d-stage');
+const visual = require('../pkg-utils/lab3d-visual');
 const haptic = require('../../../../utils/haptic');
-const rf = require('../../../../utils/rf-math');
-const lc = require('../../../../utils/lab-canvas');
-const { THEME, alpha, rampColor } = require('../../../../utils/lab-theme');
+const rf = require('../pkg-utils/rf-math');
+const lc = require('../pkg-utils/lab-canvas');
+const { THEME, alpha, rampColor } = require('../pkg-utils/lab-theme');
 
 const METHOD_LABELS = { chebyshev: 'Dolph-Chebyshev', taylor: 'Taylor', uniform: '均匀' };
 
 Page({
   data: {
+    labView: 'perspective', autoRotate: false,
     nSlider: 8, nVal: '8 元',
     dSlider: 50, dVal: '0.50 λ',
     method: 'chebyshev',
@@ -171,7 +173,7 @@ Page({
     // ramp 色 LUT（避免逐顶点解析 hex）
     const LUT = [];
     for (let i = 0; i <= 24; i++) {
-      const hex = rampColor(i / 24).replace('#', '');
+      const hex = visual.heatColor(i / 24).replace('#', '');
       LUT.push([
         parseInt(hex.slice(0, 2), 16) / 255,
         parseInt(hex.slice(2, 4), 16) / 255,
@@ -212,7 +214,7 @@ Page({
     geo.computeVertexNormals();
 
     this.patternGroup.add(new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
-      vertexColors: true, side: THREE.DoubleSide, transparent: true, opacity: 0.92,
+      vertexColors: THREE.VertexColors, side: THREE.DoubleSide, transparent: true, opacity: 0.92,
     })));
   },
 
@@ -324,6 +326,7 @@ Page({
   dispose() {
     this.stopAnim();
     stage.clearTimers(this);
+    if (this.scene) stage.clearGroup(this.scene);
     if (this.renderer) { this.renderer.dispose(); this.renderer = null; }
     if (this.controls) { this.controls.dispose(); this.controls = null; }
   },
@@ -379,6 +382,8 @@ Page({
     stage.throttle(this);
   },
 
+  onLabView(e) { visual.fitView(this,e.currentTarget.dataset.view); this._home=stage.saveHome(this.controls); },
+  onLabRotate() { const value=!this.data.autoRotate; this.setData({autoRotate:value}); if(this.controls)this.controls.autoRotate=value; },
   onShareAppMessage() {
     return { title: '方向图综合实验室', path: '/pages/interactive/3d-lab/array-synthesis/array-synthesis' };
   },

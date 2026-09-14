@@ -7,9 +7,9 @@
 //   输入阻抗（TM10 并联谐振）Z = Rin/(1+jx)，x = 2Q(f/f0−1)
 const { registerOrbitControls } = require('../orbit-controls');
 const stage = require('../lab3d-stage');
-const lc = require('../../../../utils/lab-canvas');
-const { THEME, alpha } = require('../../../../utils/lab-theme');
-const rf = require('../../../../utils/rf-math');
+const lc = require('../pkg-utils/lab-canvas');
+const { THEME, alpha } = require('../pkg-utils/lab-theme');
+const rf = require('../pkg-utils/rf-math');
 const haptic = require('../../../../utils/haptic');
 
 // 常用基板预设（εr / 厚度 mm）
@@ -56,8 +56,10 @@ function slotConductance(k0W, k0L) {
   return { g1: s1 * k, g12: s12 * k };
 }
 
+const visual = require('../pkg-utils/lab3d-visual');
 Page({
   data: {
+    labView: 'perspective', autoRotate: false,
     fSlider: 245, fVal: '2.45 GHz',
     erSlider: 44, erVal: '4.40',
     hSlider: 160, hVal: '1.60 mm',
@@ -123,16 +125,16 @@ Page({
         // 持久化 mesh（BoxGeometry 复用，参数变化只 setBox，不重建材质）
         const C = stage.THEME3D;
         const matSub = new THREE.MeshPhysicalMaterial({
-          color: C.teal, transparent: true, opacity: 0.42,
+          color: 0x326c62, transparent: false, opacity: 1,
           roughness: 0.6, metalness: 0, side: THREE.DoubleSide,
         });
         const matGround = new THREE.MeshStandardMaterial({
           color: C.warmGray, metalness: 0.4, roughness: 0.4,
         });
         const matCopper = new THREE.MeshStandardMaterial({
-          color: C.accent, metalness: 0.5, roughness: 0.35,
+          color: 0xc69856, metalness: 0.45, roughness: 0.48,
         });
-        const matCut = new THREE.MeshStandardMaterial({ color: C.teal, roughness: 0.7 });
+        const matCut = new THREE.MeshStandardMaterial({ color: 0x326c62, roughness: 0.7 });
 
         this.substrate = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), matSub);
         this.ground = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), matGround);
@@ -152,8 +154,7 @@ Page({
   setBox(mesh, w, h, d, x, y, z) {
     const THREE = this.THREE;
     if (!THREE || !mesh || !mesh.geometry) return;
-    mesh.geometry.dispose();
-    mesh.geometry = new THREE.BoxGeometry(Math.max(w, 0.001), Math.max(h, 0.001), Math.max(d, 0.001));
+    mesh.scale.set(Math.max(w, 0.001), Math.max(h, 0.001), Math.max(d, 0.001));
     mesh.position.set(x, y, z);
   },
 
@@ -234,6 +235,8 @@ Page({
     this.setBox(this.slotR, slotW, 0.028, slotLen, feedW * 0.86, top + 0.018, slotZ);
     this.slotL.visible = this.slotR.visible = slotVisible;
 
+    visual.rod(THREE,this.dimGroup,[0,top,boardL/2],[0,top,boardL/2+.15],.055,0xc4a16c);
+    visual.rim(THREE,this.dimGroup,[[-boardW/2,-h/2,boardL/2],[boardW/2,-h/2,boardL/2],[boardW/2,-h/2,-boardL/2],[-boardW/2,-h/2,-boardL/2]],.012,0x536776);
     // 边缘缝隙场弧线（靛蓝）：两条辐射缝的等效磁流同相（边射成因），同相闪烁
     this.fieldMat = new THREE.LineBasicMaterial({
       color: C.indigo, transparent: true, opacity: 0.5,
@@ -334,6 +337,7 @@ Page({
   dispose() {
     this.stopAnim();
     stage.clearTimers(this);
+    if (this.scene) stage.clearGroup(this.scene);
     if (this.renderer) { this.renderer.dispose(); this.renderer = null; }
     if (this.controls) { this.controls.dispose(); this.controls = null; }
   },
@@ -427,6 +431,8 @@ Page({
     lc.legend(ctx, [{ name: '|S11|（TM₁₀ 单谐振并联 RLC 模型）', color: THEME.accent }], box.x, h - 8)
   },
 
+  onLabView(e) { visual.fitView(this,e.currentTarget.dataset.view); this._home=stage.saveHome(this.controls); },
+  onLabRotate() { const value=!this.data.autoRotate; this.setData({autoRotate:value}); if(this.controls)this.controls.autoRotate=value; },
   onShareAppMessage() {
     return { title: '微带贴片天线 3D 实验室', path: '/pages/interactive/3d-lab/microstrip/microstrip' };
   },

@@ -5,8 +5,8 @@
 // 视觉：暖纸底 + 靛蓝↔赤陶发散色（正负场），叠加 2D 标注层（场区圈/比例尺/色标，lab-canvas 绘制）。
 const { createScopedThreejs } = require('threejs-miniprogram');
 const haptic = require('../../../../utils/haptic');
-const lc = require('../../../../utils/lab-canvas');
-const { THEME, alpha, divergeColor } = require('../../../../utils/lab-theme');
+const lc = require('../pkg-utils/lab-canvas');
+const { THEME, alpha, divergeColor } = require('../pkg-utils/lab-theme');
 
 // hex → GLSL vec3 字面量（shader 取色与 lab-theme 同源）
 function glslColor(hex) {
@@ -105,7 +105,7 @@ Page({
         'void main(){',
         '  vec2 fc=gl_FragCoord.xy;',
         '  vec2 ctr=uRes*0.5;',
-        '  float ppl=uRes.y*0.5/uScale;',       // 像素/λ
+        '  float ppl=min(uRes.x,uRes.y)*0.5/uScale;',       // 像素/λ
         '  vec2 w=(fc-ctr)/ppl;',
         '  float x=w.x,z=w.y;',
         '  float r=length(w);',
@@ -206,7 +206,7 @@ Page({
     const { ctx, w, h } = this._ov;
     const st = this.state;
     ctx.clearRect(0, 0, w, h);
-    const ppl = h * 0.5 / st.scale;             // 像素/λ（与 shader 同一定标）
+    const ppl = Math.min(w,h) * 0.5 / st.scale;             // 像素/λ（与 shader 同一定标）
     const cx = w / 2, cy = h / 2;
 
     // 场区边界（虚线圆 + 文字标注）
@@ -250,7 +250,7 @@ Page({
       { align: 'center', color: THEME.inkSoft, font: THEME.fontLabel });
 
     // 色标：能量模式 = 青（磁能主导）↔ 纸 ↔ 橙（电能主导）；默认 = 靛蓝（E<0）↔ 纸 ↔ 赤陶（E>0）
-    const cbW = 64, cbH = 8, cbX = w - cbW - 14, cbY = 14;
+    const cbW = 90, cbH = 10, cbX = w - cbW - 42, cbY = 14;
     if (st.poyntingMode) {
       // 能量交换色标：青 (#2a8a96) ↔ 纸 ↔ 橙 (#d4642a)
       const cElec = [0xd4, 0x64, 0x2a];

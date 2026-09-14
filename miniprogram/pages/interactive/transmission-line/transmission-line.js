@@ -6,9 +6,9 @@
 //   波腹 d_max/λ = ∠Γ/4π (mod 1/2)，波节 d_min = d_max ± λ/4
 
 const haptic = require('../../../utils/haptic')
-const rf = require('../../../utils/rf-math')
-const lc = require('../../../utils/lab-canvas')
-const { THEME, alpha } = require('../../../utils/lab-theme')
+const rf = require('./pkg-utils/rf-math')
+const lc = require('./pkg-utils/lab-canvas')
+const { THEME, alpha } = require('./pkg-utils/lab-theme')
 
 Page({
   data: {

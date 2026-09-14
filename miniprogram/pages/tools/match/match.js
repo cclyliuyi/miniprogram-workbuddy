@@ -2,9 +2,9 @@
 // 公式来源：Pozar《Microwave Engineering》4th（3.195/2.44/5.36/3.84）、
 // Hammerstad–Jensen 1980（Z₀ 拟合）、Hammerstad 铜厚 Weff 分支、Bahl–Garg Δεeff。
 const haptic = require('../../../utils/haptic')
-const rf = require('../../../utils/rf-math')
-const lc = require('../../../utils/lab-canvas')
-const { THEME, alpha } = require('../../../utils/lab-theme')
+const rf = require('./pkg-utils/rf-math')
+const lc = require('./pkg-utils/lab-canvas')
+const { THEME, alpha } = require('./pkg-utils/lab-theme')
 
 const GAMMA_M = 0.2 // λ/4 带宽定义的可容忍反射（SWR ≤ 1.5）
 

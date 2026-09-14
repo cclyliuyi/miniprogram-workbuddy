@@ -1,19 +1,14 @@
 <!-- pages/calendar/calendar.wxml —— 月历网格 · 磨砂浮顶栏 + 底部浮动操作栏 -->
 <view class="screen cal" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
 
+
   <!-- 权限提示（数据为空或加载失败时显示） -->
   <view wx:if="{{!hasData || loadError}}" class="perm-hint rise">
     <view class="perm-ic">⚠️</view>
     <view class="perm-title display">{{loadError ? '加载出错' : '无法加载照片'}}</view>
     <view wx:if="{{loadError}}" class="perm-desc kicker" style="color:#b06a4f">{{loadError}}</view>
-    <view wx:else class="perm-desc">请检查数据库权限后重试</view>
-    <view class="perm-steps kicker">
-      1. 微信开发者工具，顶部「云开发」按钮
-      2. 「数据库」- calendar_photos -「权限设置」
-      3. 改为「所有用户可读，仅创建者可写」
-      4. 返回此页重新加载
-    </view>
-    <view class="btn" bindtap="loadMonth" data-month="{{month}}">重新加载</view>
+    <view wx:else class="perm-desc">图片暂未就绪，你仍可以点击日期阅读知识。</view>
+    <view class="btn" bindtap="onRetry">重新加载</view>
   </view>
 
   <!-- 磨砂背景层：当月1号照片 + 高斯模糊 + 半透明蒙版 -->
@@ -73,6 +68,7 @@
     <view class="streak-hint">翻开任意一天，开始你的电磁波之旅</view>
   </view>
   <view class="cal-content">
+
 
     <!-- 星期头 -->
     <view class="weekbar">

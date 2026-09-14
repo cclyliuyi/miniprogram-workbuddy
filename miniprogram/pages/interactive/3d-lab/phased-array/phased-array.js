@@ -7,9 +7,10 @@
 const { registerOrbitControls } = require('../orbit-controls');
 const haptic = require('../../../../utils/haptic');
 const stage = require('../lab3d-stage');
-const lc = require('../../../../utils/lab-canvas');
-const { THEME, alpha, rampColor } = require('../../../../utils/lab-theme');
-const rf = require('../../../../utils/rf-math');
+const visual = require('../pkg-utils/lab3d-visual');
+const lc = require('../pkg-utils/lab-canvas');
+const { THEME, alpha, rampColor } = require('../pkg-utils/lab-theme');
+const rf = require('../pkg-utils/rf-math');
 
 const NTH = 60;   // theta 采样（沿阵轴夹角 γ）
 const NPH = 80;   // phi 采样（绕阵轴旋转）
@@ -19,7 +20,7 @@ const VCNT = (NTH + 1) * (NPH + 1);
 const RAMP = (() => {
   const n = 48, a = [];
   for (let i = 0; i < n; i++) {
-    const hx = rampColor(i / (n - 1)).replace('#', '');
+    const hx = visual.heatColor(i / (n - 1)).replace('#', '');
     a.push([
       parseInt(hx.slice(0, 2), 16) / 255,
       parseInt(hx.slice(2, 4), 16) / 255,
@@ -31,6 +32,7 @@ const RAMP = (() => {
 
 Page({
   data: {
+    labView: 'perspective', autoRotate: false,
     S: { N: 8, d: 0.5, beta: 0, el: 'iso' },
     stats: null,
     scanOn: false,
@@ -127,7 +129,7 @@ Page({
         this.patGeo = patGeo;
 
         this.patMesh = new THREE.Mesh(patGeo, new THREE.MeshPhongMaterial({
-          vertexColors: true,
+          vertexColors: THREE.VertexColors,
           side: THREE.DoubleSide,
           transparent: true,
           opacity: 0.88,
@@ -392,6 +394,7 @@ Page({
   dispose() {
     this.stopAnim();
     stage.clearTimers(this);
+    if (this.scene) stage.clearGroup(this.scene);
     if (this.renderer) { this.renderer.dispose(); this.renderer = null; }
     if (this.controls) { this.controls.dispose(); this.controls = null; }
   },
@@ -564,6 +567,8 @@ Page({
     ], 10, h - 10);
   },
 
+  onLabView(e) { visual.fitView(this,e.currentTarget.dataset.view); this._home=stage.saveHome(this.controls); },
+  onLabRotate() { const value=!this.data.autoRotate; this.setData({autoRotate:value}); if(this.controls)this.controls.autoRotate=value; },
   onShareAppMessage() {
     return { title: '相控阵扫描 3D 实验室', path: '/pages/interactive/3d-lab/phased-array/phased-array' };
   },

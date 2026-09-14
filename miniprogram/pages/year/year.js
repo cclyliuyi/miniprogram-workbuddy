@@ -7,7 +7,7 @@ Page({
   data: {
     months: [],
     loading: true,
-    year: 2027,
+    year: new Date().getFullYear(),
     previewMonth: null,   // 长按预览的月份
   },
 

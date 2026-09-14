@@ -5,9 +5,9 @@
 //   最大作用距离：令 Pr = Pmin 反解 R（Friis 一次方根 / 雷达四次方根）
 
 const haptic = require('../../../utils/haptic')
-const rf = require('../../../utils/rf-math')
-const lc = require('../../../utils/lab-canvas')
-const { THEME, alpha } = require('../../../utils/lab-theme')
+const rf = require('./pkg-utils/rf-math')
+const lc = require('./pkg-utils/lab-canvas')
+const { THEME, alpha } = require('./pkg-utils/lab-theme')
 
 Page({
   data: {

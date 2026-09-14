@@ -61,6 +61,78 @@
       {
         "type": "folder",
         "value": ".git"
+      },
+      {
+        "type": "folder",
+        "value": ".workbuddy"
+      },
+      {
+        "type": "folder",
+        "value": "pages/interactive/3d-lab/node_modules"
+      },
+      {
+        "type": "folder",
+        "value": "pages/interactive/radiation-3d/node_modules"
+      },
+      {
+        "type": "file",
+        "value": "QUICKSTART.md"
+      },
+      {
+        "type": "file",
+        "value": "开通AppID与云环境教程.md"
+      },
+      {
+        "type": "file",
+        "value": "horn-v2-changelog.md"
+      },
+      {
+        "type": "file",
+        "value": "ui-review-3d-lab.md"
+      },
+      {
+        "type": "file",
+        "value": "lab3d-v2-rollout.md"
+      },
+      {
+        "type": "file",
+        "value": "tools-v2-changelog.md"
+      },
+      {
+        "type": "file",
+        "value": "upload-eit-method-images.js"
+      },
+      {
+        "type": "folder",
+        "value": "docs"
+      },
+      {
+        "type": "folder",
+        "value": "tests"
+      },
+      {
+        "type": "file",
+        "value": "utils/rf-math.js"
+      },
+      {
+        "type": "file",
+        "value": "utils/lab-canvas.js"
+      },
+      {
+        "type": "file",
+        "value": "utils/lab-theme.js"
+      },
+      {
+        "type": "file",
+        "value": "utils/lab3d-stage.js"
+      },
+      {
+        "type": "file",
+        "value": "utils/lab3d-visual.js"
+      },
+      {
+        "type": "file",
+        "value": "utils/lab3d-plots.js"
       }
     ],
     "include": []

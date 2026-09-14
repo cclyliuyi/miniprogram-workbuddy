@@ -7,9 +7,9 @@
 //   波包：ψ(x)=e^(−x²/4σx²)cos(k₀x)，谱中心 ±k₀，σk = 1/(2σx)（高斯下限）
 
 const haptic = require('../../../utils/haptic')
-const rf = require('../../../utils/rf-math')
-const lc = require('../../../utils/lab-canvas')
-const { THEME } = require('../../../utils/lab-theme')
+const rf = require('./pkg-utils/rf-math')
+const lc = require('./pkg-utils/lab-canvas')
+const { THEME } = require('./pkg-utils/lab-theme')
 
 const N_EL = 13   // 阵元数（固定）
 const K0 = 12     // 不确定性模式载波波数 rad/单位长度

@@ -6,15 +6,18 @@
 // 适用条件：电小环 C = 2πa < 0.1λ（电流沿环等幅同相）
 const { registerOrbitControls } = require('../orbit-controls');
 const stage = require('../lab3d-stage');
-const lc = require('../../../../utils/lab-canvas');
-const { THEME, alpha } = require('../../../../utils/lab-theme');
-const rf = require('../../../../utils/rf-math');
+const lc = require('../pkg-utils/lab-canvas');
+const { THEME, alpha } = require('../pkg-utils/lab-theme');
+const rf = require('../pkg-utils/rf-math');
 
 const A_MIN = 0.005, A_MAX = 0.05;      // a/λ 滑块范围（电小环附近）
 const A_SMALL = 0.1 / (2 * Math.PI);    // C=0.1λ 对应 a/λ≈0.0159
 
+const visual = require('../pkg-utils/lab3d-visual');
+const plots = require('../pkg-utils/lab3d-plots');
 Page({
   data: {
+    labView: 'perspective', autoRotate: false,
     aSlider: 15, aVal: '0.015',
     nSlider: 1, nVal: '1',
     lossSlider: 50, lossVal: '0.50 Ω',
@@ -108,7 +111,7 @@ Page({
 
     // 载流环 · 赤陶
     this.loopMesh = new THREE.Mesh(
-      new THREE.TorusGeometry(R, 0.018, 14, 96),
+      new THREE.TorusGeometry(R, 0.025, 14, 96),
       new THREE.MeshStandardMaterial({ color: C.accent, metalness: 0.25, roughness: 0.45 })
     );
     this.root.add(this.loopMesh);
@@ -119,8 +122,8 @@ Page({
       color: C.gold, transparent: true, opacity: 0.42,
     });
     const NP = 64;
-    for (let m = 0; m < 6; m++) {
-      const phi = m / 6 * Math.PI * 2;
+    for (let m = 0; m < 4; m++) {
+      const phi = m / 4 * Math.PI * 2;
       const cp = Math.cos(phi), sp = Math.sin(phi);
       [R + 0.28, R + 0.62].forEach((r0) => {
         const pts = [];
@@ -135,13 +138,14 @@ Page({
     }
 
     // sin²θ 功率方向图曲面 · 青绿半透明
-    const pos = [], idx = [];
+    const pos = [], idx = [], values=[];
     const nt = 40, np = 80;
     for (let i = 0; i <= nt; i++) {
       const th = i / nt * Math.PI;
       const rr = 0.86 * Math.sin(th) * Math.sin(th);
       for (let j = 0; j <= np; j++) {
         const ph = j / np * Math.PI * 2;
+        values.push(Math.sin(th)**2);
         pos.push(rr * Math.sin(th) * Math.cos(ph), rr * Math.sin(th) * Math.sin(ph), rr * Math.cos(th));
       }
     }
@@ -153,10 +157,11 @@ Page({
     }
     const geo = new THREE.BufferGeometry();
     geo.addAttribute('position', new THREE.Float32BufferAttribute(pos, 3));  // r108 API
+    visual.heatGeometry(THREE,geo,values);
     geo.setIndex(idx);
     geo.computeVertexNormals();
     this.patGroup.add(new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
-      color: C.teal, transparent: true, opacity: 0.15, side: THREE.DoubleSide,
+      vertexColors: THREE.VertexColors, transparent: true, opacity: 0.42, depthWrite:false, side: THREE.DoubleSide,
     })));
 
     // 电流粒子 · 靛蓝：预分配 18 个（共享几何/材质），动画只改 position/scale
@@ -207,6 +212,7 @@ Page({
   dispose() {
     this.stopAnim();
     stage.clearTimers(this);
+    if (this.scene) stage.clearGroup(this.scene);
     if (this.renderer) { this.renderer.dispose(); this.renderer = null; }
     if (this.controls) { this.controls.dispose(); this.controls = null; }
   },
@@ -284,10 +290,10 @@ Page({
     const w = this.plotW, h = this.plotH;
     lc.clear(ctx, w, h);
     const cx = w / 2, cy = h / 2 + 4;
-    const R = Math.min(w / 2 - 46, h / 2 - 22);
+    const R = Math.min(w / 2 - 36, h / 2 - 40);
     const FLOOR = -30;
 
-    lc.polarGrid(ctx, cx, cy, R, { rings: [0, -10, -20, -30], full: true });
+    plots.polarGrid(ctx,cx,cy,R);
 
     // 10·lg(sin²θ) = 20·lg|sinθ|，θ 自环轴（上）起量，全圆
     ctx.beginPath();
@@ -306,10 +312,6 @@ Page({
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    lc.label(ctx, '0°（环轴 · 零点）', cx, cy - R - 8, { align: 'center', color: THEME.inkSoft });
-    lc.label(ctx, '90°（环面 · 最大）', cx + R * 0.62, cy + 14, { color: THEME.inkSoft });
-    lc.label(ctx, '180°', cx, cy + R + 14, { align: 'center', color: THEME.muted, font: THEME.fontTick });
-    lc.label(ctx, '径向刻度：dB', cx - R - 6, cy - R - 8, { align: 'left', color: THEME.muted, font: THEME.fontTick });
     lc.legend(ctx, [{ name: '10·lg sin²θ（功率，dB）', color: THEME.accent }], 10, h - 12);
   },
 
@@ -355,6 +357,8 @@ Page({
       p.X(S.a) + 6, p.Y(now.eta * 100) - 8, { color: THEME.accent });
   },
 
+  onLabView(e) { visual.fitView(this,e.currentTarget.dataset.view); this._home=stage.saveHome(this.controls); },
+  onLabRotate() { const value=!this.data.autoRotate; this.setData({autoRotate:value}); if(this.controls)this.controls.autoRotate=value; },
   onShareAppMessage() {
     return { title: '小环天线 3D 实验室', path: '/pages/interactive/3d-lab/loop/loop' };
   },

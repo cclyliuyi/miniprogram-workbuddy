@@ -1,10 +1,5 @@
-// utils/db.js —— 数据层（持久化缓存版）
-// 策略：
-//   1) 优先调用云函数 getPhotos（服务端查询，快且稳，不受客户端 20 条限制），
-//      带 15s 超时 + 最多 3 次重试（扛冷启动）。
-//   2) 查询【优先读持久化缓存】wx.setStorageSync（24h TTL），命中即秒回，
-//      并在后台静默刷新（不阻塞、不出错）。这样新实例/重新预览都不打网络 → 不再超时。
-//   3) 只有缓存缺失且云函数/直查都失败才报错。
+// 数据层：24h 持久化缓存、相同请求去重、云请求 8s 后回退直查。
+// 网络全部失败时返回可用旧缓存；空结果不缓存。直查每次 10s，不多轮重试。
 let _db = null
 function db() {
   if (!_db) _db = wx.cloud.database()
@@ -75,25 +70,8 @@ function callFn(action, payload) {
   })
 }
 
-// 云函数调用：20s 超时（对齐 SDK 默认值）+ 最多 3 次尝试（超时则隔 1.5s 重试，扛冷启动）
-async function callFnWithRetry(action, payload, opts) {
-  const timeoutMs = (opts && opts.timeout) || 20000
-  let lastErr
-  for (let i = 0; i < 3; i++) {
-    try {
-      return await withTimeout(callFn(action, payload), timeoutMs)
-    } catch (e) {
-      lastErr = e
-      const msg = errMsg(e)
-      if (/timeout/i.test(msg) && i < 2) {
-        console.warn(`[db] 云函数 ${action} 超时，1500ms 后重试(${i + 1}/3)`)
-        await new Promise((r) => setTimeout(r, 1500))
-        continue
-      }
-      throw e
-    }
-  }
-  throw lastErr
+function callFnWithRetry(action, payload, opts) {
+  return withTimeout(callFn(action, payload), (opts && opts.timeout) || 8000)
 }
 
 // ═══════ 客户端直查（降级路径，带重试）═══════
@@ -121,25 +99,16 @@ function ensureCloud(timeout) {
 // 单次请求硬超时：云 .get() 偶发「挂起」不报错，用 Promise.race 兜住；
 // 同时吞掉迟到拒绝，避免变成未处理的 promise rejection。
 // 注意：reject 用字符串而非 Error 对象，避免框架全局 error 监听器打印到 console。
-function withTimeout(promise, ms) {
-  ms = ms || 10000
-  let innerDone = false
-  const safe = promise.then(
-    (v) => { innerDone = true; return v },
-    (e) => { innerDone = true; throw e }
-  )
-  return Promise.race([
-    safe,
-    new Promise((_, reject) => setTimeout(() => {
-      if (!innerDone) safe.catch(() => {}) // 超时后吞掉迟到拒绝
-      reject('timeout') // 字符串而非 Error，不触发框架 onError
-    }, ms)),
-  ])
+function withTimeout(promise, ms = 10000) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('timeout')), ms)
+    promise.then(v => { clearTimeout(timer); resolve(v) }, e => { clearTimeout(timer); reject(e) })
+  })
 }
 
 // 自动重试：匹配 timeout/network/fail 等偶发错误，重试前重建 db 实例
 function withRetry(fn, retries, attempt) {
-  retries = retries == null ? 4 : retries
+  retries = retries == null ? 0 : retries
   attempt = attempt || 0
   return fn().catch((err) => {
     const msg = errMsg(err)
@@ -200,14 +169,6 @@ async function directAll() {
   })
 }
 
-// 云函数查询失败后的统一降级处理：单次失败仅对该次查询回退客户端直查，不永久降级
-function tryDirect(fn, label) {
-  return fn().catch((e) => {
-    console.error(`[db] ${label} 直查也失败:`, errMsg(e))
-    return []
-  })
-}
-
 // ═══════ 对外接口 ═══════
 
 // 月查询：优先会话缓存 → 持久化缓存（秒回+静默刷新）→ 云函数/直查
@@ -226,11 +187,20 @@ async function getMonthPhotos(month) {
     list = await callFnWithRetry('month', { month })
   } catch (e) {
     console.warn('[db] 云函数 month 失败，降级直查:', errMsg(e))
-    list = await tryDirect(() => directMonth(month), 'month')
+    try {
+      list = await directMonth(month)
+    } catch (e2) {
+      console.error('[db] month 直查也失败:', errMsg(e2))
+      if (cached && cached.list && cached.list.length) return { data: cached.list, stale: true }
+      throw e2
+    }
   }
   list.sort((a, b) => a.day - b.day)
-  _monthCache[month] = list
-  pcSet('m' + month, { list, t: Date.now() })
+  // 空结果不写缓存（会话缓存里空数组是 truthy，会让本会话的每次重试都命中空结果）
+  if (list.length) {
+    _monthCache[month] = list
+    pcSet('m' + month, { list, t: Date.now() })
+  }
   return { data: list }
 }
 
@@ -258,9 +228,10 @@ async function getDayPhoto(month, day) {
   }
 
   // 命中持久化月缓存则直接取当天，免一次云查询
-  const mc = _monthCache[month] || pcGet('m' + month)
-  if (mc && mc.list) {
-    const hit = mc.list.filter((x) => x.day === day)
+  const mc = pcGet('m' + month)
+  const monthList = _monthCache[month] || (isFresh(mc) ? mc.list : null)
+  if (monthList) {
+    const hit = monthList.filter((x) => x.day === day)
     if (hit.length) {
       _dayCache[key] = hit
       pcSet('d' + key, { list: hit, t: Date.now() })
@@ -273,12 +244,21 @@ async function getDayPhoto(month, day) {
     data = await callFnWithRetry('day', { month, day })
   } catch (e) {
     console.warn('[db] 云函数 day 失败，降级直查:', errMsg(e))
-    const res = await tryDirect(() => directDay(month, day), 'day')
-    data = (res && res.data) || []
+    try {
+      data = (await directDay(month, day)).data || []
+    } catch (e2) {
+      console.error('[db] day 直查也失败:', errMsg(e2))
+      const fallback = cached && cached.list || mc && mc.list && mc.list.filter(x => x.day === day)
+      if (fallback && fallback.length) return { data: fallback, stale: true }
+      throw e2
+    }
   }
-  _dayCache[key] = data || []
-  pcSet('d' + key, { list: data || [], t: Date.now() })
-  return { data: _dayCache[key] }
+  // 空结果不写缓存，与 getMonthPhotos 同理
+  if (data && data.length) {
+    _dayCache[key] = data
+    pcSet('d' + key, { list: data, t: Date.now() })
+  }
+  return { data: data || [] }
 }
 
 // 全量：优先从 12 个持久化月缓存聚合（秒回）；缺失才打云/直查并回填月缓存
@@ -298,7 +278,12 @@ async function getAllPhotos() {
     data = await callFnWithRetry('all')
   } catch (e) {
     console.warn('[db] 云函数 all 失败，降级直查:', errMsg(e))
-    data = await tryDirect(directAll, 'all')
+    try {
+      data = await directAll()
+    } catch (e2) {
+      console.error('[db] all 直查也失败:', errMsg(e2))
+      throw e2
+    }
   }
   // 回填月缓存（持久化）
   const byMonth = {}
@@ -326,4 +311,15 @@ async function warmAll() {
   }
 }
 
-module.exports = { getMonthPhotos, getDayPhoto, getAllPhotos, warmAll }
+const pending = new Map()
+function dedupe(key, work) {
+  if (pending.has(key)) return pending.get(key)
+  const job = Promise.resolve().then(work).finally(() => pending.delete(key))
+  pending.set(key, job)
+  return job
+}
+module.exports = {
+  getMonthPhotos: month => dedupe('m'+month, () => getMonthPhotos(month)),
+  getDayPhoto: (month, day) => dedupe('d'+month+'-'+day, () => getDayPhoto(month, day)),
+  getAllPhotos: () => dedupe('all', getAllPhotos), warmAll,
+}

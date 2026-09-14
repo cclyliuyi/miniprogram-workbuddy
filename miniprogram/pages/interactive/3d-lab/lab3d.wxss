@@ -10,6 +10,7 @@
    文字一律 ink/muted 墨色系，符合规范"深色背景一律移除"。 */
 
 @import "../../../styles/tool-ui.wxss";
+@import "../../../styles/lab3d-controls.wxss";
 
 /* ── 页骨架 ── */
 .lab3d { padding-top: 20rpx; }
@@ -30,7 +31,7 @@
   overflow: hidden;
 }
 .lab3d-canvas {
-  width: 686rpx;
+  width: 100%;
   height: 600rpx;
   display: block;
 }
@@ -108,8 +109,8 @@
 
 /* ── 2D 副图画布（lab-canvas 纸底绘图）── */
 .lab3d-2d {
-  width: 630rpx;
-  height: 280rpx;
+  width: 100%;
+  height: 430rpx;
   display: block;
   margin: 0 auto;
 }
@@ -184,3 +185,16 @@
   .lab3d-skel-ring { animation: none; }
   .lab3d-hint { transition: none; }
 }
+
+.lab3d-head .kicker { font-size:21rpx; letter-spacing:2rpx; color:#75848a; }
+.lab3d-sub { font-size:27rpx; line-height:1.7; margin-top:12rpx; color:#677b84; }
+.lab3d-canvas-wrap { border-color:#d8dfdc; border-radius:20rpx; }
+.lab3d-stat-value { font-size:34rpx; overflow-wrap:break-word; }
+.lab3d-stat-name { font-size:24rpx; line-height:1.6; }
+.lab3d .tp-canvas, .lab3d .tp-canvas-short, .lab3d .tp-canvas-tall { width:100%; }
+.lab3d .tp-canvas-short { height:460rpx; }
+.lab3d .tp-canvas, .lab3d .tp-canvas-tall { height:620rpx; }
+.lab3d .tp-canvas-caption { font-size:25rpx; line-height:1.7; }
+.lab3d .tp-formula-line, .lab3d .tp-formula-cond { font-size:26rpx; line-height:1.9; }
+.lab3d .tp-slider-row { gap:12rpx; }
+.lab3d .tp-btn { min-height:48rpx; display:flex; align-items:center; justify-content:center; }

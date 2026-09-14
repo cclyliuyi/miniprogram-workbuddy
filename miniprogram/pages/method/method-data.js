@@ -1,323 +1,560 @@
-// pages/method/method-data.js —— 方法论迁移 12 张知识卡片数据
-// 数据源: 方法论迁移_微信小程序知识卡资源包_v1.0/02_卡片文案/12张卡片完整文案.md
-// 图片: 本目录 images/m_XX.webp (压缩 WebP, ~120KB/张)
-
+// 图解新版；编辑源与生成记录见 tools/content-v2。
 const CARDS = [
   {
-    id: 1,
-    title: '世界是一个系统',
-    subtitle: '从电磁场到系统科学',
-    stage: '电子信息方法论',
-    coreProposition: '世界不是孤立对象的集合，而是输入、结构、环境与输出之间的关系网络。',
-    emView: '激励电流经过天线结构与传播环境，形成空间电磁场并被接收端感知。',
-    seView: '任何复杂功能都可以先抽象为输入—处理—输出，再分析内部结构与外部条件。',
-    aiView: 'Agent 不是一个孤立模型，而是由目标、模型、记忆、工具、环境和反馈构成的系统。',
-    mapping: [
-      ['激励源', '任务输入'],
-      ['天线与信道', 'Agent 与环境'],
-      ['接收响应', '任务结果'],
-      ['系统测量', '运行反馈'],
+    "id": "v2-m01",
+    "number": 1,
+    "title": "经验可以换一种表达",
+    "stage": "重新认识专业能力",
+    "subtitle": "迁移方法，不必推倒重来",
+    "coreQuestion": "多年电子信息经验，在 AI 时代还能用在哪里？",
+    "coreProposition": "你熟悉的建模、实验、误差和权衡，能转化为定义任务、检查证据和判断结果的能力。",
+    "exercise": "把一个你擅长的问题写成“输入、目标、约束、怎么验收”四句话。",
+    "misconception": "经验需要重新检验适用条件；不要把类比当成两个领域严格等价。",
+    "philosophy": "迁移方法，不必推倒重来",
+    "keywords": [
+      "重新认识专业能力"
     ],
-    modules: {
-      '电磁系统示例': '激励电流 → 天线结构 → 空间传播 → 接收信号',
-      '系统思维模型': '输入 x(t) → 系统 H → 输出 y(t)，即 y(t)=H{x(t)}',
-      '现实世界映射': '通信、声学、控制、经济、生物系统都可用系统关系理解',
-      '迁移要点': '先界定系统，再识别输入、输出、内部机制与环境耦合',
-    },
-    keywords: ['系统', '响应', '输入输出', '传递关系', '因果链'],
-    philosophy: '工程的起点不是计算，而是看清系统的边界与关系。',
-    image: 'm_01.webp',
-    status: 'final',
+    "status": "final",
+    "imageSrc": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/content-v2-20260914/method/m01.webp",
+    "sources": [
+      {
+        "label": "Anthropic · Building effective agents（2024）",
+        "url": "https://www.anthropic.com/engineering/building-effective-agents"
+      }
+    ],
+    "sections": [
+      {
+        "label": "你熟悉的方法",
+        "text": "系统建模：把复杂对象写成输入、输出、约束与评价量。专业经验可以先转成清楚的任务定义。"
+      },
+      {
+        "label": "迁移到 AI 协作",
+        "text": "你熟悉的建模、实验、误差和权衡，能转化为定义任务、检查证据和判断结果的能力。"
+      }
+    ],
+    "exerciseLabel": "在工作中试一次"
   },
   {
-    id: 2,
-    title: '模型是理解复杂世界的桥梁',
-    subtitle: '从麦克斯韦方程到数学模型',
-    stage: '电子信息方法论',
-    coreProposition: '模型是现实的有目的压缩：舍弃无关细节，保留决定行为的结构。',
-    emView: '真实天线包含几何、材料、电流和环境；模型将其抽象为 J(r)、E(r)、H(r) 与方向图等指标。',
-    seView: '软件模型把业务对象、状态、流程和接口抽象为可实现、可验证的结构。',
-    aiView: 'Agent 需要任务模型、环境模型、工具模型和评价模型，才能规划并修正行动。',
-    mapping: [
-      ['真实结构', '状态表示'],
-      ['物理方程', '行为规则'],
-      ['场分布', '中间状态'],
-      ['工程指标', '评价函数'],
+    "id": "v2-m02",
+    "number": 2,
+    "title": "先定义问题，再提问",
+    "stage": "重新认识专业能力",
+    "subtitle": "把需求写成可判断的问题",
+    "coreQuestion": "为什么一句“帮我优化”常得不到可用结果？",
+    "coreProposition": "像建立电磁模型一样，先写清对象、激励、约束和观测量，再让 AI 处理。任务描述应让别人也能判断是否完成。",
+    "exercise": "让 AI 比较两种天线方案前，先明确频段、尺寸、效率、成本与交付格式。",
+    "misconception": "指令越长并不必然越好；缺少关键条件和堆砌无关条件都会带来偏差。",
+    "philosophy": "把需求写成可判断的问题",
+    "keywords": [
+      "重新认识专业能力"
     ],
-    modules: {
-      '三层抽象': '真实世界 → 数学/物理模型 → 工程指标',
-      '电磁建模': '麦克斯韦方程 + 材料参数 + 边界条件',
-      '模型的力量': '简化复杂、预测未来、指导设计、连接尺度',
-      'Agent 映射': '现实任务 → 任务理解 → 推理与决策模型 → 结果评价',
-    },
-    keywords: ['抽象', '建模', '指标', '预测', '尺度'],
-    philosophy: '模型不是现实本身，但它让我们比直接面对现实走得更远。',
-    image: 'm_02.webp',
-    status: 'final',
+    "status": "final",
+    "imageSrc": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/content-v2-20260914/method/m02.webp",
+    "sources": [
+      {
+        "label": "Anthropic · Effective context engineering（2025）",
+        "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents"
+      },
+      {
+        "label": "Anthropic · Writing tools for agents（2025）",
+        "url": "https://www.anthropic.com/engineering/writing-tools-for-agents"
+      }
+    ],
+    "sections": [
+      {
+        "label": "你熟悉的方法",
+        "text": "电磁建模：对象、激励、边界条件和观测量不清楚，求解结果就难以解释。"
+      },
+      {
+        "label": "迁移到 AI 协作",
+        "text": "像建立电磁模型一样，先写清对象、激励、约束和观测量，再让 AI 处理。任务描述应让别人也能判断是否完成。"
+      }
+    ],
+    "exerciseLabel": "在工作中试一次"
   },
   {
-    id: 3,
-    title: '边界决定系统行为',
-    subtitle: '从边界条件到权限边界',
-    stage: '电子信息 → 软件工程',
-    coreProposition: '相同的基本规律，在不同边界条件下会产生完全不同的行为。',
-    emView: '麦克斯韦方程只有与导体、介质、辐射和周期边界等条件共同使用，才能确定唯一电磁响应。',
-    seView: '模块边界、数据边界和权限边界决定系统能访问什么、修改什么以及如何协作。',
-    aiView: '模型能力只是潜能；权限、工具、数据、时间和审批边界决定 Agent 的真实行为域。',
-    mapping: [
-      ['导体边界', '禁止访问区'],
-      ['介质界面', '权限切换'],
-      ['吸收边界', '输出过滤'],
-      ['周期边界', '循环执行规则'],
+    "id": "v2-m03",
+    "number": 3,
+    "title": "信号思维整理上下文",
+    "stage": "重新认识专业能力",
+    "subtitle": "让关键证据更突出",
+    "coreQuestion": "给 AI 的资料越多，回答就越可靠吗？",
+    "coreProposition": "借用信号处理的直觉，先筛选与任务相关、来源可靠、版本明确的材料。上下文要让关键证据容易被找到。",
+    "exercise": "为一次方案评审准备一页约束、三份核心资料和明确的版本日期。",
+    "misconception": "“上下文信噪比”是工程类比，不是可以直接套用通信容量公式的量。",
+    "philosophy": "让关键证据更突出",
+    "keywords": [
+      "重新认识专业能力"
     ],
-    modules: {
-      '电磁边界': '方程 + 边界条件 + 材料参数 → 电磁场分布',
-      'Agent 边界': '模型 + 权限边界 + 工具约束 → 智能行为范围',
-      '边界类型': '物理、信息、工具、行为、时间、输出边界',
-      '工程建议': '明确任务目标；最小权限；分层约束；持续监控；迭代优化',
-    },
-    keywords: ['边界', '权限', '条件', '安全', '可控'],
-    philosophy: '自由的前提是边界，智能的基础是约束。',
-    image: 'm_03.webp',
-    status: 'final',
+    "status": "final",
+    "imageSrc": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/content-v2-20260914/method/m03.webp",
+    "sources": [
+      {
+        "label": "Anthropic · Effective context engineering（2025）",
+        "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents"
+      }
+    ],
+    "sections": [
+      {
+        "label": "你熟悉的方法",
+        "text": "信号处理：围绕任务保留有效成分，辨别噪声、冗余和来源差异。"
+      },
+      {
+        "label": "迁移到 AI 协作",
+        "text": "借用信号处理的直觉，先筛选与任务相关、来源可靠、版本明确的材料。上下文要让关键证据容易被找到。"
+      }
+    ],
+    "exerciseLabel": "在工作中试一次"
   },
   {
-    id: 4,
-    title: '优化：在约束中寻找最优解',
-    subtitle: '工程的本质是在约束下追求可达的最好',
-    stage: '电子信息 → 软件工程',
-    coreProposition: '现实工程不存在脱离资源、成本、安全和物理条件的绝对最优。',
-    emView: '天线设计同时考虑增益、驻波、效率、带宽、尺寸、材料、加工与成本。',
-    seView: '软件系统同时权衡性能、可靠性、开发周期、可维护性和资源消耗。',
-    aiView: 'Agent 要在质量、时间、Token、工具成本、风险和人工介入之间做多目标权衡。',
-    mapping: [
-      ['设计变量', 'Agent 策略参数'],
-      ['目标函数', '完成质量'],
-      ['约束条件', '权限/预算/时限'],
-      ['测量验证', '评测与回归测试'],
+    "id": "v2-m04",
+    "number": 4,
+    "title": "模型要标清适用范围",
+    "stage": "重新认识专业能力",
+    "subtitle": "先看假设，再看结论",
+    "coreQuestion": "为什么 AI 的答案换个条件就不成立？",
+    "coreProposition": "你熟悉模型假设与适用范围。使用 AI 时同样要区分事实、假设、估计和建议，检查它是否跨出了证据边界。",
+    "exercise": "要求一份计算结论分别列出“已知条件、采用假设、不适用情形”。",
+    "misconception": "模型自述“有把握”不构成校准置信度，也不能代替验证。",
+    "philosophy": "先看假设，再看结论",
+    "keywords": [
+      "重新认识专业能力"
     ],
-    modules: {
-      '天线优化': '目标 + 约束 + 设计变量 + 仿真/测量',
-      '通用形式': 'min/max F(x)，s.t. g_i(x)<=0，h_j(x)=0',
-      '工程权衡': '性能提升通常伴随成本、尺寸或风险增加',
-      '优化闭环': '建立模型 → 定义目标 → 搜索策略 → 评估验证 → 迭代改进',
-    },
-    keywords: ['优化', '约束', '权衡', '多目标', '可达性'],
-    philosophy: '优化不是找到最好，而是在现实中找到可达的最好。',
-    image: 'm_04.webp',
-    status: 'final',
+    "status": "final",
+    "imageSrc": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/content-v2-20260914/method/m04.webp",
+    "sources": [
+      {
+        "label": "NIST AI 600-1 · 生成式 AI 风险管理（2024）",
+        "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+      }
+    ],
+    "sections": [
+      {
+        "label": "你熟悉的方法",
+        "text": "模型近似：远场、线性、小信号等条件决定一个结论能用在哪里。"
+      },
+      {
+        "label": "迁移到 AI 协作",
+        "text": "你熟悉模型假设与适用范围。使用 AI 时同样要区分事实、假设、估计和建议，检查它是否跨出了证据边界。"
+      }
+    ],
+    "exerciseLabel": "在工作中试一次"
   },
   {
-    id: 5,
-    title: '从电磁分层到软件架构',
-    subtitle: '分层是控制复杂度的关键',
-    stage: '软件工程方法论',
-    coreProposition: '分层不是为了分割系统，而是为了让每一层只处理本层问题，并通过稳定接口协同。',
-    emView: '源层、结构层、传播层和接收层分别承担能量产生、场转换、空间传输和信息恢复。',
-    seView: '硬件层、平台层、服务层和应用层将物理资源逐步抽象为用户能力。',
-    aiView: '模型层、记忆层、工具层、编排层和应用层共同组成可维护的 Agent 架构。',
-    mapping: [
-      ['源层', '基础模型/数据'],
-      ['结构层', 'Agent 核心与策略'],
-      ['传播层', '工具调用与环境交互'],
-      ['接收层', '结果解释与用户界面'],
+    "id": "v2-m05",
+    "number": 5,
+    "title": "测量思维核验结果",
+    "stage": "测量与反馈",
+    "subtitle": "用外部证据检验输出",
+    "coreQuestion": "怎么知道 AI 输出真的可用？",
+    "coreProposition": "像校验仪器一样，使用已知答案、独立计算或原始记录验证结果。漂亮的解释与正确的输出是两回事。",
+    "exercise": "拿三个你已知答案的典型案例，让 AI 完成并逐项核对。",
+    "misconception": "再次询问同一个模型可能重复相同错误，不能当成独立证据。",
+    "philosophy": "用外部证据检验输出",
+    "keywords": [
+      "测量与反馈"
     ],
-    modules: {
-      '电磁分层': '源层 → 结构层 → 传播层 → 接收层',
-      '软件分层': '硬件层 → 平台层 → 服务层 → 应用层',
-      '共同原则': '高内聚、低耦合、单向依赖、可替换、可扩展',
-      '现实案例': '通信协议栈、互联网、嵌入式系统、云平台、AI 系统',
-    },
-    keywords: ['分层', '架构', '抽象', '低耦合', '可维护性'],
-    philosophy: '分层不是为了分割，而是为了更好地连接。',
-    image: 'm_05.webp',
-    status: 'final',
+    "status": "final",
+    "imageSrc": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/content-v2-20260914/method/m05.webp",
+    "sources": [
+      {
+        "label": "NIST AI 600-1 · 生成式 AI 风险管理（2024）",
+        "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+      },
+      {
+        "label": "Anthropic · Writing tools for agents（2025）",
+        "url": "https://www.anthropic.com/engineering/writing-tools-for-agents"
+      }
+    ],
+    "sections": [
+      {
+        "label": "你熟悉的方法",
+        "text": "测量校准：用参考量和独立手段检查读数，区分精密、准确与看起来合理。"
+      },
+      {
+        "label": "迁移到 AI 协作",
+        "text": "像校验仪器一样，使用已知答案、独立计算或原始记录验证结果。漂亮的解释与正确的输出是两回事。"
+      }
+    ],
+    "exerciseLabel": "在工作中试一次"
   },
   {
-    id: 6,
-    title: '接口：让复杂系统协同工作',
-    subtitle: '从物理接口到 API 与工具协议',
-    stage: '软件工程方法论',
-    coreProposition: '复杂系统能否协作，取决于接口是否明确、稳定、可验证，而不是各模块是否彼此了解全部细节。',
-    emView: '馈电端口定义阻抗、电压电流和功率传输；空间接口定义波的传播与耦合关系。',
-    seView: 'API 规定输入、输出、错误码、状态和版本，使模块可独立演化。',
-    aiView: '工具协议规定 Agent 何时调用工具、传入什么参数、如何解析结果及处理失败。',
-    mapping: [
-      ['端口阻抗', '数据契约'],
-      ['功率匹配', '协议兼容'],
-      ['反射损耗', '接口错误'],
-      ['校准去嵌', '适配与中间层'],
+    "id": "v2-m06",
+    "number": 6,
+    "title": "误差预算找到薄弱环节",
+    "stage": "测量与反馈",
+    "subtitle": "先定位误差，再换工具",
+    "coreQuestion": "出错时，究竟是资料、推理还是工具的问题？",
+    "coreProposition": "把整条工作过程拆成来源、提取、计算和表达，逐段定位误差。不要只用“模型不够聪明”概括所有失败。",
+    "exercise": "复盘一次错误：原文读错、单位换错、公式选错，还是结论写过头？",
+    "misconception": "误差来源可能相互影响，不能总用简单相加替代实际分析。",
+    "philosophy": "先定位误差，再换工具",
+    "keywords": [
+      "测量与反馈"
     ],
-    modules: {
-      '电磁接口': '馈电端口、自由空间、介质界面、测量端口',
-      '软件接口': '函数、API、消息队列、数据库协议',
-      'Agent 接口': '模型—工具、Agent—Agent、Agent—人、Agent—环境',
-      '优质接口标准': '契约清晰、输入可校验、失败可恢复、版本可演化、过程可观测',
-    },
-    keywords: ['接口', '协议', '契约', '协同', '解耦'],
-    philosophy: '伟大的系统不是因为每个模块无所不能，而是因为它们能够可靠协同。',
-    image: 'm_06.webp',
-    status: 'draft',
+    "status": "final",
+    "imageSrc": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/content-v2-20260914/method/m06.webp",
+    "sources": [
+      {
+        "label": "Anthropic · Writing tools for agents（2025）",
+        "url": "https://www.anthropic.com/engineering/writing-tools-for-agents"
+      }
+    ],
+    "sections": [
+      {
+        "label": "你熟悉的方法",
+        "text": "误差分析：沿处理链定位来源，优先解决主导误差，而非盲目提高每一环节的精度。"
+      },
+      {
+        "label": "迁移到 AI 协作",
+        "text": "把整条工作过程拆成来源、提取、计算和表达，逐段定位误差。不要只用“模型不够聪明”概括所有失败。"
+      }
+    ],
+    "exerciseLabel": "在工作中试一次"
   },
   {
-    id: 7,
-    title: '验证：不要相信，要证明',
-    subtitle: '从仿真测量到测试与审计',
-    stage: '软件工程方法论',
-    coreProposition: '系统输出不能因为「看起来合理」就被接受，必须通过独立证据、边界测试和可追溯记录建立可信度。',
-    emView: '理论推导需要仿真验证，仿真结果需要暗室测量，测量还需要校准与误差分析。',
-    seView: '单元测试、集成测试、系统测试、性能测试和安全测试共同证明软件可用。',
-    aiView: '事实核查、工具结果复验、评价器、日志、引用和人工抽检共同构成可信闭环。',
-    mapping: [
-      ['解析解', '规格与不变量'],
-      ['数值仿真', '自动化测试'],
-      ['暗室测量', '真实环境评测'],
-      ['校准误差', '偏差与幻觉分析'],
+    "id": "v2-m07",
+    "number": 7,
+    "title": "闭环让协作可修正",
+    "stage": "测量与反馈",
+    "subtitle": "行动之后，要有真实反馈",
+    "coreQuestion": "一次提示没有成功，下一步怎样改？",
+    "coreProposition": "借用闭环控制思维：先定义目标，执行后观察差距，再根据真实结果修正。每轮改一个关键因素，更容易归因。",
+    "exercise": "让 AI 生成一版报告，用明确检查表指出缺口，再只修改最关键的问题。",
+    "misconception": "自然语言系统不是已知线性控制对象；不能未经分析照搬稳定性公式。",
+    "philosophy": "行动之后，要有真实反馈",
+    "keywords": [
+      "测量与反馈"
     ],
-    modules: {
-      '电磁验证链': '理论 → 仿真 → 测量 → 误差分析',
-      '软件验证链': '单元 → 集成 → 系统 → 回归',
-      'Agent 验证链': '生成 → 事实核验 → 工具复算 → 审计评估',
-      '可信四问': '结果正确吗？证据独立吗？过程可复现吗？失败可定位吗？',
-    },
-    keywords: ['验证', '测试', '证据', '审计', '可复现'],
-    philosophy: '可信不是系统对自己的评价，而是独立证据共同指向的结果。',
-    image: 'm_07.webp',
-    status: 'draft',
+    "status": "final",
+    "imageSrc": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/content-v2-20260914/method/m07.webp",
+    "sources": [
+      {
+        "label": "Anthropic · Building effective agents（2024）",
+        "url": "https://www.anthropic.com/engineering/building-effective-agents"
+      }
+    ],
+    "sections": [
+      {
+        "label": "你熟悉的方法",
+        "text": "反馈控制：观察目标与实际结果的差距，再决定下一步调整。"
+      },
+      {
+        "label": "迁移到 AI 协作",
+        "text": "借用闭环控制思维：先定义目标，执行后观察差距，再根据真实结果修正。每轮改一个关键因素，更容易归因。"
+      }
+    ],
+    "exerciseLabel": "在工作中试一次"
   },
   {
-    id: 8,
-    title: '系统需要持续演化',
-    subtitle: '从一次设计到反馈闭环',
-    stage: '软件工程 → Agent',
-    coreProposition: '面对变化的环境、需求和知识，真正可持续的系统必须依靠反馈持续修正自身。',
-    emView: '自适应阵列根据误差信号调整权值，使波束、零陷和抗干扰能力随环境变化。',
-    seView: '需求、开发、上线、监控和迭代组成持续交付闭环。',
-    aiView: 'Agent 在执行后总结失败模式、沉淀经验、更新记忆与策略，但所有更新必须经过验证和版本控制。',
-    mapping: [
-      ['反馈信号', '运行评价'],
-      ['自适应权值', '策略更新'],
-      ['稳定性分析', '防止退化'],
-      ['收敛判据', '迭代停止条件'],
+    "id": "v2-m08",
+    "number": 8,
+    "title": "观测过程，才能诊断",
+    "stage": "测量与反馈",
+    "subtitle": "留下证据，而不只留答案",
+    "coreQuestion": "长任务只给最终答案，为什么很难信任？",
+    "coreProposition": "保留关键输入、工具结果、版本和中间产物，让过程可检查、失败可定位。重点是外部执行证据。",
+    "exercise": "在一次数据分析中保留原始文件、计算脚本、关键图表与结论对应关系。",
+    "misconception": "可追溯记录不等于模型内部思维；无需索取隐藏推理也能审计结果。",
+    "philosophy": "留下证据，而不只留答案",
+    "keywords": [
+      "测量与反馈"
     ],
-    modules: {
-      '传统工程': '设计 → 实现 → 验收 → 完成',
-      '现代软件': '开发 → 上线 → 监控 → 反馈 → 迭代',
-      'Agent 进化': '执行 → 评估 → 反思 → 记忆 → 策略更新',
-      '进化护栏': '基准集、版本管理、回滚机制、人工审批、安全边界',
-    },
-    keywords: ['反馈', '迭代', '学习', '版本', '持续演化'],
-    philosophy: '没有反馈的系统只能重复过去，有反馈的系统才可能适应未来。',
-    image: 'm_08.webp',
-    status: 'draft',
+    "status": "final",
+    "imageSrc": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/content-v2-20260914/method/m08.webp",
+    "sources": [
+      {
+        "label": "Anthropic · Writing tools for agents（2025）",
+        "url": "https://www.anthropic.com/engineering/writing-tools-for-agents"
+      }
+    ],
+    "sections": [
+      {
+        "label": "你熟悉的方法",
+        "text": "系统诊断：关键节点有记录，才容易从异常现象追到问题环节。"
+      },
+      {
+        "label": "迁移到 AI 协作",
+        "text": "保留关键输入、工具结果、版本和中间产物，让过程可检查、失败可定位。重点是外部执行证据。"
+      }
+    ],
+    "exerciseLabel": "在工作中试一次"
   },
   {
-    id: 9,
-    title: '从输入输出到目标驱动',
-    subtitle: '从传递函数到任务规划',
-    stage: 'AI Agent 方法论',
-    coreProposition: '传统系统接收明确输入并执行预定变换；Agent 接收目标，自主构造中间步骤并选择行动。',
-    emView: '确定输入 x 和系统 H 后，输出 y 通常由系统响应关系给出。',
-    seView: '传统程序由开发者提前规定分支、顺序与异常处理。',
-    aiView: 'Agent 将目标分解为子任务，检索信息、调用工具、检查结果，并根据反馈重规划。',
-    mapping: [
-      ['输入信号 x', '目标 G'],
-      ['传递函数 H', '策略与规划器'],
-      ['中间状态', '子任务与工作记忆'],
-      ['输出 y', '可验收成果'],
+    "id": "v2-m09",
+    "number": 9,
+    "title": "约束比愿望更可执行",
+    "stage": "约束与实验",
+    "subtitle": "边界既要说清，也要落实",
+    "coreQuestion": "怎样让 AI 知道哪些操作不能做？",
+    "coreProposition": "像工程边界条件一样明确可操作范围；实际权限由系统和工具限制。只读检查、可逆修改与对外发布应区别处理。",
+    "exercise": "把“先分析，不发邮件，不改原始数据”落实为工具权限和副本工作区。",
+    "misconception": "提示词中的禁止语句不能替代真实权限控制或隔离。",
+    "philosophy": "边界既要说清，也要落实",
+    "keywords": [
+      "约束与实验"
     ],
-    modules: {
-      '输入驱动': '输入 → 程序 → 输出',
-      '目标驱动': '目标 → 规划 → 行动 → 观察 → 重规划 → 结果',
-      '关键变化': '人从描述步骤转向定义目标、边界、验收标准与资源',
-      '目标规格': '成果是什么、何时完成、质量多高、证据是什么、哪些行为禁止',
-    },
-    keywords: ['目标', '规划', '行动', '重规划', '验收'],
-    philosophy: 'AI 时代最重要的能力，不只是告诉机器怎么做，而是准确规定什么叫做成。',
-    image: 'm_09.webp',
-    status: 'draft',
+    "status": "final",
+    "imageSrc": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/content-v2-20260914/method/m09.webp",
+    "sources": [
+      {
+        "label": "NIST AI 600-1 · 生成式 AI 风险管理（2024）",
+        "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+      }
+    ],
+    "sections": [
+      {
+        "label": "你熟悉的方法",
+        "text": "工程约束：设计必须满足可行域，约束需要由实际机制落实。"
+      },
+      {
+        "label": "迁移到 AI 协作",
+        "text": "像工程边界条件一样明确可操作范围；实际权限由系统和工具限制。只读检查、可逆修改与对外发布应区别处理。"
+      }
+    ],
+    "exerciseLabel": "在工作中试一次"
   },
   {
-    id: 10,
-    title: 'Agent 是具有自主性的系统',
-    subtitle: '从被动执行到主动决策',
-    stage: 'AI Agent 方法论',
-    coreProposition: '自主性不是无限自由，而是在既定目标、边界和评价机制中选择下一步行动的能力。',
-    emView: '闭环控制系统根据状态与误差自主调整控制量，但其稳定性由控制律和边界保证。',
-    seView: '传统程序主要执行预定义流程，对未知情形的处理范围有限。',
-    aiView: 'Agent 具备感知、记忆、推理、规划、工具调用、反馈修正与终止判断。',
-    mapping: [
-      ['传感器', '观察'],
-      ['状态估计', '工作记忆'],
-      ['控制律', '策略'],
-      ['执行器', '工具'],
-      ['闭环反馈', '反思与重规划'],
+    "id": "v2-m10",
+    "number": 10,
+    "title": "优化要承认多目标",
+    "stage": "约束与实验",
+    "subtitle": "先定优先级，再谈最优",
+    "coreQuestion": "快、便宜、可靠，怎样做取舍？",
+    "coreProposition": "电子信息设计常在性能、成本、体积与功耗之间权衡。AI 工作同样要明确质量、时延、费用和人工复核成本。",
+    "exercise": "比较两个工作流程时，同时记录正确率、耗时、费用与返工次数。",
+    "misconception": "不要用一个总分掩盖关键失败，也不要默认更大模型对每个任务都更好。",
+    "philosophy": "先定优先级，再谈最优",
+    "keywords": [
+      "约束与实验"
     ],
-    modules: {
-      'Agent 闭环': '观察 → 理解 → 规划 → 行动 → 反馈',
-      '自主性层级': '响应式、任务式、规划式、协作式、自我改进式',
-      '自主性边界': '权限、预算、风险、时限、审批、终止条件',
-      '工程原则': '可观测、可中断、可回滚、可解释、可升级',
-    },
-    keywords: ['自主性', '闭环', '决策', '工具', '治理'],
-    philosophy: '自主不是摆脱约束，而是在约束中承担选择的责任。',
-    image: 'm_10.webp',
-    status: 'draft',
+    "status": "final",
+    "imageSrc": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/content-v2-20260914/method/m10.webp",
+    "sources": [
+      {
+        "label": "Anthropic · Building effective agents（2024）",
+        "url": "https://www.anthropic.com/engineering/building-effective-agents"
+      }
+    ],
+    "sections": [
+      {
+        "label": "你熟悉的方法",
+        "text": "多目标设计：性能、功耗和成本常常互相制约，最优取决于任务优先级。"
+      },
+      {
+        "label": "迁移到 AI 协作",
+        "text": "电子信息设计常在性能、成本、体积与功耗之间权衡。AI 工作同样要明确质量、时延、费用和人工复核成本。"
+      }
+    ],
+    "exerciseLabel": "在工作中试一次"
   },
   {
-    id: 11,
-    title: '提示词不是命令，而是系统设计',
-    subtitle: '从单句指令到可执行任务规格',
-    stage: 'AI Agent 方法论',
-    coreProposition: '高质量 Prompt 的本质不是修辞技巧，而是用结构化语言定义一个临时的软件系统和执行契约。',
-    emView: '一个电磁问题需要激励、几何、材料、边界、观测量和误差要求，缺一项都可能无法求解。',
-    seView: '需求规格需要角色、功能、输入输出、异常、性能和验收标准。',
-    aiView: '系统化 Prompt 应包含角色、目标、上下文、约束、工具、流程、评价标准、输出格式和停止条件。',
-    mapping: [
-      ['激励', '任务目标'],
-      ['边界条件', '权限与禁区'],
-      ['材料参数', '环境与资源'],
-      ['观测量', '输出字段'],
-      ['误差限', '验收标准'],
+    "id": "v2-m11",
+    "number": 11,
+    "title": "用对照实验改进流程",
+    "stage": "约束与实验",
+    "subtitle": "改进要经得起对照",
+    "coreQuestion": "新提示词看起来更好，真的更好吗？",
+    "coreProposition": "保留固定测试案例，在相同条件下比较两种做法，统计成功与失败类型。区分开发时反复调试的案例和未见过的验收案例。",
+    "exercise": "准备十个常见任务，比较加不加资料检索对结果的影响。",
+    "misconception": "十个案例只是起点；小样本不能证明普遍有效，模型随机性也要考虑。",
+    "philosophy": "改进要经得起对照",
+    "keywords": [
+      "约束与实验"
     ],
-    modules: {
-      '命令式 Prompt': '只描述一句要做什么，边界与质量标准模糊',
-      '系统化 Prompt': 'Role、Goal、Context、Constraints、Tools、Workflow、Criteria、Format',
-      '长程任务附加项': '检查点、状态保存、失败恢复、版本、证据与审计',
-      'Prompt 质检': '是否可执行、可判断、可验证、可恢复、可复用',
-    },
-    keywords: ['Prompt', '系统设计', '任务规格', '验收标准', '可执行性'],
-    philosophy: '提示词的质量，决定了智能系统能够看见的边界和必须承担的责任。',
-    image: 'm_11.webp',
-    status: 'draft',
+    "status": "final",
+    "imageSrc": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/content-v2-20260914/method/m11.webp",
+    "sources": [
+      {
+        "label": "Anthropic · Writing tools for agents（2025）",
+        "url": "https://www.anthropic.com/engineering/writing-tools-for-agents"
+      }
+    ],
+    "sections": [
+      {
+        "label": "你熟悉的方法",
+        "text": "对照实验：保持其他条件尽量一致，考察某项改变是否真正改善结果。"
+      },
+      {
+        "label": "迁移到 AI 协作",
+        "text": "保留固定测试案例，在相同条件下比较两种做法，统计成功与失败类型。区分开发时反复调试的案例和未见过的验收案例。"
+      }
+    ],
+    "exerciseLabel": "在工作中试一次"
   },
   {
-    id: 12,
-    title: '从天线设计到 Agent 设计',
-    subtitle: '方法迁移、能力迁移、未来已来',
-    stage: '综合迁移',
-    coreProposition: '天线工程师一直在做一件与 Agent 设计高度同构的事：在目标和约束下设计结构，使系统产生期望响应。',
-    emView: '指标定义、结构参数化、电磁仿真、样机测量与优化迭代构成天线设计闭环。',
-    seView: '需求、架构、接口、实现、测试、部署和维护构成软件工程闭环。',
-    aiView: '目标、边界、工具、工作流、评价、审计、记忆和迭代构成 Agent 工程闭环。',
-    mapping: [
-      ['天线指标', '任务验收标准'],
-      ['天线结构', 'Agent 架构'],
-      ['电磁响应', 'Agent 行为'],
-      ['优化算法', '策略迭代'],
-      ['暗室测量', '真实任务评测'],
+    "id": "v2-m12",
+    "number": 12,
+    "title": "把失败变成检查项",
+    "stage": "约束与实验",
+    "subtitle": "经验沉淀为可重复的检查",
+    "coreQuestion": "同一种错误为什么总会重来？",
+    "coreProposition": "可靠性工程重视失效模式。把真实失败整理成检查清单、边界样例和回归任务，比只保存成功提示词更有价值。",
+    "exercise": "把“频率单位混用”写成每次计算前必须验证的一项，并加入测试样例。",
+    "misconception": "检查项应来自任务风险与历史失败，不是越长越好。",
+    "philosophy": "经验沉淀为可重复的检查",
+    "keywords": [
+      "约束与实验"
     ],
-    modules: {
-      '天线设计流程': '目标指标 → 结构设计 → 电磁响应 → 测量验证 → 优化改进',
-      'Agent 设计流程': '任务目标 → Agent 架构 → 行为执行 → 审计评测 → 持续进化',
-      '共同本质': '建模、边界、约束、接口、验证、反馈与优化',
-      '能力路线': '系统思维 → 软件工程 → Agent 工程 → 复杂智能系统设计',
-    },
-    keywords: ['迁移', '设计', '响应', 'Agent 工程', '未来能力'],
-    philosophy: '天线把能量塑造成空间中的波束；Agent 把能力组织成时间中的行动。',
-    image: 'm_12.webp',
-    status: 'draft',
+    "status": "final",
+    "imageSrc": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/content-v2-20260914/method/m12.webp",
+    "sources": [
+      {
+        "label": "Anthropic · Writing tools for agents（2025）",
+        "url": "https://www.anthropic.com/engineering/writing-tools-for-agents"
+      }
+    ],
+    "sections": [
+      {
+        "label": "你熟悉的方法",
+        "text": "可靠性分析：记录失效模式，用检查与复测防止同一错误反复发生。"
+      },
+      {
+        "label": "迁移到 AI 协作",
+        "text": "可靠性工程重视失效模式。把真实失败整理成检查清单、边界样例和回归任务，比只保存成功提示词更有价值。"
+      }
+    ],
+    "exerciseLabel": "在工作中试一次"
   },
+  {
+    "id": "v2-m13",
+    "number": 13,
+    "title": "先做好一个小工作流",
+    "stage": "在真实工作中迁移",
+    "subtitle": "从可验收的小任务开始",
+    "coreQuestion": "一定要从自主 Agent 开始吗？",
+    "coreProposition": "选一个边界清楚的重复任务，从人能检查的步骤开始：资料整理、计算、结果复核。确有需要时再增加自主决策。",
+    "exercise": "先让 AI 整理测试记录并生成待核对摘要，不直接替你作最终技术承诺。",
+    "misconception": "工作流和自主 Agent 各有适用情形，自主性增加也会增加检查与恢复成本。",
+    "philosophy": "从可验收的小任务开始",
+    "keywords": [
+      "在真实工作中迁移"
+    ],
+    "status": "final",
+    "imageSrc": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/content-v2-20260914/method/m13.webp",
+    "sources": [
+      {
+        "label": "Anthropic · Building effective agents（2024）",
+        "url": "https://www.anthropic.com/engineering/building-effective-agents"
+      }
+    ],
+    "sections": [
+      {
+        "label": "你熟悉的方法",
+        "text": "分级调试：先让一个小系统稳定可用，再增加模块与复杂度。"
+      },
+      {
+        "label": "迁移到 AI 协作",
+        "text": "选一个边界清楚的重复任务，从人能检查的步骤开始：资料整理、计算、结果复核。确有需要时再增加自主决策。"
+      }
+    ],
+    "exerciseLabel": "在工作中试一次"
+  },
+  {
+    "id": "v2-m14",
+    "number": 14,
+    "title": "让知识成为可用资源",
+    "stage": "在真实工作中迁移",
+    "subtitle": "把隐性经验写成可查证的资料",
+    "coreQuestion": "多年经验怎样交给 AI 使用？",
+    "coreProposition": "把常见问题、参数范围、判断依据和典型失败整理成带来源的资料。资料通过检索提供给任务，重要决策仍由人核验。",
+    "exercise": "把最熟悉的一个专题整理成“问题—证据—判断—例外”四栏笔记。",
+    "misconception": "把文件放进知识库不等于模型学会了；检索质量、版本和授权仍要管理。",
+    "philosophy": "把隐性经验写成可查证的资料",
+    "keywords": [
+      "在真实工作中迁移"
+    ],
+    "status": "final",
+    "imageSrc": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/content-v2-20260914/method/m14.webp",
+    "sources": [
+      {
+        "label": "Anthropic · Effective context engineering（2025）",
+        "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents"
+      }
+    ],
+    "sections": [
+      {
+        "label": "你熟悉的方法",
+        "text": "工程知识管理：记录参数、条件、依据和例外，使经验可以复用和核查。"
+      },
+      {
+        "label": "迁移到 AI 协作",
+        "text": "把常见问题、参数范围、判断依据和典型失败整理成带来源的资料。资料通过检索提供给任务，重要决策仍由人核验。"
+      }
+    ],
+    "exerciseLabel": "在工作中试一次"
+  },
+  {
+    "id": "v2-m15",
+    "number": 15,
+    "title": "保留专业判断的位置",
+    "stage": "在真实工作中迁移",
+    "subtitle": "把经验放在关键判断处",
+    "coreQuestion": "AI 做得越来越多，人还负责什么？",
+    "coreProposition": "让 AI 承担检索、草拟和重复计算，把领域判断用于识别异常、确认约束、解释取舍和承担最终责任。",
+    "exercise": "审阅一份 AI 方案时，先检查最可能违背物理或工程条件的地方。",
+    "misconception": "年龄与既有经验并不决定能否适应；需要改变的是具体工作习惯，而非否定过去。",
+    "philosophy": "把经验放在关键判断处",
+    "keywords": [
+      "在真实工作中迁移"
+    ],
+    "status": "final",
+    "imageSrc": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/content-v2-20260914/method/m15.webp",
+    "sources": [
+      {
+        "label": "NIST AI 600-1 · 生成式 AI 风险管理（2024）",
+        "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+      }
+    ],
+    "sections": [
+      {
+        "label": "你熟悉的方法",
+        "text": "工程判断：识别异常、核对物理边界，并对最终技术决定负责。"
+      },
+      {
+        "label": "迁移到 AI 协作",
+        "text": "让 AI 承担检索、草拟和重复计算，把领域判断用于识别异常、确认约束、解释取舍和承担最终责任。"
+      }
+    ],
+    "exerciseLabel": "在工作中试一次"
+  },
+  {
+    "id": "v2-m16",
+    "number": 16,
+    "title": "用一个真实任务完成迁移",
+    "stage": "在真实工作中迁移",
+    "subtitle": "一次可验证的改进，就是起点",
+    "coreQuestion": "怎样开始，才不会只停留在学工具？",
+    "coreProposition": "选择低风险、可验证的真实任务，记录原流程基线；用 AI 完成一轮，比较质量与耗时，保留有效步骤，修正失败环节。",
+    "exercise": "本周选一次测试报告整理：先独立做一份基线，再用 AI 辅助，记录差异并复核结论。",
+    "misconception": "一次成功不代表可无人值守；扩大范围前要检查不同案例和失败恢复。",
+    "philosophy": "一次可验证的改进，就是起点",
+    "keywords": [
+      "在真实工作中迁移"
+    ],
+    "status": "final",
+    "imageSrc": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/content-v2-20260914/method/m16.webp",
+    "sources": [
+      {
+        "label": "Anthropic · Building effective agents（2024）",
+        "url": "https://www.anthropic.com/engineering/building-effective-agents"
+      },
+      {
+        "label": "Anthropic · Writing tools for agents（2025）",
+        "url": "https://www.anthropic.com/engineering/writing-tools-for-agents"
+      }
+    ],
+    "sections": [
+      {
+        "label": "你熟悉的方法",
+        "text": "原型验证：先做一个可测量的小实验，再用结果决定是否扩大应用。"
+      },
+      {
+        "label": "迁移到 AI 协作",
+        "text": "选择低风险、可验证的真实任务，记录原流程基线；用 AI 完成一轮，比较质量与耗时，保留有效步骤，修正失败环节。"
+      }
+    ],
+    "exerciseLabel": "在工作中试一次"
+  }
 ];
-
 module.exports = { CARDS };

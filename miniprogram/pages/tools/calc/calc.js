@@ -4,9 +4,9 @@
 //   λ = c/(f·√εr)；|Γ|=(s−1)/(s+1)；RL=−20lg|Γ|；ML=−10lg(1−|Γ|²)
 //   δ = 1/√(πfμσ)；Ae = Gλ²/4π ↔ G = 4πAe/λ²；R_ff = 2D²/λ；R_nf = 0.62√(D³/λ)
 const haptic = require('../../../utils/haptic')
-const rf = require('../../../utils/rf-math')
-const lc = require('../../../utils/lab-canvas')
-const { THEME, alpha } = require('../../../utils/lab-theme')
+const rf = require('./pkg-utils/rf-math')
+const lc = require('./pkg-utils/lab-canvas')
+const { THEME, alpha } = require('./pkg-utils/lab-theme')
 
 // 50Ω 系统电压电平偏移：dBμV = dBm + 10·lg(50) + 90 ≈ dBm + 106.99
 // 推导：V = √(P·R)，1 mW × 50 Ω → 223.6 mV = 106.99 dBμV

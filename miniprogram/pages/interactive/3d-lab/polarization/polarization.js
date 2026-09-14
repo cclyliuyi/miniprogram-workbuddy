@@ -7,15 +7,17 @@
 const { registerOrbitControls } = require('../orbit-controls');
 const haptic = require('../../../../utils/haptic');
 const stage = require('../lab3d-stage');
-const lc = require('../../../../utils/lab-canvas');
-const { THEME, alpha } = require('../../../../utils/lab-theme');
-const rf = require('../../../../utils/rf-math');
+const lc = require('../pkg-utils/lab-canvas');
+const { THEME, alpha } = require('../pkg-utils/lab-theme');
+const rf = require('../pkg-utils/rf-math');
 
 const AMP = 0.42;   // 场景缩放：|E| = 1 → 0.42 单位
 const NVEC = 13;    // 沿传播轴的 E 矢量个数（预分配，动画只改坐标）
 
+const visual = require('../pkg-utils/lab3d-visual');
 Page({
   data: {
+    labView: 'perspective', autoRotate: false,
     S: { ex: 1, ey: 0.55, del: 0, preset: 'linear' },
     params: null,
     showHint: true,
@@ -57,7 +59,7 @@ Page({
 
   initThree() {
     stage.initThree(this, '#three-canvas', {
-      fov: 42, cameraPos: [1.7, 1.25, 2.5],
+      fov: 42, cameraPos: [3, 1.7, 1.3],
       onReady: (env) => {
         const THREE = env.THREE;
         registerOrbitControls(THREE);
@@ -145,9 +147,7 @@ Page({
       py.push(new THREE.Vector3(0, e.y * AMP, z));
       pe.push(new THREE.Vector3(e.x * AMP, e.y * AMP, z));
     }
-    this.addLine(px, matX);
-    this.addLine(py, matY);
-    this.addLine(pe, matE);
+    this._waveLines=[this.addLine(px,matX),this.addLine(py,matY),this.addLine(pe,matE)];
   },
 
   // E 矢量预分配：NVEC 组 Line + 端点球建一次，动画中只写 position（消除每帧建/毁对象）
@@ -175,6 +175,7 @@ Page({
   },
 
   updateVectors() {
+    if(this._waveLines){for(let i=0;i<=260;i++){const z=-1.7+i/260*3.4,e=this.E(z);const coords=[[e.x*AMP,0,z],[0,e.y*AMP,z],[e.x*AMP,e.y*AMP,z]];this._waveLines.forEach((line,k)=>line.geometry.attributes.position.array.set(coords[k],i*3));}this._waveLines.forEach(line=>{line.geometry.attributes.position.needsUpdate=true;});}
     if (!this._vecs) return;
     for (const v of this._vecs) {
       const e = this.E(v.z);
@@ -247,6 +248,7 @@ Page({
   dispose() {
     this.stopAnim();
     stage.clearTimers(this);
+    if (this.scene) stage.clearGroup(this.scene);
     if (this.renderer) { this.renderer.dispose(); this.renderer = null; }
     if (this.controls) { this.controls.dispose(); this.controls = null; }
   },
@@ -408,6 +410,8 @@ Page({
     ], box.x, h - 8);
   },
 
+  onLabView(e) { visual.fitView(this,e.currentTarget.dataset.view); this._home=stage.saveHome(this.controls); },
+  onLabRotate() { const value=!this.data.autoRotate; this.setData({autoRotate:value}); if(this.controls)this.controls.autoRotate=value; },
   onShareAppMessage() {
     return { title: '极化椭圆 3D 实验室', path: '/pages/interactive/3d-lab/polarization/polarization' };
   },

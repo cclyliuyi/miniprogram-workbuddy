@@ -5,8 +5,8 @@
 //   数值积分：复化梯形法（端点权 0.5），N = 180
 //   驻波分布 I(z′) = sin(k(L/2 − |z′|))——真实偶极子驻波电流，随 L 变化
 const haptic = require('../../../utils/haptic')
-const lc = require('../../../utils/lab-canvas')
-const { THEME, alpha, rampColor } = require('../../../utils/lab-theme')
+const lc = require('./pkg-utils/lab-canvas')
+const { THEME, alpha, rampColor } = require('./pkg-utils/lab-theme')
 
 const TAPER_LABELS = {
   uniform: '均匀',

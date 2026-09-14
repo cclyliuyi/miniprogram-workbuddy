@@ -1,5 +1,6 @@
 /* pages/interactive/radiation-3d/radiation-3d.wxss —— 三维辐射方向图 */
 @import "../../../styles/tool-ui.wxss";
+@import "../../../styles/lab3d-controls.wxss";
 
 /* ── WebGL 画布（纸色舞台，scene.background 同为 0xf3efe6）── */
 .r3d-canvas-wrap {
@@ -65,7 +66,7 @@
   height: 12rpx;
   border-radius: 6rpx;
   background: linear-gradient(to right,
-    #f6ece3, #eacdb7, #dcae8d, #cc8d66, #b86a44, #9c4f2f);
+    #253494, #167ac6, #22bfd0, #58ce8a, #d9e85b, #ffbf3f, #f46d32, #c9283e);
 }
 .r3d-legend-ticks {
   display: flex;

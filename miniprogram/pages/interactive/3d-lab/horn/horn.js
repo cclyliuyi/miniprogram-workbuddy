@@ -12,14 +12,16 @@
 //   HPBW 直接在数值方向图上搜 −3 dB 点 —— 无任何拟合系数。
 const { registerOrbitControls } = require('../orbit-controls');
 const stage = require('../lab3d-stage');
-const lc = require('../../../../utils/lab-canvas');
-const { THEME, rampColor } = require('../../../../utils/lab-theme');
+const lc = require('../pkg-utils/lab-canvas');
+const { THEME, rampColor } = require('../pkg-utils/lab-theme');
 
 const ASTEP = 1;        // 方向图角度步长（°），−90..90
 const SCALE = 0.12;     // 场景缩放：1λ = 0.12 单位
 
+const visual = require('../pkg-utils/lab3d-visual');
 Page({
   data: {
+    labView: 'perspective', autoRotate: false,
     aSlider: 60, aVal: '6.0 λ',
     lSlider: 80, lVal: '8.0 λ',
     tapSlider: 10, tapVal: '-10 dB',
@@ -148,7 +150,7 @@ Page({
 
     // E/H 面数值方向图（含单元因子 (1+cosθ)/2），各自归一化
     const ang = [], eRaw = [], hRaw = [];
-    for (let i = 0; i <= 180 / ASTEP * 2; i++) {
+    for (let i = 0; i <= 180 / ASTEP; i++) {
       const deg = -90 + i * ASTEP;
       const th = deg * Math.PI / 180;
       const el = (1 + Math.cos(th)) / 2;
@@ -204,8 +206,8 @@ Page({
     geo.addAttribute('position', new THREE.Float32BufferAttribute(posArr, 3));  // r108 API
     geo.computeVertexNormals();
     this.hornGroup.add(new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
-      color: C.gold, metalness: 0.35, roughness: 0.55,
-      side: THREE.DoubleSide, transparent: true, opacity: 0.92,
+      color: 0xc4a16c, metalness: 0.55, roughness: 0.38,
+      side: THREE.DoubleSide,
     })));
 
     // 棱线 + 口径边框 · 暖灰/赤陶勾边
@@ -220,6 +222,8 @@ Page({
       new THREE.LineBasicMaterial({ color: C.accent, transparent: true, opacity: 0.9 })
     ));
 
+    visual.rim(THREE,this.hornGroup,[[-ap/2,-ap/2,z1],[ap/2,-ap/2,z1],[ap/2,ap/2,z1],[-ap/2,ap/2,z1]],.014,0xc4a16c);
+    visual.rim(THREE,this.hornGroup,[[-thr*.7,-thr*.7,z0],[thr*.7,-thr*.7,z0],[thr*.7,thr*.7,z0],[-thr*.7,thr*.7,z0]],.018,0x536776);
     // ── 喉部（馈电波导段）· 暖灰 ──
     const throat = new THREE.Mesh(
       new THREE.BoxGeometry(thr * 0.82, thr * 0.82, th),
@@ -236,12 +240,12 @@ Page({
     for (let i = 0; i < ppos.count; i++) {
       const rl = Math.hypot(ppos.getX(i), ppos.getY(i)) / SCALE;   // 半径（λ）
       const phase = 360 * (Math.hypot(S.R, rl) - S.R);             // 相对中心的相位滞后（°）
-      const c = new THREE.Color(rampColor(Math.min(1, phase / 360)));
+      const c = new THREE.Color(visual.heatColor(Math.min(1, phase / 360)));
       col.push(c.r, c.g, c.b);
     }
     pg.addAttribute('color', new THREE.Float32BufferAttribute(col, 3));
     const apertureMesh = new THREE.Mesh(pg, new THREE.MeshBasicMaterial({
-      vertexColors: true, transparent: true, opacity: 0.95, side: THREE.DoubleSide,
+      vertexColors: THREE.VertexColors, transparent: true, opacity: 0.95, side: THREE.DoubleSide,
     }));
     apertureMesh.position.z = z1 + 0.012;
     this.phaseGroup.add(apertureMesh);
@@ -266,6 +270,7 @@ Page({
   dispose() {
     this.stopAnim();
     stage.clearTimers(this);
+    if (this.scene) stage.clearGroup(this.scene);
     if (this.renderer) { this.renderer.dispose(); this.renderer = null; }
     if (this.controls) { this.controls.dispose(); this.controls = null; }
   },
@@ -332,6 +337,8 @@ Page({
     ], box.x, h - 12);
   },
 
+  onLabView(e) { visual.fitView(this,e.currentTarget.dataset.view); this._home=stage.saveHome(this.controls); },
+  onLabRotate() { const value=!this.data.autoRotate; this.setData({autoRotate:value}); if(this.controls)this.controls.autoRotate=value; },
   onShareAppMessage() {
     return { title: '喇叭天线 3D 实验室', path: '/pages/interactive/3d-lab/horn/horn' };
   },

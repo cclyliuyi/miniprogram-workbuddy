@@ -32,7 +32,7 @@
       <view class="kicker">功率单位换算</view>
       <view class="tp-input-row">
         <text class="tp-input-label">输入值</text>
-        <input class="tp-input num" type="digit" value="{{dBmInput}}" bindinput="onDBmInput" placeholder="30" />
+        <input class="tp-input num" type="text" value="{{dBmInput}}" bindinput="onDBmInput" placeholder="30 或 -30" />
         <view class="tp-unit-group">
           <view class="tp-unit {{dBmMode === 0 ? 'active' : ''}}" data-mode="0" bindtap="toggleDBm">dBm</view>
           <view class="tp-unit {{dBmMode === 1 ? 'active' : ''}}" data-mode="1" bindtap="toggleDBm">W</view>

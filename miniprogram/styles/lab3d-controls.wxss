@@ -1,0 +1,12 @@
+/* Shared controls for native 3D canvases. Avoid transform animation on canvas ancestors. */
+.lab-viewbar { display:flex; flex-wrap:wrap; gap:10rpx; margin:12rpx 12rpx 16rpx; }
+.lab-view-choice { flex:1; min-width:90rpx; padding:16rpx 8rpx; text-align:center; border:1rpx solid #d2ddda; border-radius:12rpx; font-size:25rpx; color:#526a76; background:#fbf9f4; }
+.lab-view-choice.selected { color:#176d75; background:#e3eeea; border-color:#a9c5bf; }
+.lab-scene-caption { font-size:24rpx; line-height:1.7; color:#647783; text-align:center; margin:0 14rpx 20rpx; }
+.lab-color-key { margin:0 26rpx 24rpx; padding:12rpx 20rpx; border-radius:12rpx; background:#fbf9f4; }
+.lab-heat-gradient { height:14rpx; border-radius:8rpx; background:linear-gradient(to right,#253494,#167ac6,#22bfd0,#58ce8a,#d9e85b,#ffbf3f,#f46d32,#c9283e); }
+.lab-color-ticks { display:flex; justify-content:space-between; font-size:23rpx; color:#536773; margin-top:6rpx; }
+.lab-color-caption { font-size:23rpx; color:#647783; line-height:1.7; text-align:center; }
+.lab-motion-icon { display:inline-block; vertical-align:middle; margin-right:14rpx; width:20rpx; height:22rpx; box-sizing:border-box; }
+.lab-motion-icon.pause { border-left:6rpx solid currentColor; border-right:6rpx solid currentColor; }
+.lab-motion-icon.play { width:0; height:0; border-top:11rpx solid transparent; border-bottom:11rpx solid transparent; border-left:17rpx solid currentColor; }

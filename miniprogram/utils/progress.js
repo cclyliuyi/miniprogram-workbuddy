@@ -33,7 +33,7 @@ function yesterdayStr() {
 function markRead(month, day) {
   const key = `${month}-${day}`
   const readDays = wx.getStorageSync(KEY_READ) || {}
-  if (readDays[key]) return false // 已经读过
+  const wasNew = !readDays[key] // 复习也更新当天学习活动
 
   readDays[key] = true
   wx.setStorageSync(KEY_READ, readDays)
@@ -52,7 +52,7 @@ function markRead(month, day) {
   }
   streak.lastDate = today
   wx.setStorageSync(KEY_STREAK, streak)
-  return true
+  return wasNew
 }
 
 /** 某天是否已读 */

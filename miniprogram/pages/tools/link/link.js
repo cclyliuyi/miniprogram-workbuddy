@@ -5,9 +5,9 @@
 //   视距：d = √(2kR·h_t) + √(2kR·h_r)（等效地球半径 kR，平滑地球近似）
 //   噪声（IEEE 严格式）：Pn = k·(T + (F−1)·290)·B，F = 10^(NF/10)；Sens = Pn + SNR_min
 const haptic = require('../../../utils/haptic')
-const rf = require('../../../utils/rf-math')
-const lc = require('../../../utils/lab-canvas')
-const { THEME, alpha } = require('../../../utils/lab-theme')
+const rf = require('./pkg-utils/rf-math')
+const lc = require('./pkg-utils/lab-canvas')
+const { THEME, alpha } = require('./pkg-utils/lab-theme')
 
 const KB = 1.380649e-23   // 玻尔兹曼常数 J/K（SI 精确值）
 const R_EARTH = 6371e3    // 地球半径 m

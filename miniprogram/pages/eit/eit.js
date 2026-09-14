@@ -1,49 +1,24 @@
-// pages/eit/eit.js —— 电磁信息论卡片列表（tabBar 入口页）
-// 图片策略：直接使用云存储 fileID（已上传至 cloud1-d3gsxamaw26beccb8）
 const { CARDS } = require('./eit-data');
-const { EIT_FILE_IDS } = require('../../utils/cloud-images');
-const haptic = require('../../utils/haptic');
-
-Page({
-  data: {
-    cards: [],
-    readSet: [],
-    loading: true,
-  },
-
-  onLoad() {
-    const cards = CARDS.map(c => ({
-      ...c,
-      imageSrc: EIT_FILE_IDS[c.id],
-      tagText: c.tags.join(' / '),
-    }));
-    const readSet = wx.getStorageSync('eit_read') || [];
-    this.setData({ cards, readSet, loading: false });
-  },
-
-  onShow() {
-    const readSet = wx.getStorageSync('eit_read') || [];
-    this.setData({ readSet });
-  },
-
-  openCard(e) {
-    const index = e.currentTarget.dataset.index;
-    haptic.light();
-    wx.navigateTo({
-      url: `/pages/eit-detail/detail?index=${index}`,
-    });
-  },
-
-  onShareAppMessage() {
-    return {
-      title: '电磁信息论 · 12张前沿知识卡片',
-      path: '/pages/eit/eit',
-    };
-  },
-
-  onShareTimeline() {
-    return {
-      title: '电磁信息论 · 12张前沿知识卡片',
-    };
-  },
-});
+const { createList } = require('../../utils/learning-pages');
+Page(createList({ cards: CARDS, key: 'eit', ...{
+  "title": "从天线到电磁信息论",
+  "intro": "从熟悉的天线与传播出发，逐步理解：场怎样被观测，模式怎样形成，信息又受什么限制。",
+  "stages": [
+    {
+      "title": "口径与观测",
+      "description": "先理解天线怎样把空间中的场变成信号。"
+    },
+    {
+      "title": "传播与散射",
+      "description": "再看环境怎样改变场的结构与可观测性。"
+    },
+    {
+      "title": "模式与自由度",
+      "description": "把复杂场拆成模式，分清数量、强弱与独立性。"
+    },
+    {
+      "title": "从场到信息",
+      "description": "加入噪声和资源约束，走向容量与联合设计。"
+    }
+  ]
+} }));

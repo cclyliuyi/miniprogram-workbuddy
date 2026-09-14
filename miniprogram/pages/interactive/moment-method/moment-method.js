@@ -8,9 +8,9 @@
 //   条件数：κ₁ = ‖Z‖₁·‖Z⁻¹‖₁（由完整逆矩阵计算，非元素比值）
 
 const haptic = require('../../../utils/haptic')
-const rf = require('../../../utils/rf-math')
-const lc = require('../../../utils/lab-canvas')
-const { THEME, alpha, rampColor } = require('../../../utils/lab-theme')
+const rf = require('./pkg-utils/rf-math')
+const lc = require('./pkg-utils/lab-canvas')
+const { THEME, alpha, rampColor } = require('./pkg-utils/lab-theme')
 
 const { cx, cMul, cDiv, cAbs, ETA0 } = rf
 const K = 2 * Math.PI // 波数（λ=1 归一）

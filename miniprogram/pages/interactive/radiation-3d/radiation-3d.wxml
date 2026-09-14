@@ -1,36 +1,44 @@
 <!-- pages/interactive/radiation-3d/radiation-3d.wxml —— 三维辐射方向图 -->
 <view class="screen tp-page">
 
-  <view class="tp-head rise">
+  <view class="tp-head ">
     <view class="kicker">3D RADIATION PATTERN</view>
     <view class="tp-title display">辐射方向图</view>
     <view class="tp-sub">三维可视化 · 方向性 / HPBW / 辐射电阻</view>
   </view>
 
   <!-- 3D 画布（catchtouch 阻止页面跟随滚动） -->
-  <view class="tp-canvas-card rise">
+  <view class="tp-canvas-card ">
     <view class="tp-canvas-caption">{{captionText}}</view>
     <view class="r3d-canvas-wrap">
       <canvas type="webgl" id="three-canvas" class="r3d-canvas"
         catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
       <view wx:if="{{!glReady}}" class="r3d-skel">
-        <view class="r3d-skel-ring"></view>
-        <text class="r3d-skel-text">正在初始化 3D 场景…</text>
+        <view wx:if="{{!glError}}" class="r3d-skel-ring"></view>
+        <text class="r3d-skel-text">{{glError || '正在初始化 3D 场景…'}}</text>
+        <button wx:if="{{glError}}" size="mini" bindtap="retryScene">重新加载</button>
       </view>
       <view class="r3d-hint {{showHint ? '' : 'fade'}}">单指旋转 · 双指缩放 · 双击复位</view>
     </view>
+
+  <view class="lab-viewbar">
+    <view class="lab-view-choice {{labView==='perspective'?'selected':''}}" data-view="perspective" bindtap="onLabView">立体全景</view>
+    <view class="lab-view-choice {{labView==='front'?'selected':''}}" data-view="front" bindtap="onLabView">正视</view>
+    <view class="lab-view-choice {{labView==='top'?'selected':''}}" data-view="top" bindtap="onLabView">俯视</view>
+    <view class="lab-view-choice {{autoRotate?'selected':''}}" bindtap="onLabRotate">{{autoRotate?'停止环视':'自动环视'}}</view>
+  </view>
     <!-- 色标（数值刻度随上色模式切换） -->
     <view class="r3d-legend">
-      <view class="r3d-legend-grad"></view>
+      <view class="r3d-legend-grad" style="background: {{legendGradient}};"></view>
       <view class="r3d-legend-ticks">
         <text wx:for="{{legendTicks}}" wx:key="*this" class="r3d-legend-tick">{{item}}</text>
       </view>
-      <view class="r3d-legend-cap">{{S.cmap === 'db' ? '归一化功率（dB，下限 −40）' : '归一化幅度（线性）'}}</view>
+      <view class="r3d-legend-cap">{{S.cmap === 'db' ? '归一化功率（dB，下限 −40）' : '归一化功率（线性，蓝色弱 → 红色强）'}}</view>
     </view>
   </view>
 
   <!-- 天线类型 -->
-  <view class="tp-section rise">
+  <view class="tp-section ">
     <view class="kicker">天线类型</view>
     <view class="tp-btns">
       <view class="tp-btn {{S.type==='isotropic'?'active':''}}" data-t="isotropic" bindtap="onType">点源</view>
@@ -48,7 +56,7 @@
   </view>
 
   <!-- 方向图类型 / 上色 -->
-  <view class="tp-section rise">
+  <view class="tp-section ">
     <view class="kicker">方向图类型</view>
     <view class="tp-btns">
       <view class="tp-btn {{S.ptype==='power'?'active':''}}" data-p="power" bindtap="onPtype">功率方向图 F²</view>
@@ -57,12 +65,12 @@
     <view class="kicker r3d-kicker-gap">曲面上色</view>
     <view class="tp-btns">
       <view class="tp-btn {{S.cmap==='db'?'active':''}}" data-c="db" bindtap="onCmap">dB（工程惯例）</view>
-      <view class="tp-btn {{S.cmap==='lin'?'active':''}}" data-c="lin" bindtap="onCmap">线性</view>
+      <view class="tp-btn {{S.cmap==='lin'?'active':''}}" data-c="lin" bindtap="onCmap">热力（线性功率）</view>
     </view>
   </view>
 
   <!-- 显示控制 -->
-  <view class="tp-section rise">
+  <view class="tp-section ">
     <view class="kicker">显示控制</view>
     <view class="tp-slider-row">
       <text class="tp-slider-label">曲面透明度</text>
@@ -91,7 +99,7 @@
   </view>
 
   <!-- 读数 -->
-  <view class="tp-section pop" wx:if="{{stats}}">
+  <view class="tp-section " wx:if="{{stats}}">
     <view class="kicker">天线参数（无耗假设，G = D）</view>
     <view class="tp-stats-grid">
       <view class="tp-stat">
@@ -115,7 +123,7 @@
   </view>
 
   <!-- 公式注脚 -->
-  <view class="tp-formula rise">
+  <view class="tp-formula ">
     <view class="tp-formula-title">所用公式</view>
     <view class="tp-formula-line">{{formulaF}}</view>
     <view class="tp-formula-line">D = 4π·U_max / P_rad = 2 / ∫₀^π F̂²(θ)·sinθ dθ</view>
@@ -124,7 +132,7 @@
   </view>
 
   <!-- 图例说明 -->
-  <view class="tp-note rise">
+  <view class="tp-note ">
     <view class="kicker">图例说明</view>
     <view class="tp-note-text">靛蓝环 = E 面切面（φ=0 主平面，含极轴）；青绿环 = H 面切面（θ=90° 主平面）；赭金杆 = 天线元件（沿极轴 Y）；曲面颜色 = 归一化辐射强度（见色标）。</view>
   </view>

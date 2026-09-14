@@ -42,7 +42,7 @@ Page({
     weeks: [],
     todayDay: 0,
     todayMonth: 7,
-    year: 2027,
+    year: new Date().getFullYear(),
     // 磨砂背景：当月1号缩略图
     monthThumb: '',
     hasData: true,
@@ -67,7 +67,7 @@ Page({
     const defMonth = now.getMonth() + 1;
     const day = now.getDate();
     let month = defMonth;
-    if (options && options.month) month = parseInt(options.month, 10);
+    if (options && options.month) { const parsed = Number(options.month); if (Number.isInteger(parsed) && parsed >= 1 && parsed <= 12) month = parsed; }
     // 年视图跳月：通过 globalData 传入（switchTab 无法带参）
     const app = getApp();
     if (app && app.globalData && app.globalData.targetMonth) {
@@ -77,6 +77,7 @@ Page({
     this._reqToken = 0; // 初始化请求令牌
     this.setData({
       month,
+      year: new Date().getFullYear(),
       monthLabel: `${month}月`,
       todayDay: day,
       todayMonth: defMonth,
@@ -102,6 +103,10 @@ Page({
   },
 
   onShow() {
+    const now = new Date();
+    const changedYear = this.data.year !== now.getFullYear();
+    this.setData({year: now.getFullYear(), todayMonth: now.getMonth()+1, todayDay: now.getDate()});
+    if (changedYear) this.switchMonth(this.data.month);
     // 刷新打卡进度（从 day-detail 回来时需要更新）
     this.refreshProgress();
     // 从年视图切回时，若带了目标月份则定位过去
@@ -111,16 +116,8 @@ Page({
       const month = app.globalData.targetMonth;
       app.globalData.targetMonth = null; // 消费后立即清掉
       if (month === this.data.month) return; // 已经在目标月，不重复加载
-      this._reqToken = (this._reqToken || 0) + 1; // 作废可能的在途请求
       console.log('[calendar] onShow 切月到 →', month);
-      this.setData({
-        month, monthLabel: `${month}月`, monthThumb: '',
-        monthTheme: MONTH_THEMES[month] || '',
-        monthVibe: MONTH_VIBES[month] || '',
-      });
-      if (app && app.globalData) app.globalData.currentMonth = month; // 同步真相源
-      this.loadMonth(month);
-      this.loadMonthThumb(month);
+      this.switchMonth(month);
     }
   },
 
@@ -162,8 +159,35 @@ Page({
     }
   },
 
+  // 统一入口：切月 / 重试。作废在途请求 + 复位错误与数据状态 + 重载
+  switchMonth(month) {
+    this._reqToken = (this._reqToken || 0) + 1; // 作废在途请求，避免旧回包脏渲染
+    this.setData({
+      month,
+      year: new Date().getFullYear(),
+      monthLabel: `${month}月`,
+      monthThumb: '',        // 清空旧磨砂背景
+      loading: true,         // 开骨架屏
+      loadError: '',         // 复位错误横幅（否则切月后与骨架屏同屏）
+      hasData: true,         // 复位空数据提示
+      monthTheme: MONTH_THEMES[month] || '',
+      monthVibe: MONTH_VIBES[month] || '',
+    });
+    const app = getApp();
+    if (app && app.globalData) app.globalData.currentMonth = month; // 同步真相源
+    this.loadMonth(month);
+    this.loadMonthThumb(month);
+  },
+
+  // 错误/权限提示里的「重新加载」按钮（不能直接绑 loadMonth：tap 的 event 会被当成 month 参数）
+  onRetry() {
+    haptic.light();
+    this.switchMonth(this.data.month);
+  },
+
   async loadMonth(month) {
     const token = this._reqToken;
+    this.setData({weeks: buildMonthGrid(month, {}, this.data.year).weeks, loading: false});
     try {
       const res = await getMonthPhotos(month);
       if (token !== this._reqToken) { return; } // 已切月，丢弃旧结果
@@ -181,6 +205,7 @@ Page({
           backThumb: p.back && p.back.thumb ? p.back.thumb : '',
         };
       });
+      if (month === 2 && photosMap[28]) photosMap[29] = photosMap[28];
       const { weeks } = buildMonthGrid(month, photosMap, this.data.year);
       // 给每个已读的天加 isRead 标记
       weeks.forEach(week => {
@@ -202,7 +227,7 @@ Page({
     } catch (e) {
       if (token !== this._reqToken) { return; }
       console.error('[calendar] loadMonth FAIL:', e);
-      this.setData({ loadError: (e.errMsg || e.message || '未知错误'), loading: false });
+      this.setData({ weeks: buildMonthGrid(month, {}, this.data.year).weeks, loadError: '图片暂时无法加载，仍可点击日期阅读知识。', loading: false });
       wx.showToast({ title: '加载失败：' + this.data.loadError, icon: 'none', duration: 3000 });
     }
   },
@@ -262,16 +287,7 @@ Page({
     if (month > 12) month = 1;
     if (month === this.data.month) return;
     haptic.light();
-    this._reqToken = (this._reqToken || 0) + 1; // 使上一轮的异步回包作废，避免 removedNode/脏渲染
-    this.setData({
-      month, monthThumb: '', loading: true,
-      monthTheme: MONTH_THEMES[month] || '',
-      monthVibe: MONTH_VIBES[month] || '',
-    }); // 切月时清空旧背景+开骨架屏+更新描述
-    const app = getApp();
-    if (app && app.globalData) app.globalData.currentMonth = month; // 同步真相源
-    this.loadMonth(month);
-    this.loadMonthThumb(month);
+    this.switchMonth(month);
     this.updateGoToday();
   },
 
@@ -281,17 +297,8 @@ Page({
     const month = now.getMonth() + 1;
     if (month === this.data.month) return;
     haptic.light();
-    this._reqToken = (this._reqToken || 0) + 1;
-    this.setData({
-      month, monthLabel: `${month}月`, monthThumb: '', loading: true,
-      monthTheme: MONTH_THEMES[month] || '',
-      monthVibe: MONTH_VIBES[month] || '',
-      showGoToday: false,
-    });
-    const app = getApp();
-    if (app && app.globalData) app.globalData.currentMonth = month;
-    this.loadMonth(month);
-    this.loadMonthThumb(month);
+    this.switchMonth(month);
+    this.updateGoToday();
   },
 
   // 更新「回到今天」按钮可见性
@@ -349,16 +356,7 @@ Page({
     }
     haptic.light();
     this.setData({ showMonthPicker: false });
-    this._reqToken = (this._reqToken || 0) + 1;
-    this.setData({
-      month, monthLabel: `${month}月`, monthThumb: '', loading: true,
-      monthTheme: MONTH_THEMES[month] || '',
-      monthVibe: MONTH_VIBES[month] || '',
-    });
-    const app = getApp();
-    if (app && app.globalData) app.globalData.currentMonth = month;
-    this.loadMonth(month);
-    this.loadMonthThumb(month);
+    this.switchMonth(month);
     this.updateGoToday();
   },
 

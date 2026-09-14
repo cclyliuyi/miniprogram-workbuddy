@@ -10,8 +10,8 @@
 const { registerOrbitControls } = require('../orbit-controls');
 const haptic = require('../../../../utils/haptic');
 const stage = require('../lab3d-stage');
-const lc = require('../../../../utils/lab-canvas');
-const { THEME, alpha } = require('../../../../utils/lab-theme');
+const lc = require('../pkg-utils/lab-canvas');
+const { THEME, alpha } = require('../pkg-utils/lab-theme');
 
 // ── 几何常量（移植自 HTML 源码，适配小程序单位）──
 const D = 0.5;          // 单元间距 (λ)
@@ -28,9 +28,7 @@ const VCNT = (NT + 1) * (NP + 1);
 
 // 波瓣曲面顶点色 LUT：主题暖色渐变（浅→深 = 弱→强）
 const RAMP = (() => {
-  const stops = [
-    [0xf3efe6], [0xe8d9c0], [0xd4a96a], [0xb85c38], [0x8a3a1f], [0x5a1f0f],
-  ].map(([hx]) => [(hx >> 16 & 255) / 255, (hx >> 8 & 255) / 255, (hx & 255) / 255]);
+  const stops = [0x253494,0x167ac6,0x22bfd0,0x58ce8a,0xd9e85b,0xffbf3f,0xf46d32,0xc9283e].map(hx=>[(hx>>16&255)/255,(hx>>8&255)/255,(hx&255)/255]);
   const n = 48, lut = [];
   for (let i = 0; i < n; i++) {
     const x = i / (n - 1) * (stops.length - 1);
@@ -65,8 +63,10 @@ function afAxis(dpsi, weights, sumW, n) {
   return Math.hypot(re, im) / sumW;
 }
 
+const visual = require('../pkg-utils/lab3d-visual');
 Page({
   data: {
+    labView: 'perspective', autoRotate: false,
     S: { sizeIdx: 1, theta: 0, phi: 0, taperIdx: 0 },
     sizeOpts: ['4 × 4', '8 × 8', '16 × 16'],
     taperOpts: ['均匀', '余弦', '低旁瓣'],
@@ -162,7 +162,7 @@ Page({
         this.matMast = new THREE.MeshPhongMaterial({ color: 0x6a7480, shininess: 30 });
         // 注：贴片材质不再共享——每个贴片需独立相位色，故 rebuildFace 里各建一个
         this.matBeam = new THREE.MeshPhongMaterial({
-          vertexColors: true, transparent: true, opacity: 0.55,
+          vertexColors: THREE.VertexColors, transparent: true, opacity: 0.78,
           side: THREE.DoubleSide, shininess: 5, depthWrite: false,
         });
         this.matAxis = new THREE.MeshBasicMaterial({ color: C.gold });
@@ -348,7 +348,7 @@ Page({
       const m = p.userData.m, q = p.userData.q;
       let ps = -kd * ((m - c) * u0 + (q - c) * w0);
       ps = ((ps % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-      const amp = 0.30 + 0.42 * (w[m] * w[q]) / (maxW * maxW);
+      const amp = 0.25 + 0.30 * (w[m] * w[q]) / (maxW * maxW);
       // r108 Color.setHSL 存在；material.color.setHSL 直接在 GPU 端生效，无需 needsUpdate
       p.userData.material.color.setHSL(0.55 - 0.55 * (ps / (2 * Math.PI)), 0.72, amp);
     }
@@ -470,6 +470,7 @@ Page({
   dispose() {
     this.stopAnim();
     stage.clearTimers(this);
+    if (this.scene) stage.clearGroup(this.scene);
     if (this.renderer) { this.renderer.dispose(); this.renderer = null; }
     if (this.controls) { this.controls.dispose(); this.controls = null; }
   },
@@ -633,6 +634,8 @@ Page({
     ], 10, H - 10);
   },
 
+  onLabView(e) { visual.fitView(this,e.currentTarget.dataset.view); this._home=stage.saveHome(this.controls); },
+  onLabRotate() { const value=!this.data.autoRotate; this.setData({autoRotate:value}); if(this.controls)this.controls.autoRotate=value; },
   onShareAppMessage() {
     return { title: '平面相控阵 3D · 波束扫描', path: '/pages/interactive/3d-lab/planar-array/planar-array' };
   },

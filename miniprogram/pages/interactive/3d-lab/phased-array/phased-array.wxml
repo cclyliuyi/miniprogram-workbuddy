@@ -1,14 +1,14 @@
 <!-- pages/interactive/3d-lab/phased-array/phased-array.wxml —— 相控阵 3D -->
 <view class="screen lab3d">
 
-  <view class="lab3d-head rise">
+  <view class="lab3d-head ">
     <view class="kicker">PHASED ARRAY · 3D BEAM STEERING</view>
     <view class="lab3d-title display">相控阵扫描</view>
     <view class="lab3d-sub">3D 方向图 · 渐进相移 β · 栅瓣锥环</view>
   </view>
 
   <!-- 3D Canvas -->
-  <view class="lab3d-canvas-wrap rise">
+  <view class="lab3d-canvas-wrap ">
     <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
     <view wx:if="{{!glReady}}" class="lab3d-skel">
@@ -18,8 +18,16 @@
     <view class="lab3d-hint {{showHint ? '' : 'fade'}}">双击复位 · 金箭头=阵轴 y · 青绿环=主瓣 · 红环=栅瓣</view>
   </view>
 
+  <view class="lab-viewbar">
+    <view class="lab-view-choice {{labView==='perspective'?'selected':''}}" data-view="perspective" bindtap="onLabView">立体全景</view>
+    <view class="lab-view-choice {{labView==='front'?'selected':''}}" data-view="front" bindtap="onLabView">正视</view>
+    <view class="lab-view-choice {{labView==='top'?'selected':''}}" data-view="top" bindtap="onLabView">俯视</view>
+    <view class="lab-view-choice {{autoRotate?'selected':''}}" bindtap="onLabRotate">{{autoRotate?'停止环视':'自动环视'}}</view>
+  </view>
+<view class="lab-scene-caption">阵元激励 · 三维波束 · 栅瓣</view><view class="lab-color-key"><view class="lab-heat-gradient"></view><view class="lab-color-ticks"><text>0</text><text>0.5</text><text>1</text></view><view class="lab-color-caption">归一化场幅度 · 蓝色弱 / 红色强</view></view>
+
   <!-- 阵列配置 -->
-  <view class="lab3d-section rise">
+  <view class="lab3d-section ">
     <view class="kicker">阵列配置</view>
     <view class="tp-slider-row">
       <text class="tp-slider-label">阵元数 N</text>
@@ -34,8 +42,8 @@
   </view>
 
   <!-- 波束扫描 -->
-  <view class="lab3d-section rise">
-    <view class="kicker">波束扫描 ★</view>
+  <view class="lab3d-section ">
+    <view class="kicker">波束扫描</view>
     <view class="tp-slider-row">
       <text class="tp-slider-label">渐进相移 β</text>
       <slider class="tp-slider" min="-180" max="180" step="1" value="{{S.beta}}" bindchanging="onBetaChanging" bindchange="onBeta" />
@@ -47,12 +55,12 @@
       <view class="tp-btn {{S.beta < -60 ? 'active' : ''}}" bindtap="setEndfireFwd">端射 →</view>
     </view>
     <view class="tp-btns pa3d-scan">
-      <view class="tp-btn {{scanOn ? 'active' : ''}}" bindtap="toggleScan">自动扫描动画 {{scanOn ? '●' : '○'}}</view>
+      <view class="tp-btn {{scanOn ? 'active' : ''}}" bindtap="toggleScan">{{scanOn ? '暂停波束扫描' : '开始波束扫描'}}</view>
     </view>
   </view>
 
   <!-- 阵元因子 -->
-  <view class="lab3d-section rise">
+  <view class="lab3d-section ">
     <view class="kicker">阵元因子</view>
     <view class="tp-btns">
       <view class="tp-btn {{S.el === 'iso' ? 'active' : ''}}" bindtap="setIso">各向同性</view>
@@ -61,7 +69,7 @@
   </view>
 
   <!-- 统计 -->
-  <view class="lab3d-stats pop" wx:if="{{stats}}">
+  <view class="lab3d-stats " wx:if="{{stats}}">
     <view class="kicker lab3d-stats-title">阵列参数</view>
     <view class="lab3d-stats-grid">
       <view class="lab3d-stat">
@@ -87,13 +95,13 @@
   </view>
 
   <!-- 2D 极坐标子图 -->
-  <view class="tp-canvas-card rise">
+  <view class="tp-canvas-card ">
     <view class="tp-canvas-caption">E 面方向图 · 全圆 dB 刻度 · γ 自阵轴（3D 场景金色 y 轴）起量，0° 朝上</view>
     <canvas type="2d" id="plot" class="tp-canvas"></canvas>
   </view>
 
   <!-- 公式注脚 -->
-  <view class="tp-formula rise">
+  <view class="tp-formula ">
     <view class="tp-formula-title">所用公式</view>
     <view class="tp-formula-line">AF(γ) = |sin(Nψ/2) / (N·sinψ/2)|　·　ψ = kd·cosγ + β　·　kd = 2πd/λ</view>
     <view class="tp-formula-line">P(γ) = AF × EF（方向图相乘）　·　EF半波偶极子 = |cos(π·cosγ/2)/sinγ|</view>
@@ -102,9 +110,9 @@
   </view>
 
   <!-- 说明 -->
-  <view class="lab3d-note rise">
+  <view class="lab3d-note ">
     <view class="kicker">图例与坐标约定</view>
-    <view class="lab3d-note-item">3D：赭金小球 = 阵元（沿金色 y 轴 = 阵轴）· 曲面颜色浅→深 = 归一化幅度低→高</view>
+    <view class="lab3d-note-item">3D：赭金小球 = 阵元（沿金色 y 轴 = 阵轴）· 曲面颜色蓝→红 = 归一化幅度低→高</view>
     <view class="lab3d-note-item">3D：青绿环 = 主瓣锥 · 红环 = 栅瓣锥；2D 图 0° 即阵轴方向，与统计卡 θ₀ 同一坐标</view>
     <view class="lab3d-note-item">β 每前进 360·(d/λ)° 波束扫过一个可见空间周期；间距越大越易出栅瓣</view>
   </view>

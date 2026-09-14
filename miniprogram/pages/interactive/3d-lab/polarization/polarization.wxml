@@ -1,14 +1,14 @@
 <!-- pages/interactive/3d-lab/polarization/polarization.wxml —— 极化椭圆 3D -->
 <view class="screen lab3d">
 
-  <view class="lab3d-head rise">
+  <view class="lab3d-head ">
     <view class="kicker">POLARIZATION · 3D TRAVELING WAVE</view>
     <view class="lab3d-title display">极化椭圆</view>
     <view class="lab3d-sub">3D 行进波 · Ex / Ey 分量 · 线/圆/椭圆极化</view>
   </view>
 
   <!-- 3D Canvas -->
-  <view class="lab3d-canvas-wrap rise">
+  <view class="lab3d-canvas-wrap ">
     <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
     <view wx:if="{{!glReady}}" class="lab3d-skel">
@@ -18,14 +18,22 @@
     <view class="lab3d-hint {{showHint ? '' : 'fade'}}">赤陶=Ex · 青绿=Ey · 赭金=合成 E · 双击复位</view>
   </view>
 
+  <view class="lab-viewbar">
+    <view class="lab-view-choice {{labView==='perspective'?'selected':''}}" data-view="perspective" bindtap="onLabView">立体全景</view>
+    <view class="lab-view-choice {{labView==='front'?'selected':''}}" data-view="front" bindtap="onLabView">正视</view>
+    <view class="lab-view-choice {{labView==='top'?'selected':''}}" data-view="top" bindtap="onLabView">俯视</view>
+    <view class="lab-view-choice {{autoRotate?'selected':''}}" bindtap="onLabRotate">{{autoRotate?'停止环视':'自动环视'}}</view>
+  </view>
+<view class="lab-scene-caption">Ex / Ey 分量 · 合成电场</view>
+
   <!-- 端面极化椭圆 -->
-  <view class="tp-canvas-card rise">
+  <view class="tp-canvas-card ">
     <view class="tp-canvas-caption">z=0 端面极化椭圆 · +z 出屏（迎波观察：右旋呈逆时针）</view>
     <canvas type="2d" id="ellipse" class="tp-canvas-tall"></canvas>
   </view>
 
   <!-- 预设 -->
-  <view class="lab3d-section rise">
+  <view class="lab3d-section ">
     <view class="kicker">预设</view>
     <view class="tp-btns">
       <view class="tp-btn {{S.preset==='linear' ? 'active' : ''}}" bindtap="setLinear">线极化</view>
@@ -36,7 +44,7 @@
   </view>
 
   <!-- 参数滑块 -->
-  <view class="lab3d-section rise">
+  <view class="lab3d-section ">
     <view class="kicker">场分量参数</view>
     <view class="tp-slider-row">
       <text class="tp-slider-label">Ex 幅度</text>
@@ -59,7 +67,7 @@
   </view>
 
   <!-- 读数 -->
-  <view class="lab3d-stats pop" wx:if="{{params}}">
+  <view class="lab3d-stats " wx:if="{{params}}">
     <view class="kicker lab3d-stats-title">极化读数</view>
     <view class="lab3d-stats-grid">
       <view class="lab3d-stat">
@@ -82,7 +90,7 @@
   </view>
 
   <!-- 公式注脚 -->
-  <view class="tp-formula rise">
+  <view class="tp-formula ">
     <view class="tp-formula-title">所用公式</view>
     <view class="tp-formula-line">E(z,t) = x̂·Ex·cos(ωt−βz) + ŷ·Ey·cos(ωt−βz+δ)</view>
     <view class="tp-formula-line">tan2ψ = 2ExEy·cosδ / (Ex²−Ey²)　·　sin2χ = 2ExEy·sinδ / (Ex²+Ey²)</view>
@@ -91,7 +99,7 @@
   </view>
 
   <!-- 说明 -->
-  <view class="lab3d-note rise">
+  <view class="lab3d-note ">
     <view class="kicker">图例</view>
     <view class="lab3d-note-item">3D：赤陶曲线 = Ex 分量 · 青绿曲线 = Ey 分量 · 赭金曲线/矢量 = 合成 E（沿 +z 行进）</view>
     <view class="lab3d-note-item">2D：赭金轨迹 = E 端点 · 靛蓝虚线 = 椭圆长短轴与倾角 ψ · 灰虚线框 = 2Ex×2Ey 参考</view>

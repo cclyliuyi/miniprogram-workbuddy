@@ -4,9 +4,9 @@
 //   D₀ ≈ 2(d/λ)(Σw)²/Σw²（广边线阵近似，显示为 10·lg D₀ dBi）
 //   栅瓣判据：d/λ ≥ 1/(1+|sinθ₀|)（Balanis 6-89），栅瓣角 sinθg = sinθ₀ ± m·λ/d
 const haptic = require('../../../utils/haptic')
-const rf = require('../../../utils/rf-math')
-const lc = require('../../../utils/lab-canvas')
-const { THEME, alpha } = require('../../../utils/lab-theme')
+const rf = require('./pkg-utils/rf-math')
+const lc = require('./pkg-utils/lab-canvas')
+const { THEME, alpha } = require('./pkg-utils/lab-theme')
 
 const D2R = Math.PI / 180
 const FLOOR_DB = -40   // 极坐标图动态范围

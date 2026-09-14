@@ -1,146 +1,30 @@
-/* pages/method-detail/detail.wxss —— 方法论迁移卡片详情 */
-page { background: #1a1814; }
-
-.mth-detail { width: 100vw; height: 100vh; overflow: hidden; }
-.mth-swiper { width: 100%; height: 100%; }
-.mth-page {
-  position: relative; width: 100%; height: 100%;
-  overflow-y: scroll; -webkit-overflow-scrolling: touch;
-}
-.mth-bg { width: 100%; display: block; }
-.mth-top-mask {
-  position: absolute; top: 0; left: 0; right: 0; height: 180rpx;
-  background: linear-gradient(to bottom, rgba(26,24,20,.7), transparent);
-  z-index: 1;
-}
-.mth-page-num {
-  position: absolute; top: 24rpx; right: 32rpx;
-  font-size: 24rpx; font-weight: 600; color: rgba(255,255,255,.7);
-  z-index: 3; letter-spacing: 2rpx;
-}
-.mth-page-stage {
-  position: absolute; top: 28rpx; left: 32rpx;
-  font-size: 20rpx; color: rgba(255,255,255,.6);
-  background: rgba(0,0,0,.3);
-  padding: 4rpx 14rpx; border-radius: 20rpx;
-  z-index: 3; letter-spacing: 1rpx;
-  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-}
-
-/* ═══ 信息面板 ═══ */
-.mth-info-panel {
-  position: relative;
-  margin: -80rpx 24rpx 40rpx;
-  padding: 40rpx 36rpx;
-  background: rgba(26, 24, 20, .82);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border-radius: 24rpx;
-  border: 1rpx solid rgba(255,255,255,.08);
-  box-shadow: 0 8rpx 40rpx rgba(0,0,0,.4);
-  z-index: 2;
-}
-.mth-info-title {
-  font-size: 40rpx; font-weight: 700; color: #fff;
-  line-height: 1.3; margin-bottom: 10rpx;
-}
-.mth-info-subtitle {
-  font-size: 26rpx; color: rgba(255,255,255,.6);
-  line-height: 1.5; margin-bottom: 28rpx;
-  padding-bottom: 24rpx; border-bottom: 1rpx solid rgba(255,255,255,.1);
-}
-.mth-info-section { margin-bottom: 28rpx; }
-.mth-info-label {
-  font-size: 20rpx; letter-spacing: 3rpx;
-  color: var(--sage, #8aab96); font-weight: 600;
-  text-transform: uppercase; margin-bottom: 8rpx;
-}
-.mth-info-text {
-  font-size: 28rpx; line-height: 1.7;
-  color: rgba(255,255,255,.88);
-}
-.mth-info-highlight {
-  color: #f5d99b; font-weight: 500;
-  background: rgba(245,217,155,.06);
-  padding: 12rpx 16rpx; border-radius: 10rpx;
-  border-left: 3rpx solid rgba(245,217,155,.3);
-}
-
-/* 公式渲染图容器 */
-.mth-formula-box {
-  margin-top: 12rpx;
-  background: rgba(245, 217, 155, .06);
-  padding: 12rpx 16rpx;
-  border-radius: 10rpx;
-  border-left: 3rpx solid rgba(245, 217, 155, .3);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.mth-formula-img {
-  max-width: 100%;
-  max-height: 180rpx;
-}
-
-/* 迁移映射表 */
-.mth-map-table {
-  display: flex; flex-direction: column; gap: 8rpx;
-  padding: 16rpx 20rpx;
-  background: rgba(122,145,129,.08);
-  border-radius: 12rpx;
-}
-.mth-map-row {
-  display: flex; align-items: center; gap: 14rpx;
-  font-size: 26rpx; line-height: 1.6;
-}
-.mth-map-from { color: rgba(255,255,255,.7); flex: 1; }
-.mth-map-arrow { color: rgba(138,171,150,.6); font-size: 24rpx; flex-shrink: 0; }
-.mth-map-to { color: #f5d99b; flex: 1; }
-
-/* 哲思句 */
-.mth-info-quote {
-  position: relative;
-  margin: 32rpx 0;
-  padding: 24rpx 24rpx 24rpx 48rpx;
-  background: rgba(122, 145, 129, .12);
-  border-radius: 16rpx;
-  border-left: 4rpx solid var(--sage, #8aab96);
-}
-.mth-info-quote-mark {
-  position: absolute; top: 8rpx; left: 16rpx;
-  font-size: 56rpx; color: rgba(138, 171, 150, .3);
-  font-family: Georgia, serif; line-height: 1;
-}
-.mth-info-quote-text {
-  font-size: 30rpx; font-weight: 600; line-height: 1.6;
-  color: rgba(255,255,255,.95);
-}
-
-/* 标签 */
-.mth-info-tags {
-  display: flex; flex-wrap: wrap; gap: 12rpx;
-  margin-top: 32rpx; padding-top: 24rpx;
-  border-top: 1rpx solid rgba(255,255,255,.08);
-}
-.mth-tag {
-  font-size: 22rpx; color: rgba(255,255,255,.5);
-  background: rgba(255,255,255,.06);
-  padding: 6rpx 16rpx; border-radius: 20rpx;
-}
-
-/* 点击提示 */
-.mth-tap-hint {
-  position: absolute; bottom: 120rpx; left: 50%;
-  transform: translateX(-50%);
-  font-size: 24rpx; color: rgba(255,255,255,.4);
-  letter-spacing: 2rpx; z-index: 2;
-  animation: tap-pulse 2s ease-in-out infinite;
-}
-@keyframes tap-pulse {
-  0%, 100% { opacity: .3; }
-  50% { opacity: .7; }
-}
-.mth-bottom-mask {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 120rpx;
-  background: linear-gradient(to top, rgba(26,24,20,.8), transparent);
-  z-index: 1;
-}
+page { height:100%; overflow:hidden; background:#f6f1e7; }
+.learning-detail { height:100vh; display:flex; flex-direction:column; }
+.reading-bar { padding:18rpx 30rpx; display:flex; justify-content:space-between; align-items:center; color:#6c776c; font-size:25rpx; background:#f6f1e7; flex-shrink:0; }
+.lesson-swiper { flex:1; height:0; min-height:0; width:100%; }
+.lesson-scroll { height:100%; }
+.illustration-wrap { position:relative; min-height:1000rpx; background:#f6f1e7; }
+.lesson-illustration { width:100%; display:block; }
+.image-status { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24rpx; color:#746a5d; font-size:30rpx; background:#f6f1e7; }
+.retry-image { font-size:29rpx; background:#e7e0d3; color:#173c4a; border-radius:12rpx; }
+.image-caption { text-align:center; font-size:24rpx; color:#8b8171; margin:12rpx 0 24rpx; }
+.lesson-body { margin:0 26rpx 32rpx; padding:38rpx 30rpx 20rpx; border-radius:22rpx; background:#fffcf6; }
+.question { color:#15354b; font-size:38rpx; font-weight:600; line-height:1.65; margin-bottom:36rpx; }
+.text-section { margin-bottom:32rpx; }
+.section-label { font-size:26rpx; color:#947150; font-weight:600; margin-bottom:14rpx; }
+.section-text { display:block; font-size:32rpx; line-height:1.9; color:#393c37; }
+.boundary-section { border-top:1rpx solid #e9e1d4; padding-top:28rpx; margin:32rpx 0; }
+.exercise-section { background:#edf2eb; border-radius:16rpx; padding:28rpx 24rpx; margin:32rpx -6rpx; }
+.exercise-section .section-label { color:#4e7664; }
+.formula-section { padding:24rpx; background:#f3eee5; border-radius:12rpx; margin-bottom:32rpx; }
+.formula-text { display:block; font-size:34rpx; color:#16374b; line-height:1.8; overflow-wrap:anywhere; }
+.formula-note { font-size:27rpx; line-height:1.8; color:#6f675d; margin-top:14rpx; }
+.sources-section { margin-top:32rpx; }
+.source-link { font-size:26rpx; line-height:1.75; color:#486d73; padding:20rpx 0; border-bottom:1rpx solid #eee7dc; }
+.source-action { display:block; font-size:24rpx; color:#98876f; margin-top:6rpx; }
+.reading-hint { text-align:center; margin:36rpx 0 16rpx; font-size:25rpx; color:#958b7b; }
+.reading-nav { display:flex; align-items:center; justify-content:space-between; flex-shrink:0; padding:12rpx 24rpx calc(12rpx + env(safe-area-inset-bottom)); background:#f6f1e7; border-top:1rpx solid #e5dccd; }
+.nav-button { margin:0; width:230rpx; flex-shrink:0; padding:8rpx 20rpx; font-size:29rpx; line-height:1.9; background:transparent; color:#265761; }
+.nav-button::after { border:none; }
+.nav-button[disabled] { color:#b9b1a5; background:transparent; }
+.nav-progress { color:#8a7d6b; font-size:25rpx; white-space:nowrap; flex-shrink:0; }

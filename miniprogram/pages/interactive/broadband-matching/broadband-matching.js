@@ -10,9 +10,9 @@
 //   Bode–Fano 带宽上限（串联谐振负载）：FBW·ln(1/|Γm|) ≤ π/Q
 
 const haptic = require('../../../utils/haptic')
-const rf = require('../../../utils/rf-math')
-const lc = require('../../../utils/lab-canvas')
-const { THEME, alpha } = require('../../../utils/lab-theme')
+const rf = require('./pkg-utils/rf-math')
+const lc = require('./pkg-utils/lab-canvas')
+const { THEME, alpha } = require('./pkg-utils/lab-theme')
 
 const Z0 = 50
 const RL_MIN = 10                                 // 匹配门限 RL ≥ 10 dB

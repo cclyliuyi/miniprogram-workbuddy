@@ -4,11 +4,12 @@
 //   半波偶极子：U(ψ) = [cos(½π·cosψ)/sinψ]²，ψ 为与振子轴夹角（Balanis 4-84，HPBW ≈ 78°）
 //   4×4 面阵：方位切面 = 4 元均匀线阵 AF（d = 0.5λ，rf.afUniform）× 单元因子 cos²θ
 // HPBW：峰值两侧 −3 dB 交点（圆周解卷绕 + 线性插值）；SLL：主瓣第一零点之外搜索。
+const chamberModel = require('./chamber-model');
 const { registerOrbitControls } = require('../orbit-controls');
 const stage = require('../lab3d-stage');
-const lc = require('../../../../utils/lab-canvas');
-const { THEME } = require('../../../../utils/lab-theme');
-const rf = require('../../../../utils/rf-math');
+const lc = require('../pkg-utils/lab-canvas');
+const { THEME } = require('../pkg-utils/lab-theme');
+const rf = require('../pkg-utils/rf-math');
 const haptic = require('../../../../utils/haptic');
 
 const AUT_CENTER = { x: 1.35, y: 0, z: 0.05 };
@@ -26,7 +27,7 @@ Page({
     scanning: false, scanText: '自动扫描',
     pwr: '-', samples: '0', hpbw: '需完整扫描', sll: '需完整扫描',
     showHint: true,
-    glReady: false,
+    glReady: false, viewMode: 'perspective', scanStatus: '等待采样',
   },
 
   THREE: null, canvasNode: null, renderer: null, scene: null,
@@ -52,7 +53,7 @@ Page({
   initThree() {
     if (typeof this.createSelectorQuery !== 'function') return; // 非小程序环境（冒烟测试）
     stage.initThree(this, '#three-canvas', {
-      cameraPos: [2.8, 2.35, 3.1],
+      cameraPos: [7, 5.5, 9], fov: 38,
       onReady: (env) => {
         const THREE = env.THREE;
         registerOrbitControls(THREE);
@@ -65,9 +66,12 @@ Page({
         const controls = new THREE.OrbitControls(this.camera, env.canvas);
         controls.enableDamping = true;
         controls.autoRotateSpeed = 1.0;
-        controls.target.set(0, 0.75, 0);
+        controls.target.set(0, 0.85, 0);
+        controls.minDistance = 4; controls.maxDistance = 16;
+        controls.maxPolarAngle = Math.PI * .49;
         controls.update();
         this.controls = controls;
+        this.onView({ currentTarget: { dataset: { view: 'perspective' } } });
         this._home = stage.saveHome(controls);
 
         const root = new THREE.Group();
@@ -99,51 +103,24 @@ Page({
   },
 
   // ── 暗室场景（材质色一律取 stage.THEME3D）──
-  buildChamber() {
-    const THREE = this.THREE;
-    const root = this.root;
-    const C = stage.THEME3D;
-    const matFloor = new THREE.MeshStandardMaterial({ color: C.warmGray, roughness: 0.8, metalness: 0.05 });
-    const matWall = new THREE.MeshStandardMaterial({ color: C.card, roughness: 0.85, metalness: 0.02 });
-    const matAbs = new THREE.MeshStandardMaterial({ color: C.indigo, roughness: 0.95, metalness: 0 });
+  buildChamber() { chamberModel.buildChamber(this.THREE, this.root); },
 
-    const addBox = (w, h, d, x, y, z, mat) => {
-      const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
-      m.position.set(x, y, z);
-      root.add(m);
-    };
-    addBox(6, 0.08, 4, 0, -0.04, 0, matFloor);
-    addBox(0.08, 2.4, 4, -3, 1.16, 0, matWall);
-    addBox(0.08, 2.4, 4, 3, 1.16, 0, matWall);
-    addBox(6, 2.4, 0.08, 0, 1.16, -2, matWall);
-    addBox(6, 0.08, 4, 0, 2.36, 0, matWall);
-
-    // 吸波锥（靛蓝泡沫）
-    const coneGeo = new THREE.ConeGeometry(0.12, 0.38, 4);
-    coneGeo.rotateX(Math.PI / 2);
-    for (const side of [-1, 1]) {
-      for (let z = -1.6; z <= 1.6; z += 0.8) {
-        for (let y = 0.3; y <= 1.9; y += 0.8) {
-          const p = new THREE.Mesh(coneGeo, matAbs);
-          p.position.set(side * 2.94, y, z);
-          p.rotation.z = side > 0 ? Math.PI / 2 : -Math.PI / 2;
-          root.add(p);
-        }
-      }
-    }
-    for (let x = -2.4; x <= 2.4; x += 0.8) {
-      for (let y = 0.3; y <= 1.9; y += 0.8) {
-        const p = new THREE.Mesh(coneGeo, matAbs);
-        p.position.set(x, y, -1.94);
-        root.add(p);
-      }
-    }
+  onView(e) {
+    if (!this.camera || !this.controls) return;
+    const view = e.currentTarget.dataset.view;
+    this.camera.position.set(...(view === 'top' ? [0, 13.5, .01] : [7, 5.5, 9]));
+    this.controls.target.set(0, .85, 0);
+    // Local OrbitControls owns spherical state; changing camera.position alone is overwritten.
+    const offset = this.camera.position.clone().sub(this.controls.target);
+    this.controls._targetSpherical.setFromVector3(offset);
+    this.controls._spherical.copy(this.controls._targetSpherical);
+    this.controls.update(); this.setData({ viewMode: view });
   },
 
   buildTxHorn() {
     this.addHornModel(this.root, {
       x: TX_HORN_POSITION.x, y: TX_HORN_POSITION.y, z: TX_HORN_POSITION.z,
-      scale: TX_HORN_SCALE, stand: true,
+      scale: TX_HORN_SCALE, stand: false,
     });
   },
 
@@ -169,7 +146,7 @@ Page({
     opts = opts || {};
     const g = new THREE.Group();
     const matHorn = new THREE.MeshStandardMaterial({
-      color: C.gold, metalness: 0.7, roughness: 0.3, side: THREE.DoubleSide,
+      color: 0xc4a16c, metalness: 0.55, roughness: 0.38, side: THREE.DoubleSide,
     });
     const matHornDark = new THREE.MeshStandardMaterial({ color: C.ink, metalness: 0.4, roughness: 0.5 });
     const matBase = new THREE.MeshStandardMaterial({ color: C.warmGray, roughness: 0.6, metalness: 0.2 });
@@ -209,11 +186,16 @@ Page({
     quad([near.x, -near.y, near.z], [far.x, -far.y, far.z], [far.x, far.y, far.z], [near.x, near.y, near.z]);
     quad([near.x, near.y, -near.z], [far.x, far.y, -far.z], [far.x, -far.y, -far.z], [near.x, -near.y, -near.z]);
 
+    addBox(.016, .29, .24, -.005, 0, 0, matHornDark);
+    addBox(.05, .035, 1.20, far.x, far.y, 0, matHorn);
+    addBox(.05, .035, 1.20, far.x, -far.y, 0, matHorn);
+    addBox(.05, .90, .035, far.x, 0, far.z, matHorn);
+    addBox(.05, .90, .035, far.x, 0, -far.z, matHorn);
     if (opts.stand) {
       addRod(0.025, 0.58, -0.48, -0.5, 0, 'y', matBase);
       addCyl(0.16, 0.08, -0.48, -0.82, 0, matBase);
     }
-    g.position.set(opts.x || 0, opts.y || 0.98, opts.z || 0);
+    g.position.set(opts.x || 0, opts.y === undefined ? 0.98 : opts.y, opts.z || 0);
     if (opts.rotationY) g.rotation.y = opts.rotationY;
     g.scale.setScalar(opts.scale || 1);
     parent.add(g);
@@ -283,10 +265,10 @@ Page({
     addBox(0.045, 0.62, 0.82, 0, 0.84, 0, matBoard);
     for (let row = 0; row < 4; row++) {
       for (let col = 0; col < 4; col++) {
-        addBox(0.018, 0.095, 0.095, -0.032, 0.72 + row * 0.085, -0.255 + col * 0.17, matCopper);
+        addBox(0.018, 0.095, 0.095, -0.032, 0.60 + row * 0.16, -0.255 + col * 0.17, matCopper);
       }
     }
-    addBox(0.026, 0.035, 0.76, -0.046, 0.86, 0, matFeed);
+    addBox(0.026, 0.035, 0.76, 0.035, 0.86, 0, matFeed);
     addBox(0.1, 0.12, 0.1, 0.04, 0.45, 0, matBase);
   },
 
@@ -295,6 +277,11 @@ Page({
     stage.clearGroup(this.autGroup);
     this.autGroup.position.set(AUT_CENTER.x, AUT_CENTER.y, AUT_CENTER.z);
     this.autGroup.rotation.set(0, 0, 0);
+    // The lower platform remains fixed; only the upper plate and AUT rotate.
+    const base = new this.THREE.Mesh(new this.THREE.CylinderGeometry(.48,.50,.10,64), new this.THREE.MeshStandardMaterial({color:0x354b5b,metalness:.4,roughness:.5}));
+    base.position.set(AUT_CENTER.x,.13,AUT_CENTER.z);
+    if (this.fixedBase) { this.root.remove(this.fixedBase); this.fixedBase.geometry.dispose(); this.fixedBase.material.dispose(); }
+    this.fixedBase = base; this.root.add(base);
     this.addTurntable(this.autGroup);
     if (this.state.aut === 'dipole') this.addDipole(this.autGroup);
     else if (this.state.aut === 'array') this.addPatchPanel(this.autGroup);
@@ -330,9 +317,10 @@ Page({
   // ═══ HPBW / SLL 估计（峰值解卷绕 + 插值；主瓣零点外搜旁瓣）═══
   estimate() {
     const S = this.state;
-    const need = Math.floor(360 / Math.max(1, S.step)) * 0.9;
+    const need = Math.ceil(360 / Math.max(1, S.step));
     if (S.samples.length < need) return { enough: false, hpbw: null, sll: null };
     const arr = [...S.samples].sort((x, y) => x - y);
+    if (arr.some((angle,i) => ((arr[(i+1)%arr.length]-angle+360)%360) > S.step*1.1)) return { enough:false, hpbw:null, sll:null };
     const vals = arr.map((d) => this.pattern(d));
     const n = arr.length;
     const mod = (i) => ((i % n) + n) % n;
@@ -414,13 +402,22 @@ Page({
       const now = Date.now();
       if (this.state.scan && now - this.state.lastScanAt > 90) {
         this.state.lastScanAt = now;
-        this.state.ang = (this.state.ang + this.state.step) % 360;
+        const next = (this._scanIndex || 1) * this.state.step;
+        if (next >= 360) {
+          this.state.scan = false;
+          this.setData({scanning:false,scanText:'重新扫描',scanStatus:'整圈采样完成'});
+          this._scanIndex = 0;
+        } else {
+        this.state.ang = next;
+        this._scanIndex = (this._scanIndex || 1) + 1;
         if (this.state.samples.indexOf(this.state.ang) === -1) {
           this.state.samples.push(this.state.ang);
         }
         this.setData({ angSlider: this.state.ang });
         this.updateAll();
+        }
       }
+      this.controls.autoRotate = false;
       this.controls.update();
       this.renderer.render(this.scene, this.camera);
     };
@@ -435,6 +432,7 @@ Page({
   dispose() {
     this.stopAnim();
     stage.clearTimers(this);
+    if (this.root) stage.clearGroup(this.root);
     if (this.renderer) { this.renderer.dispose(); this.renderer = null; }
     if (this.controls) { this.controls.dispose(); this.controls = null; }
   },
@@ -448,11 +446,12 @@ Page({
     const a = e.currentTarget.dataset.a;
     if (!a) return;
     haptic.light();
+    this._scanIndex = 0;
     this.state.aut = a;
     this.state.scan = false;
     this.state.samples = [];
     this.state.ang = 0;   // 转台与滑杆一并复位
-    this.setData({ aut: a, scanning: false, scanText: '自动扫描', angSlider: 0, angVal: '0°' });
+    this.setData({ aut: a, scanning: false, scanText: '自动扫描', angSlider: 0, angVal: '0°', scanStatus: '等待采样' });
     this.renderAll();
   },
 
@@ -463,38 +462,50 @@ Page({
   },
   onAng(e) {
     this._pauseScan();   // 手动拖角度时暂停自动扫描，避免互相打架
+    this._scanIndex = 0;
     this.state.ang = e.detail.value;
     if (this.state.samples.indexOf(this.state.ang) === -1) this.state.samples.push(this.state.ang);
     this.updateAll();
   },
   onAngChanging(e) {
     this._pauseScan();
+    this._scanIndex = 0;
+    this.setData({scanStatus:'手动采样'});
     this.state.ang = e.detail.value;
     stage.throttle(this, 55, function () { this.updateAll(); });
   },
 
   onStep(e) {
     if (e.detail.value === this.state.step) return;
+    this._pauseScan(); this._scanIndex = 0;
     this.state.step = e.detail.value;
+    this.setData({ stepSlider:e.detail.value, scanStatus:'等待采样' });
     this.state.samples = [];   // 步进变更 → 旧样本作废，避免混合步进数据
     this.updateAll();
   },
   onStepChanging(e) {
     if (e.detail.value === this.state.step) return;
+    this._pauseScan(); this._scanIndex = 0;
     this.state.step = e.detail.value;
+    this.setData({ stepSlider:e.detail.value, scanStatus:'等待采样' });
     this.state.samples = [];
     stage.throttle(this, 55, function () { this.updateAll(); });
   },
 
   onScan() {
     haptic.light();
-    this.state.scan = !this.state.scan;
-    this.state.lastScanAt = 0;
-    this.setData({ scanning: this.state.scan, scanText: this.state.scan ? '暂停扫描' : '自动扫描' });
+    if (this.state.scan) { this._pauseScan(); this.setData({scanStatus:'扫描已暂停'}); return; }
+    if (!this._scanIndex) {
+      this.state.samples=[0]; this.state.ang=0; this._scanIndex=1;
+      this.setData({angSlider:0}); this.updateAll();
+    }
+    this.state.scan=true; this.state.lastScanAt=Date.now();
+    this.setData({scanning:true,scanText:'暂停扫描',scanStatus:'正在采样'});
   },
   onClear() {
-    haptic.light();
-    this.state.samples = [];
+    haptic.light(); this._pauseScan(); this._scanIndex=0;
+    this.state.samples=[];
+    this.setData({scanText:'自动扫描',scanStatus:'等待采样'});
     this.updateAll();
   },
 
@@ -507,7 +518,7 @@ Page({
       pwr: this.db(p).toFixed(1) + ' dB',
       samples: String(this.state.samples.length),
       hpbw: est.enough ? (est.hpbw !== null ? est.hpbw.toFixed(1) + '°' : '未跨 −3 dB') : '需完整扫描',
-      sll: est.enough ? (est.sll !== null ? est.sll.toFixed(1) + ' dB' : '—') : '需完整扫描',
+      sll: est.enough ? (this.state.aut === 'dipole' ? '双主瓣' : this.state.aut === 'horn' ? '无旁瓣' : est.sll !== null ? est.sll.toFixed(1) + ' dB' : '—') : '需完整扫描',
     });
     this.drawPolar();
   },
@@ -518,60 +529,36 @@ Page({
   // ═══ 2D：极坐标方向图（lab-canvas，dB 径向标尺 + 角度标注）═══
   drawPolar() {
     if (!this.plotCtx) return;
-    const ctx = this.plotCtx, w = this.plotW, h = this.plotH;
-    lc.clear(ctx, w, h);
-    const cx = w / 2, cy = h / 2 + 2;
-    const R = Math.min(w / 2 - 44, h / 2 - 26);
-    const FLOOR = -30;
-    lc.polarGrid(ctx, cx, cy, R, { rings: [0, -10, -20, -30], full: true });
-
-    // 角度标注（0° = 对准发射喇叭，画面朝上）
-    lc.label(ctx, '0°', cx, cy - R - 8, { align: 'center', color: THEME.inkSoft, font: THEME.fontTick });
-    lc.label(ctx, '90°', cx + R + 26, cy + 12, { align: 'center', color: THEME.muted, font: THEME.fontTick });
-    lc.label(ctx, '180°', cx, cy + R + 14, { align: 'center', color: THEME.muted, font: THEME.fontTick });
-    lc.label(ctx, '270°', cx - R - 22, cy + 3, { align: 'center', color: THEME.muted, font: THEME.fontTick });
-    lc.label(ctx, '径向：相对电平 dB（0 … −30）', 8, 14, { color: THEME.muted, font: THEME.fontTick });
-
-    const radiusOf = (deg) => {
-      const dbv = Math.max(FLOOR, Math.min(0, this.db(this.pattern(deg))));
-      return R * (1 - dbv / FLOOR);
-    };
-    const xy = (deg, rr) => {
-      const a = (deg - 90) * Math.PI / 180;   // 0° 朝上
-      return [cx + Math.cos(a) * rr, cy + Math.sin(a) * rr];
-    };
-
-    // 实测样本曲线（赤陶）+ 采样点
-    const entries = [...this.state.samples].sort((a, b) => a - b);
-    if (entries.length) {
-      ctx.strokeStyle = THEME.accent;
-      ctx.lineWidth = 2;
-      ctx.lineJoin = 'round';
-      ctx.beginPath();
-      entries.forEach((deg, i) => {
-        const [x, y] = xy(deg, radiusOf(deg));
-        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-      });
-      const expected = Math.ceil(360 / Math.max(1, this.state.step));
-      if (entries.length >= expected * 0.9) ctx.closePath();
-      ctx.stroke();
-      ctx.fillStyle = THEME.accent;
-      for (const deg of entries) {
-        const [x, y] = xy(deg, radiusOf(deg));
-        ctx.beginPath(); ctx.arc(x, y, 1.8, 0, Math.PI * 2); ctx.fill();
-      }
+    const ctx=this.plotCtx,w=this.plotW,h=this.plotH;
+    lc.clear(ctx,w,h);
+    const cx=w/2,cy=h/2,R=Math.min(w/2-36,h/2-32);
+    const xy=(deg,r)=>[cx+Math.sin(deg*Math.PI/180)*r,cy-Math.cos(deg*Math.PI/180)*r];
+    const radius=deg=>R*(1+Math.max(-30,this.db(this.pattern(deg)))/30);
+    ctx.font='11px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    for(let angle=0;angle<360;angle+=30){
+      const p=xy(angle,R),t=xy(angle,R+20);
+      ctx.strokeStyle=angle%90===0?'#a9b5b9':'#e0e5e5';ctx.lineWidth=.7;
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(...p);ctx.stroke();
+      ctx.fillStyle='#536773';ctx.fillText(angle+'°',...t);
     }
-
-    // 当前转台指针（青绿）
-    ctx.strokeStyle = THEME.teal;
-    ctx.lineWidth = 1.5;
-    const [px, py] = xy(this.state.ang, R);
-    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px, py); ctx.stroke();
-
-    lc.legend(ctx, [
-      { name: '实测样本（dB 归一）', color: THEME.accent },
-      { name: '当前方位', color: THEME.teal },
-    ], 10, h - 10);
+    for(const db of [-20,-10,0]){
+      const r=R*(1+db/30);ctx.strokeStyle=db===0?'#8d9fa7':'#d2dbde';
+      ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();
+      const p=xy(135,r);ctx.fillStyle='#fbf9f4';ctx.fillRect(p[0]-16,p[1]-7,32,14);
+      ctx.fillStyle='#536773';ctx.fillText(db+' dB',...p);
+    }
+    // Full reference is dashed; sampled points are solid and never bridge an unsampled gap.
+    ctx.setLineDash([4,4]);ctx.strokeStyle='#8d9da8';ctx.lineWidth=1.2;ctx.beginPath();
+    for(let deg=0;deg<=360;deg++){const p=xy(deg,radius(deg));deg?ctx.lineTo(...p):ctx.moveTo(...p);}ctx.stroke();ctx.setLineDash([]);
+    const entries=[...this.state.samples].sort((a,b)=>a-b);
+    ctx.strokeStyle='#b46a3e';ctx.lineWidth=2;ctx.beginPath();
+    entries.forEach((deg,i)=>{const p=xy(deg,radius(deg));if(i&&deg-entries[i-1]<=this.state.step*1.1)ctx.lineTo(...p);else ctx.moveTo(...p);});
+    if(entries.length && 360-entries[entries.length-1]+entries[0]<=this.state.step*1.1)ctx.lineTo(...xy(entries[0],radius(entries[0])));
+    ctx.stroke();ctx.fillStyle='#b46a3e';
+    entries.forEach(deg=>{const p=xy(deg,radius(deg));ctx.beginPath();ctx.arc(...p,2.2,0,Math.PI*2);ctx.fill();});
+    const current=xy(this.state.ang,radius(this.state.ang)),tip=xy(this.state.ang,R);
+    ctx.strokeStyle='#16838f';ctx.lineWidth=1;ctx.setLineDash([2,3]);ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(...tip);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#16838f';ctx.beginPath();ctx.arc(...current,4,0,Math.PI*2);ctx.fill();
   },
 
   onShareAppMessage() {

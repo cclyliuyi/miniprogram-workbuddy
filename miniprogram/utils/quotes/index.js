@@ -1,11 +1,11 @@
-// utils/quotes/index.js —— 按月加载的知识卡片入口
-// 365 天数据已拆分为 m01.js ~ m12.js，按需加载减少主包代码量
+// utils/quotes/index.js —— 按月组织的知识卡片入口
+// 365 天数据已拆分为 m01.js ~ m12.js，当前兼容入口仍会一次加载全部月份
 //
 // 用法：
 //   const { getMonthCards, getDayCard, CARDS, QUOTES } = require('./quotes');
 //   getMonthCards(7)      → 返回 7 月所有卡片
 //   getDayCard(month, day) → 返回指定日期的卡片
-//   CARDS                  → 全部 365 张（兼容旧代码，按需加载 12 个月合并）
+//   CARDS                  → 全部 365 张（兼容旧代码，12 个月合并）
 //   QUOTES                 → 全部 legacy 金句（兼容旧代码）
 
 const m01 = require('./m01');
@@ -35,7 +35,7 @@ const CARDS = [
 
 const QUOTES = CARDS.map(c => c.legacy);
 
-// 按月获取卡片（高效，只加载单月）
+// 按月获取卡片（从已加载数据中取单月）
 function getMonthCards(month) {
   return MONTH_MAP[month] || [];
 }

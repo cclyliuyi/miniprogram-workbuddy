@@ -8,9 +8,9 @@
 //   互易（线极化对）：C = cos²(ψA−ψB)，双向独立计算数值相等 → S21 = S12
 
 const haptic = require('../../../utils/haptic')
-const rf = require('../../../utils/rf-math')
-const lc = require('../../../utils/lab-canvas')
-const { THEME } = require('../../../utils/lab-theme')
+const rf = require('./pkg-utils/rf-math')
+const lc = require('./pkg-utils/lab-canvas')
+const { THEME } = require('./pkg-utils/lab-theme')
 
 const MODE_INFO = {
   ellipse: {

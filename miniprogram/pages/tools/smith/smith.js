@@ -6,9 +6,9 @@
 //   导纳圆系 = 阻抗圆系绕原点旋转 180°
 //   波长环：Γ(l) = Γ_L·e^(−j2βl) → 向源移动 l，角度 θ = π − 4π·l/λ（顺时针）
 const haptic = require('../../../utils/haptic')
-const rf = require('../../../utils/rf-math')
-const lc = require('../../../utils/lab-canvas')
-const { THEME, alpha } = require('../../../utils/lab-theme')
+const rf = require('./pkg-utils/rf-math')
+const lc = require('./pkg-utils/lab-canvas')
+const { THEME, alpha } = require('./pkg-utils/lab-theme')
 
 const R_VALUES = [0.2, 0.5, 1, 2, 5]   // 等电阻/电导圆
 const X_VALUES = [0.2, 0.5, 1, 2, 5]   // 等电抗/电纳弧（±）

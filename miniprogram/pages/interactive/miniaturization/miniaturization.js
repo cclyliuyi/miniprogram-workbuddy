@@ -7,9 +7,9 @@
 //   含损 Q ≈ η·Qmin → FBW ≈ (s−1)/(Q√s)：损耗越大带宽越宽（用效率换带宽）
 
 const haptic = require('../../../utils/haptic')
-const rf = require('../../../utils/rf-math')
-const lc = require('../../../utils/lab-canvas')
-const { THEME, alpha } = require('../../../utils/lab-theme')
+const rf = require('./pkg-utils/rf-math')
+const lc = require('./pkg-utils/lab-canvas')
+const { THEME, alpha } = require('./pkg-utils/lab-theme')
 
 const KA_MIN = 0.06, KA_MAX = 0.8
 

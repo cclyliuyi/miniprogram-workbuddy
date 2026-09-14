@@ -20,6 +20,9 @@ function pickCard(month, day) {
   return { card: CARDS[idx], cardIdx: dayOfYear }
 }
 
+// 滑动后停留确认时长：停留满此时长才算「已读」，防止快速连滑刷打卡进度
+const READ_CONFIRM_MS = 1500
+
 Page({
   data: {
     month: 0,
@@ -34,6 +37,7 @@ Page({
     cardIdx: 0,
     cardAnim: '',
     isFav: false,
+    favAnimating: false,
     justChecked: false,
     // ---- swiper 全量列表 ----
     swiperList: [],     // [{ month, day, front, back, thumb, loaded }]
@@ -50,7 +54,9 @@ Page({
 
   onLoad(options) {
     const month = parseInt(options.month, 10)
-    const day = parseInt(options.day, 10)
+    const requestedDay = parseInt(options.day, 10)
+    const day = month === 2 && requestedDay === 29 ? 28 : requestedDay
+    if (month === 2 && requestedDay === 29) wx.showToast({ title: '闰日复习：重温 2 月 28 日知识', icon: 'none' })
 
     this._favsMode = options.mode === 'favs'
 
@@ -70,6 +76,10 @@ Page({
       }
     }
 
+    if (!navList.length) {
+      wx.switchTab({ url: '/pages/favs/favs' })
+      return
+    }
     // 找到当前天的索引
     let curIdx = navList.findIndex(f => f.month === month && f.day === day)
     if (curIdx < 0) curIdx = 0
@@ -88,7 +98,6 @@ Page({
     // 当前天的知识盲盒（同步，无网络）
     const curNav = navList[curIdx]
     const { card, cardIdx } = pickCard(curNav.month, curNav.day)
-    const wasNew = progress.markRead(curNav.month, curNav.day)
     const fav = progress.isFav(curNav.month, curNav.day)
     const favsHint = this._favsMode ? `${curIdx + 1} / ${navList.length}` : ''
 
@@ -100,7 +109,8 @@ Page({
       label: `${curNav.month}月${curNav.day}日`,
       card, cardIdx,
       isFav: fav,
-      justChecked: wasNew,
+      justChecked: false,
+      favAnimating: false,
       favsHint,
       hasPrev: curIdx > 0,
       hasNext: curIdx < navList.length - 1,
@@ -108,26 +118,20 @@ Page({
       cardAnim: 'kn-in',
     })
 
-    if (wasNew) {
-      haptic.heavy()
-      this.checkAndShowMilestone()
-      setTimeout(() => this.setData({ justChecked: false }), 800)
-    }
-    setTimeout(() => this.setData({ cardAnim: '' }), 600)
+    this.updateCurrent(curIdx)
 
-    // 异步加载当前 + 相邻天的图片
-    this.loadSlide(curIdx)
-    if (curIdx > 0) this.loadSlide(curIdx - 1)
-    if (curIdx < navList.length - 1) this.loadSlide(curIdx + 1)
+
   },
 
   // 加载某个 slide 的图片数据（如果已加载则跳过）
   async loadSlide(idx) {
     const item = this.data.swiperList[idx]
-    if (!item || item.loaded) return
+    if (!item || item.loaded || item.status === 'loading') return
+    this.setData({ [`swiperList[${idx}].status`]: 'loading' })
 
     try {
       const res = await getDayPhoto(item.month, item.day)
+      if (this._disposed || !this.data.swiperList[idx] || this.data.swiperList[idx].key !== item.key) return
       const p = res.data && res.data[0]
       if (p) {
         this.setData({
@@ -135,12 +139,13 @@ Page({
           [`swiperList[${idx}].back`]: p.back ? (p.back.preview || p.back.original || '') : '',
           [`swiperList[${idx}].thumb`]: (p.front && p.front.thumb) || '',
           [`swiperList[${idx}].loaded`]: true,
+          [`swiperList[${idx}].status`]: 'ready',
         })
       } else {
-        this.setData({ [`swiperList[${idx}].loaded`]: true })
+        if (!this._disposed && this.data.swiperList[idx] && this.data.swiperList[idx].key === item.key) this.setData({ [`swiperList[${idx}].loaded`]: false, [`swiperList[${idx}].status`]: 'error' })
       }
     } catch (e) {
-      this.setData({ [`swiperList[${idx}].loaded`]: true })
+      if (!this._disposed && this.data.swiperList[idx] && this.data.swiperList[idx].key === item.key) this.setData({ [`swiperList[${idx}].loaded`]: false, [`swiperList[${idx}].status`]: 'error' })
     }
   },
 
@@ -150,13 +155,19 @@ Page({
     this.updateCurrent(idx)
   },
 
-  // 更新当前天信息（知识盲盒 + 打卡 + 收藏 + 图片懒加载）
+  // 更新当前天信息（知识盲盒 + 收藏 + 图片懒加载；打卡经停留确认延迟触发）
   updateCurrent(idx) {
     const item = this.data.swiperList[idx]
     if (!item) return
 
+    // 停留确认：重置计时器，停留满 READ_CONFIRM_MS 且未再滑动才打卡
+    if (this._readTimer) clearTimeout(this._readTimer)
+    this._readTimer = setTimeout(() => {
+      this._readTimer = null
+      if (this.data.swiperCurrent === idx) this.confirmRead(idx)
+    }, READ_CONFIRM_MS)
+
     const { card, cardIdx } = pickCard(item.month, item.day)
-    const wasNew = progress.markRead(item.month, item.day)
     const fav = progress.isFav(item.month, item.day)
     const favsHint = this._favsMode ? `${idx + 1} / ${this.data.swiperList.length}` : ''
 
@@ -167,7 +178,8 @@ Page({
       label: `${item.month}月${item.day}日`,
       card, cardIdx,
       isFav: fav,
-      justChecked: wasNew,
+      justChecked: false,
+      favAnimating: false,
       favsHint,
       hasPrev: idx > 0,
       hasNext: idx < this.data.swiperList.length - 1,
@@ -175,17 +187,39 @@ Page({
       cardAnim: 'kn-in',
     })
 
-    if (wasNew) {
-      haptic.heavy()
-      this.checkAndShowMilestone()
-      setTimeout(() => this.setData({ justChecked: false }), 800)
-    }
-    setTimeout(() => this.setData({ cardAnim: '' }), 600)
+    setTimeout(() => { if (!this._disposed) this.setData({ cardAnim: '' }) }, 600)
 
     // 懒加载当前 + 前后各一张的图片
     this.loadSlide(idx)
     if (idx > 0) this.loadSlide(idx - 1)
     if (idx < this.data.swiperList.length - 1) this.loadSlide(idx + 1)
+  },
+
+  // 停留确认后真正打卡（写 storage + 里程碑）
+  confirmRead(idx) {
+    const item = this.data.swiperList[idx]
+    if (!item) return
+    const wasNew = progress.markRead(item.month, item.day)
+    this.checkAndShowMilestone()
+    if (!wasNew) return
+    this.setData({ justChecked: true })
+    haptic.heavy()
+    setTimeout(() => {
+      if (!this._disposed && this.data.swiperCurrent === idx) this.setData({ justChecked: false })
+    }, 800)
+  },
+
+  retrySlide() { this.loadSlide(this.data.swiperCurrent) },
+  onImageError(e) {
+    const idx = Number(e.currentTarget.dataset.index)
+    this.setData({ [`swiperList[${idx}].loaded`]: false, [`swiperList[${idx}].status`]: 'error' })
+  },
+  onShow() { if (this.data.swiperList.length) this.updateCurrent(this.data.swiperCurrent) },
+  onHide() { clearTimeout(this._readTimer); this._readTimer = null },
+  onUnload() {
+    this._disposed = true
+    clearTimeout(this._favTimer)
+    if (this._readTimer) { clearTimeout(this._readTimer); this._readTimer = null }
   },
 
   // 检查是否命中打卡里程碑
@@ -196,6 +230,7 @@ Page({
       const info = progress.getMilestoneInfo(hit)
       // 延迟弹出，让知识卡片入场动画先完成
       setTimeout(() => {
+        if (this._disposed) return
         haptic.heavy()
         this.setData({
           showMilestone: true,
@@ -218,7 +253,12 @@ Page({
       date: this.data.label,
     })
     haptic.medium()
-    this.setData({ isFav: isNow })
+    clearTimeout(this._favTimer)
+    this.setData({ isFav: isNow, favAnimating: isNow })
+    if (isNow) this._favTimer = setTimeout(() => {
+      if (!this._disposed) this.setData({ favAnimating: false })
+      this._favTimer = null
+    }, 480)
     wx.showToast({ title: isNow ? '已收藏' : '已取消', icon: 'none', duration: 1000 })
 
     if (this._favsMode && !isNow) {

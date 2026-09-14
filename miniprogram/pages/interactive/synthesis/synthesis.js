@@ -7,9 +7,9 @@
 //   锥削效率 ηₜ = (Σ|wₙ|)²/(N·Σwₙ²)
 
 const haptic = require('../../../utils/haptic')
-const rf = require('../../../utils/rf-math')
-const lc = require('../../../utils/lab-canvas')
-const { THEME, alpha } = require('../../../utils/lab-theme')
+const rf = require('./pkg-utils/rf-math')
+const lc = require('./pkg-utils/lab-canvas')
+const { THEME, alpha } = require('./pkg-utils/lab-theme')
 
 const W_LABELS = { uniform: '均匀', cosine: '余弦', hamming: '汉明', chebyshev: '切比雪夫' }
 const SAMPLES = 721 // 0.25° 步长

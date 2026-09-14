@@ -7,8 +7,8 @@
 //   对称性：sin(mπ(1−u)) = (−1)^(m+1)·sin(mπu) → 偶 m 的镜像平均恒为零
 
 const haptic = require('../../../utils/haptic')
-const lc = require('../../../utils/lab-canvas')
-const { THEME, alpha, divergeColor } = require('../../../utils/lab-theme')
+const lc = require('./pkg-utils/lab-canvas')
+const { THEME, alpha, divergeColor } = require('./pkg-utils/lab-theme')
 
 const LAM_OVER_A = 0.25                       // λ/a（格林函数模式的波长，标注于公式卡）
 const KNORM = 2 * Math.PI / LAM_OVER_A        // 归一化波数 k·a = 8π

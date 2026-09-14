@@ -6,9 +6,9 @@
 //   Qmin = 1/(ka)³ + 1/ka（Chu–McLean 无耗下界）；FBW ≈ (s−1)/(Q√s)
 
 const haptic = require('../../../utils/haptic')
-const rf = require('../../../utils/rf-math')
-const lc = require('../../../utils/lab-canvas')
-const { THEME, alpha } = require('../../../utils/lab-theme')
+const rf = require('./pkg-utils/rf-math')
+const lc = require('./pkg-utils/lab-canvas')
+const { THEME, alpha } = require('./pkg-utils/lab-theme')
 
 const MODE_LABELS = {
   budget: '端口功率分账 · 匹配好 ≠ 效率高',

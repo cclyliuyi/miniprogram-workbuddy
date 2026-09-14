@@ -10,147 +10,205 @@
     {
       "root": "pages/eit-detail",
       "name": "eit-detail",
-      "pages": ["detail"]
+      "pages": [
+        "detail"
+      ]
     },
     {
       "root": "pages/method-detail",
       "name": "method-detail",
-      "pages": ["detail"]
+      "pages": [
+        "detail"
+      ]
     },
     {
       "root": "pages/day-detail",
       "name": "day-detail",
-      "pages": ["day-detail"]
+      "pages": [
+        "day-detail"
+      ]
     },
     {
       "root": "pages/card",
       "name": "card",
-      "pages": ["card"]
+      "pages": [
+        "card"
+      ]
     },
     {
       "root": "pages/year",
       "name": "year",
-      "pages": ["year"]
+      "pages": [
+        "year"
+      ]
     },
     {
       "root": "pages/story",
       "name": "story",
-      "pages": ["story"]
+      "pages": [
+        "story"
+      ]
     },
     {
       "root": "pages/search",
       "name": "search",
-      "pages": ["search"]
+      "pages": [
+        "search"
+      ]
     },
     {
       "root": "pages/tools/calc",
       "name": "tool-calc",
-      "pages": ["calc"]
+      "pages": [
+        "calc"
+      ]
     },
     {
       "root": "pages/tools/array",
       "name": "tool-array",
-      "pages": ["array"]
+      "pages": [
+        "array"
+      ]
     },
     {
       "root": "pages/tools/link",
       "name": "tool-link",
-      "pages": ["link"]
+      "pages": [
+        "link"
+      ]
     },
     {
       "root": "pages/tools/radar",
       "name": "tool-radar",
-      "pages": ["radar"]
+      "pages": [
+        "radar"
+      ]
     },
     {
       "root": "pages/tools/match",
       "name": "tool-match",
-      "pages": ["match"]
+      "pages": [
+        "match"
+      ]
     },
     {
       "root": "pages/tools/smith",
       "name": "tool-smith",
-      "pages": ["smith"]
+      "pages": [
+        "smith"
+      ]
     },
     {
       "root": "pages/interactive/friis",
       "name": "iv-friis",
-      "pages": ["friis"]
+      "pages": [
+        "friis"
+      ]
     },
     {
       "root": "pages/interactive/synthesis",
       "name": "iv-synthesis",
-      "pages": ["synthesis"]
+      "pages": [
+        "synthesis"
+      ]
     },
     {
       "root": "pages/interactive/smith-chart",
       "name": "iv-smith",
-      "pages": ["smith-chart"]
+      "pages": [
+        "smith-chart"
+      ]
     },
     {
       "root": "pages/interactive/aperture",
       "name": "iv-aperture",
-      "pages": ["aperture"]
+      "pages": [
+        "aperture"
+      ]
     },
     {
       "root": "pages/interactive/transmission-line",
       "name": "iv-tline",
-      "pages": ["transmission-line"]
+      "pages": [
+        "transmission-line"
+      ]
     },
     {
       "root": "pages/interactive/moment-method",
       "name": "iv-moment",
-      "pages": ["moment-method"]
+      "pages": [
+        "moment-method"
+      ]
     },
     {
       "root": "pages/interactive/broadband-matching",
       "name": "iv-broadband",
-      "pages": ["broadband-matching"]
+      "pages": [
+        "broadband-matching"
+      ]
     },
     {
       "root": "pages/interactive/miniaturization",
       "name": "iv-mini",
-      "pages": ["miniaturization"]
+      "pages": [
+        "miniaturization"
+      ]
     },
     {
       "root": "pages/interactive/radiation-integral",
       "name": "iv-radint",
-      "pages": ["radiation-integral"]
+      "pages": [
+        "radiation-integral"
+      ]
     },
     {
       "root": "pages/interactive/smart-array",
       "name": "iv-smart",
-      "pages": ["smart-array"]
+      "pages": [
+        "smart-array"
+      ]
     },
     {
       "root": "pages/interactive/energy-flow-lab",
       "name": "iv-energy",
-      "pages": ["energy-flow-lab"]
+      "pages": [
+        "energy-flow-lab"
+      ]
     },
     {
       "root": "pages/interactive/fourier-space-lab",
       "name": "iv-fourier",
-      "pages": ["fourier-space-lab"]
+      "pages": [
+        "fourier-space-lab"
+      ]
     },
     {
       "root": "pages/interactive/phase-coherence-lab",
       "name": "iv-phase",
-      "pages": ["phase-coherence-lab"]
+      "pages": [
+        "phase-coherence-lab"
+      ]
     },
     {
       "root": "pages/interactive/boundary-mode-lab",
       "name": "iv-boundary",
-      "pages": ["boundary-mode-lab"]
+      "pages": [
+        "boundary-mode-lab"
+      ]
     },
     {
       "root": "pages/interactive/polarization-reciprocity-lab",
       "name": "iv-polar-rec",
-      "pages": ["polarization-reciprocity-lab"]
+      "pages": [
+        "polarization-reciprocity-lab"
+      ]
     },
     {
       "root": "pages/interactive/radiation-3d",
       "name": "iv-r3d",
-      "pages": ["radiation-3d"]
+      "pages": [
+        "radiation-3d"
+      ]
     },
     {
       "root": "pages/interactive/3d-lab",
@@ -173,19 +231,31 @@
   "preloadRule": {
     "pages/calendar/calendar": {
       "network": "wifi",
-      "packages": ["day-detail", "card"]
+      "packages": [
+        "day-detail",
+        "card"
+      ]
     },
     "pages/tools/index": {
       "network": "wifi",
-      "packages": ["tool-calc", "iv-friis", "iv-synthesis", "iv-3dlab"]
+      "packages": [
+        "tool-calc",
+        "iv-friis",
+        "iv-synthesis",
+        "iv-3dlab"
+      ]
     },
     "pages/eit/eit": {
       "network": "wifi",
-      "packages": ["eit-detail"]
+      "packages": [
+        "eit-detail"
+      ]
     },
     "pages/method/method": {
       "network": "wifi",
-      "packages": ["method-detail"]
+      "packages": [
+        "method-detail"
+      ]
     }
   },
   "window": {
@@ -200,11 +270,36 @@
     "backgroundColor": "#fbf9f4",
     "borderStyle": "white",
     "list": [
-      { "pagePath": "pages/calendar/calendar", "text": "日历", "iconPath": "assets/tabbar/calendar_default.png", "selectedIconPath": "assets/tabbar/calendar_active.png" },
-      { "pagePath": "pages/eit/eit", "text": "前沿", "iconPath": "assets/tabbar/frontier_default.png", "selectedIconPath": "assets/tabbar/frontier_active.png" },
-      { "pagePath": "pages/method/method", "text": "方法论", "iconPath": "assets/tabbar/method_default.png", "selectedIconPath": "assets/tabbar/method_active.png" },
-      { "pagePath": "pages/tools/index", "text": "工具", "iconPath": "assets/tabbar/tools_default.png", "selectedIconPath": "assets/tabbar/tools_active.png" },
-      { "pagePath": "pages/favs/favs", "text": "收藏", "iconPath": "assets/tabbar/favs_default.png", "selectedIconPath": "assets/tabbar/favs_active.png" }
+      {
+        "pagePath": "pages/calendar/calendar",
+        "text": "日历",
+        "iconPath": "assets/tabbar/calendar_default.png",
+        "selectedIconPath": "assets/tabbar/calendar_active.png"
+      },
+      {
+        "pagePath": "pages/eit/eit",
+        "text": "前沿",
+        "iconPath": "assets/tabbar/frontier_default.png",
+        "selectedIconPath": "assets/tabbar/frontier_active.png"
+      },
+      {
+        "pagePath": "pages/method/method",
+        "text": "方法论",
+        "iconPath": "assets/tabbar/method_default.png",
+        "selectedIconPath": "assets/tabbar/method_active.png"
+      },
+      {
+        "pagePath": "pages/tools/index",
+        "text": "工具",
+        "iconPath": "assets/tabbar/tools_default.png",
+        "selectedIconPath": "assets/tabbar/tools_active.png"
+      },
+      {
+        "pagePath": "pages/favs/favs",
+        "text": "收藏",
+        "iconPath": "assets/tabbar/favs_default.png",
+        "selectedIconPath": "assets/tabbar/favs_active.png"
+      }
     ]
   },
   "lazyCodeLoading": "requiredComponents",

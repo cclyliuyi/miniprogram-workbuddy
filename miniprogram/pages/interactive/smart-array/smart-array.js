@@ -5,9 +5,9 @@
 //   零陷深度随干噪比 JNR 物理变化；干扰靠近目标时零陷变浅、‖w‖ 激增
 // 导向矢量 a(θ) = [e^{j2πnd·sinθ/λ}]（rf-math 同源相位约定，d 以 λ 计）
 const haptic = require('../../../utils/haptic')
-const rf = require('../../../utils/rf-math')
-const lc = require('../../../utils/lab-canvas')
-const { THEME, alpha } = require('../../../utils/lab-theme')
+const rf = require('./pkg-utils/rf-math')
+const lc = require('./pkg-utils/lab-canvas')
+const { THEME, alpha } = require('./pkg-utils/lab-theme')
 
 // ═══ 复数线性代数（[re, im] 数组，仅矩阵求解用）═══
 const EPS = 1e-12

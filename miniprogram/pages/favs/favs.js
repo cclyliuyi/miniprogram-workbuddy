@@ -1,3 +1,5 @@
+const resourceFavs = require('../../utils/resource-favs');
+const { findResource } = require('../../utils/resources');
 // pages/favs/favs.js —— 我的收藏（卡片瀑布流）
 const progress = require('../../utils/progress');
 const { getDayPhoto } = require('../../utils/db');
@@ -13,6 +15,7 @@ function pickCard(month, day) {
 
 Page({
   data: {
+    resources: [],
     list: [],      // 渲染用列表：[{ month, day, topic, date, thumb, tag, hook }]
     loading: true,
     isEmpty: false,
@@ -20,6 +23,7 @@ Page({
 
   onShow() {
     // 每次进入都刷新（收藏/取消后回来能看到最新状态）
+    this.setData({ resources: resourceFavs.getIds().map(findResource).filter(Boolean) });
     this.loadFavs();
   },
 
@@ -84,6 +88,8 @@ Page({
     return results;
   },
 
+  openResource(e) { const r = findResource(e.currentTarget.dataset.id); if(r) wx.navigateTo({url:r.url}) },
+  removeResource(e) { resourceFavs.toggle(e.currentTarget.dataset.id); this.onShow() },
   openDay(e) {
     const { month, day } = e.currentTarget.dataset;
     wx.navigateTo({

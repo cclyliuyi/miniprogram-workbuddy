@@ -1,0 +1,42 @@
+{
+  "mimo": {
+    "label": "Tse 与 Viswanath · 无线通信基础，第 7 章：MIMO 空间复用",
+    "url": "https://web.stanford.edu/~dntse/Chapters_PDF/Fundamentals_Wireless_Communication_chapter7.pdf"
+  },
+  "antenna": {
+    "label": "MIT · Electromagnetics and Applications，天线与口径",
+    "url": "https://ocw.mit.edu/courses/6-013-electromagnetics-and-applications-spring-2009/d3be4ea78b036a6362230fb41780cf54_MIT6_013S09_notes.pdf"
+  },
+  "dof": {
+    "label": "Poon、Brodersen、Tse · 多天线信道自由度（2005）",
+    "url": "https://doi.org/10.1109/TIT.2004.840892"
+  },
+  "eit": {
+    "label": "电磁信息论：基础、建模、应用与开放问题（2022）",
+    "url": "https://arxiv.org/abs/2212.02882"
+  },
+  "scatter": {
+    "label": "复杂空间中 MIMO 的电磁信息论建模（2023）",
+    "url": "https://arxiv.org/abs/2301.05536"
+  },
+  "capa": {
+    "label": "连续口径视角的电磁信号与信息论（2026 预印本）",
+    "url": "https://arxiv.org/abs/2605.12910"
+  },
+  "agents": {
+    "label": "Anthropic · Building effective agents（2024）",
+    "url": "https://www.anthropic.com/engineering/building-effective-agents"
+  },
+  "context": {
+    "label": "Anthropic · Effective context engineering（2025）",
+    "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents"
+  },
+  "tools": {
+    "label": "Anthropic · Writing tools for agents（2025）",
+    "url": "https://www.anthropic.com/engineering/writing-tools-for-agents"
+  },
+  "nist": {
+    "label": "NIST AI 600-1 · 生成式 AI 风险管理（2024）",
+    "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+  }
+}

@@ -6,9 +6,9 @@
 //   外环波长刻度（朝发生器）：Γ 相位角 = 180° − 720°·(ℓ/λ)，0λ 在短路点
 
 const haptic = require('../../../utils/haptic')
-const rf = require('../../../utils/rf-math')
-const lc = require('../../../utils/lab-canvas')
-const { THEME, alpha } = require('../../../utils/lab-theme')
+const rf = require('./pkg-utils/rf-math')
+const lc = require('./pkg-utils/lab-canvas')
+const { THEME, alpha } = require('./pkg-utils/lab-theme')
 
 const R_VALS = [0.2, 0.5, 1, 2, 5] // 等电阻 / 等电导圆族
 const X_VALS = [0.2, 0.5, 1, 2, 5] // 等电抗 / 等电纳弧族

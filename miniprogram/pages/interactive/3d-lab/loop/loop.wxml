@@ -1,13 +1,13 @@
 <!-- pages/interactive/3d-lab/loop/loop.wxml —— 小环天线 3D -->
 <view class="screen lab3d">
 
-  <view class="lab3d-head rise">
+  <view class="lab3d-head ">
     <view class="kicker">SMALL LOOP · MAGNETIC DIPOLE</view>
     <view class="lab3d-title display">小环天线</view>
     <view class="lab3d-sub">磁偶极子模型 · 辐射电阻 · sin²θ 方向图</view>
   </view>
 
-  <view class="lab3d-canvas-wrap rise">
+  <view class="lab3d-canvas-wrap ">
     <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
     <view wx:if="{{!glReady}}" class="lab3d-skel">
@@ -17,8 +17,16 @@
     <view class="lab3d-hint {{showHint ? '' : 'fade'}}">单指旋转 · 双指缩放 · 双击复位</view>
   </view>
 
+  <view class="lab-viewbar">
+    <view class="lab-view-choice {{labView==='perspective'?'selected':''}}" data-view="perspective" bindtap="onLabView">立体全景</view>
+    <view class="lab-view-choice {{labView==='front'?'selected':''}}" data-view="front" bindtap="onLabView">正视</view>
+    <view class="lab-view-choice {{labView==='top'?'selected':''}}" data-view="top" bindtap="onLabView">俯视</view>
+    <view class="lab-view-choice {{autoRotate?'selected':''}}" bindtap="onLabRotate">{{autoRotate?'停止环视':'自动环视'}}</view>
+  </view>
+<view class="lab-scene-caption">铜环电流 · 磁场线 · 功率曲面</view><view class="lab-color-key"><view class="lab-heat-gradient"></view><view class="lab-color-ticks"><text>0</text><text>0.5</text><text>1</text></view><view class="lab-color-caption">归一化功率 sin²θ</view></view>
+
   <!-- 参数控制 -->
-  <view class="lab3d-section rise">
+  <view class="lab3d-section ">
     <view class="kicker">几何与损耗</view>
     <view class="tp-slider-row">
       <text class="tp-slider-label">半径 a/λ</text>
@@ -39,7 +47,7 @@
   </view>
 
   <!-- 读数 -->
-  <view class="lab3d-stats pop">
+  <view class="lab3d-stats ">
     <view class="kicker lab3d-stats-title">读数</view>
     <view class="lab3d-stats-grid">
       <view class="lab3d-stat">
@@ -62,30 +70,30 @@
   </view>
 
   <!-- 2D 图一：方向图截面 -->
-  <view class="tp-canvas-card rise">
+  <view class="tp-canvas-card ">
     <view class="tp-canvas-caption">E 面功率方向图 · 10·lg sin²θ（dB，全圆）</view>
     <canvas type="2d" id="plot" class="tp-canvas"></canvas>
   </view>
 
   <!-- 2D 图二：效率曲线 -->
-  <view class="tp-canvas-card rise">
+  <view class="tp-canvas-card ">
     <view class="tp-canvas-caption">辐射效率 η 随 a/λ 变化（随 N、Rloss 实时更新）</view>
     <canvas type="2d" id="etaPlot" class="tp-canvas-short"></canvas>
   </view>
 
   <!-- 公式注脚 -->
-  <view class="tp-formula rise">
+  <view class="tp-formula ">
     <view class="tp-formula-title">所用公式</view>
     <view class="tp-formula-line">Rr = 320π⁴N²(S/λ²)²，S = πa²　·　η = Rr/(Rr+Rloss)</view>
     <view class="tp-formula-line">D = 1.5（1.76 dBi）　·　G = η·D　·　U(θ) ∝ sin²θ</view>
     <view class="tp-formula-cond">适用条件：电小环 C = 2πa &lt; 0.1λ（电流沿环等幅同相，Balanis 5-24a）；C 更大时环趋于谐振、方向图翻转，本模型失效。多匝时 Rloss 随匝数与邻近效应增长，此处为手动输入值。</view>
   </view>
 
-  <view class="lab3d-note rise">
+  <view class="lab3d-note ">
     <view class="kicker">原理</view>
     <view class="lab3d-note-item">小环等效为磁偶极子：环轴方向是零点，环面内辐射最大</view>
     <view class="lab3d-note-item">尺寸很小时 Rr ∝ (S/λ²)²，效率极低 —— 增益读数把这条因果链讲完整</view>
-    <view class="lab3d-note-item">赤陶圆环 = 载流导线 · 赭金闭合曲线 = 磁偶极子场线（穿过环心的极向环）· 靛蓝粒子 = 等幅同相电流 · 青绿曲面 = sin²θ 方向图</view>
+    <view class="lab3d-note-item">赤陶圆环 = 载流导线 · 赭金闭合曲线 = 磁偶极子场线（穿过环心的极向环）· 靛蓝粒子 = 等幅同相电流 · 渐变曲面 = sin²θ 功率方向图</view>
   </view>
 
 </view>

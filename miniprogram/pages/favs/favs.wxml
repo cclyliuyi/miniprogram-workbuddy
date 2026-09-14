@@ -7,11 +7,17 @@
     <view class="fv-count num" wx:if="{{list.length}}">{{list.length}} 篇</view>
   </view>
 
+  <view class="fv-list">
+    <view wx:for="{{resources}}" wx:key="id" class="fv-card" bindtap="openResource" data-id="{{item.id}}">
+      <view class="fv-info"><view class="fv-date">{{item.type}}</view><view class="fv-hook">{{item.title}}</view><view>{{item.desc}}</view></view>
+      <button size="mini" catchtap="removeResource" data-id="{{item.id}}">取消收藏</button>
+    </view>
+  </view>
   <!-- 空状态 -->
-  <view wx:if="{{isEmpty && !loading}}" class="fv-empty rise">
+  <view wx:if="{{isEmpty && !loading && !resources.length}}" class="fv-empty rise">
     <view class="fv-empty-heart"></view>
     <view class="fv-empty-title display">还没有收藏</view>
-    <view class="fv-empty-desc">在每日详情页点击右上的心形按钮，收藏喜欢的日子，它们会出现在这里。</view>
+    <view class="fv-empty-desc">可在知识详情或统一搜索中收藏内容、工具与实验。</view>
   </view>
 
   <!-- 加载中（骨架屏 shimmer） -->

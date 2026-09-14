@@ -1,13 +1,13 @@
 <!-- pages/interactive/3d-lab/array-synthesis/array-synthesis.wxml —— 方向图综合 -->
 <view class="screen lab3d">
 
-  <view class="lab3d-head rise">
+  <view class="lab3d-head ">
     <view class="kicker">LINEAR ARRAY SYNTHESIS</view>
     <view class="lab3d-title display">方向图综合</view>
     <view class="lab3d-sub">Dolph-Chebyshev · Taylor n̄ · 均匀加权</view>
   </view>
 
-  <view class="lab3d-canvas-wrap rise">
+  <view class="lab3d-canvas-wrap ">
     <canvas type="webgl" id="three-canvas" class="lab3d-canvas"
       catchtouchstart="onTouchStart" catchtouchmove="onTouchMove" catchtouchend="onTouchEnd"></canvas>
     <view wx:if="{{!glReady}}" class="lab3d-skel">
@@ -17,7 +17,15 @@
     <view class="lab3d-hint {{showHint ? '' : 'fade'}}">单指旋转 · 双指缩放 · 双击复位</view>
   </view>
 
-  <view class="lab3d-section rise">
+  <view class="lab-viewbar">
+    <view class="lab-view-choice {{labView==='perspective'?'selected':''}}" data-view="perspective" bindtap="onLabView">立体全景</view>
+    <view class="lab-view-choice {{labView==='front'?'selected':''}}" data-view="front" bindtap="onLabView">正视</view>
+    <view class="lab-view-choice {{labView==='top'?'selected':''}}" data-view="top" bindtap="onLabView">俯视</view>
+    <view class="lab-view-choice {{autoRotate?'selected':''}}" bindtap="onLabRotate">{{autoRotate?'停止环视':'自动环视'}}</view>
+  </view>
+<view class="lab-scene-caption">加权阵元 · 主瓣与旁瓣</view><view class="lab-color-key"><view class="lab-heat-gradient"></view><view class="lab-color-ticks"><text>0</text><text>0.5</text><text>1</text></view><view class="lab-color-caption">归一化场幅度 · 蓝色弱 / 红色强</view></view>
+
+  <view class="lab3d-section ">
     <view class="kicker">阵列配置</view>
     <view class="tp-slider-row">
       <text class="tp-slider-label">阵元数 N</text>
@@ -31,7 +39,7 @@
     </view>
   </view>
 
-  <view class="lab3d-section rise">
+  <view class="lab3d-section ">
     <view class="kicker">综合方法</view>
     <view class="tp-btns">
       <view class="tp-btn {{method==='chebyshev'?'active':''}}" data-m="chebyshev" bindtap="onMethod">Chebyshev</view>
@@ -47,7 +55,7 @@
     </view>
   </view>
 
-  <view class="lab3d-section rise {{method==='uniform'?'as-disabled':''}}">
+  <view class="lab3d-section  {{method==='uniform'?'as-disabled':''}}">
     <view class="kicker">副瓣控制{{method==='uniform'?'（均匀加权时无效）':''}}</view>
     <view class="tp-slider-row">
       <text class="tp-slider-label">副瓣电平 SLL</text>
@@ -56,7 +64,7 @@
     </view>
   </view>
 
-  <view class="lab3d-stats pop">
+  <view class="lab3d-stats ">
     <view class="kicker lab3d-stats-title">阵列参数</view>
     <view class="tp-stats-grid">
       <view class="tp-stat"><view class="tp-stat-label">方向性估计</view><view class="tp-stat-value tp-c-accent">{{dbi}} dBi</view></view>
@@ -66,12 +74,12 @@
     </view>
   </view>
 
-  <view class="lab3d-section rise">
+  <view class="lab3d-section ">
     <view class="kicker">方向图切面（θ：0° 阵轴 → 90° 边射 → 180°）</view>
     <canvas type="2d" id="plot" class="lab3d-2d"></canvas>
   </view>
 
-  <view class="tp-formula rise">
+  <view class="tp-formula ">
     <view class="tp-formula-title">所用公式</view>
     <view class="tp-formula-line">AF(θ) = |Σ wₙ·e^(jn·kd·cosθ)| / Σwₙ，k = 2π/λ（θ 为与阵轴夹角，边射主瓣在 θ=90°）</view>
     <view class="tp-formula-line">Chebyshev：R = 10^(|SLL|/20)，x₀ = cosh(acosh R/(N−1))，T₍N−1₎ 采样逆 DFT 求权重</view>
@@ -80,7 +88,7 @@
     <view class="tp-formula-cond">适用条件：各向同性阵元、等相激励边射线阵；方向性近似要求无栅瓣（d/λ ≤ 1，接近 1 时读数偏乐观）。3D 图半径取 √|AF| 为显示压缩（副瓣更易观察），不代表物理幅度。</view>
   </view>
 
-  <view class="lab3d-note rise">
+  <view class="lab3d-note ">
     <view class="kicker">原理</view>
     <view class="lab3d-note-item">Dolph-Chebyshev：给定副瓣电平下主瓣最窄（等副瓣最优）。</view>
     <view class="lab3d-note-item">Taylor n̄：靠近主瓣的 n̄−1 个副瓣近似等电平，其余按 1/u 渐降，激励比 Chebyshev 更平滑易实现。</view>

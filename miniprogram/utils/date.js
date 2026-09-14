@@ -96,8 +96,8 @@ function getLunarMonthDays(year, month) {
  */
 function getLunarDate(y, m, d) {
   // 基准点：1900/01/31 = 农历正月初一
-  const BASE_DATE = new Date(1900, 0, 31);
-  const target = new Date(y, m - 1, d);
+  const BASE_DATE = Date.UTC(1900, 0, 31);
+  const target = Date.UTC(y, m - 1, d);
   let offset = Math.floor((target - BASE_DATE) / 86400000);
 
   let year = 1900, temp = 0;
@@ -129,7 +129,7 @@ function getLunarDate(y, m, d) {
 
   // 节气
   const termKey = m + '-' + d;
-  const term = SOLAR_TERMS_2027[termKey] || '';
+  const term = y === 2027 ? (SOLAR_TERMS_2027[termKey] || '') : '';
 
   // 农历节日
   const festKey = month + '-' + day;
@@ -150,8 +150,7 @@ function parseFileName(filename) {
 }
 
 // 该月天数（以目标年为准）
-function daysInMonth(month) {
-  const year = 2027;
+function daysInMonth(month, year = 2027) {
   return new Date(year, month, 0).getDate();
 }
 
@@ -162,7 +161,7 @@ function buildMonthGrid(month, photosMap, year) {
   year = year || 2027;
   const first = new Date(year, month - 1, 1);
   const startWeekday = first.getDay(); // 0 = 周日
-  const dim = daysInMonth(month);
+  const dim = daysInMonth(month, year);
 
   const cells = [];
   for (let i = 0; i < startWeekday; i++) cells.push({ empty: true });
