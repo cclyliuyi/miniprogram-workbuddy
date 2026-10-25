@@ -1,11 +1,11 @@
 <!-- pages/interactive/transmission-line/transmission-line.wxml —— 传输线驻波 -->
-<view class="screen tp-page">
+<view class="screen fd-page tp-page tool-studio">
 
   <view class="tp-head rise">
     <view class="kicker">TRANSMISSION LINE</view>
     <view class="tp-title display">传输线驻波</view>
     <view class="tp-sub">|V(d)|、|I(d)| 驻波分布 · Γ / SWR / Z_in 实时求解</view>
-  </view>
+  </view><view class="fd-stage">
 
   <!-- 驻波分布（V/I 同轴叠画，波腹波节互补一目了然） -->
   <view class="tp-canvas-card rise">
@@ -25,7 +25,8 @@
   </view>
 
   <!-- 参数 -->
-  <view class="tp-section rise">
+  </view><!-- fd-stage:end --><view id="fd-anchor" class="fd-anchor"></view>
+<view class="tp-section rise">
     <view class="kicker">传输线参数</view>
     <view class="tp-slider-row">
       <text class="tp-slider-label">特性阻抗 Z₀</text>
@@ -97,4 +98,20 @@
     <view class="tp-formula-cond">适用条件：无耗均匀传输线、单频稳态、TEM 传播；幅度以入射波 |V⁺| = 1 归一（|I| 同时以 |V⁺|/Z₀ 归一）；d 自负载向源度量。</view>
   </view>
 
+<!-- floating-controls:start -->
+ <cover-view id="fd-panel" hidden="{{!fdVisible}}" class="fd-panel {{fdVisible ? 'fd-visible' : ''}}" bindtouchstart="fdTouchStart" bindtouchend="fdTouchEnd" bindtouchcancel="fdTouchEnd" catchtouchmove="fdPreventScroll">
+  <cover-view class="fd-head"><cover-view class="fd-title">实时调参</cover-view><cover-view class="fd-all" bindtap="fdShowAll">全部参数 ↓</cover-view></cover-view>
+  <cover-view class="fd-tabs"><cover-view class="fd-tab {{fdGroup === 0 ? 'selected' : ''}}" data-group="0" bindtap="fdSelect">传输线</cover-view></cover-view>
+  <cover-view class="fd-controls"><block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">特性阻抗 Z₀</cover-view>
+      <cover-view id="fd-track-0" class="fd-native-track" data-id="0" data-value="{{S.Z0}}" data-min="10" data-max="200" data-step="5" data-disabled="" data-changing="onZ0" data-change="onZ0" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 0 ? fdPercent : ((S.Z0)-(10))/((200)-(10))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 0 ? fdPercent : ((S.Z0)-(10))/((200)-(10))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.Z0}} Ω</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">线长 l</cover-view>
+      <cover-view id="fd-track-1" class="fd-native-track" data-id="1" data-value="{{S.length}}" data-min="0.1" data-max="2" data-step="0.05" data-disabled="" data-changing="onLength" data-change="onLength" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 1 ? fdPercent : ((S.length)-(0.1))/((2)-(0.1))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 1 ? fdPercent : ((S.length)-(0.1))/((2)-(0.1))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.length}} λ</cover-view>
+    </cover-view></block></cover-view>
+ </cover-view>
+<!-- floating-controls:end -->
 </view>

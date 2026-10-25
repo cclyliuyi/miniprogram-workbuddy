@@ -1,0 +1,31 @@
+const fs=require('fs'),path=require('path');
+const dist=path.resolve(__dirname,'../../dist');
+const article=JSON.parse(fs.readFileSync(path.join(dist,'articles/computing-paradigms-ai.json'),'utf8'));
+const entry=JSON.parse(fs.readFileSync(path.join(dist,'manifest.json'),'utf8')).articles.find(a=>a.id===article.id);
+const jobs=article.blocks.filter(b=>b.t==='image').map(b=>({fileID:b.fileID,relative:'images/'+article.id+'/'+b.fileID.split('/').pop(),data:fs.readFileSync(path.join(dist,'images',article.id,b.fileID.split('/').pop())).toString('base64')}));
+const script=`(async()=>{
+ const article=${JSON.stringify(article)},entry=${JSON.stringify(entry)},jobs=${JSON.stringify(jobs)};
+ const prefix='cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/insights/';
+ const files=wx.getFileSystemManager();
+ const read=async(relative)=>{const r=await wx.cloud.downloadFile({fileID:prefix+relative});try{return JSON.parse(files.readFileSync(r.tempFilePath,'utf8'))}finally{try{files.unlinkSync(r.tempFilePath)}catch(e){}}};
+ const fresh=async(relative)=>{const r=await wx.cloud.getTempFileURL({fileList:[prefix+relative]}),f=r.fileList[0];if(f.status||!f.tempFileURL)throw Error('File unavailable');return new Promise((resolve,reject)=>wx.request({url:f.tempFileURL+(f.tempFileURL.includes('?')?'&':'?')+'_insights='+Date.now(),dataType:'json',success:r=>r.statusCode===200?resolve(r.data):reject(Error('HTTP '+r.statusCode)),fail:reject}));};
+ const put=async(relative,data,encoding='utf8')=>{const tmp=wx.env.USER_DATA_PATH+'/insights-illustration-'+Date.now();files.writeFileSync(tmp,data,encoding);try{return await wx.cloud.uploadFile({cloudPath:'insights/'+relative,filePath:tmp})}finally{try{files.unlinkSync(tmp)}catch(e){}}};
+ const json=(relative,data)=>put(relative,JSON.stringify(data));
+ globalThis.insightsImagePublish={status:'running',startedAt:new Date().toISOString(),targetBuiltAt:article.builtAt};
+ const manifest=await read('manifest.json'),previous=await read('articles/'+article.id+'.json');
+ if(!Array.isArray(manifest.articles)||previous.id!==article.id)throw Error('Live content invalid');
+ const backup='backups/'+article.id+'-illustrations-'+Date.now();
+ await json(backup+'-manifest.json',manifest);await json(backup+'-article.json',previous);
+ console.log('INSIGHTS_IMAGE_BACKUP',backup);
+ const oldIds=manifest.articles.map(a=>a.id),existing=new Set(previous.blocks.filter(b=>b.t==='image').map(b=>b.fileID));
+ for(const job of jobs){if(existing.has(job.fileID))continue;const r=await put(job.relative,job.data,'base64');if(r.fileID!==job.fileID)throw Error('Image path mismatch');console.log('INSIGHTS_IMAGE_UPLOADED',job.relative);}
+ await json('articles/'+article.id+'.json',article);
+ const checked=await fresh('articles/'+article.id+'.json');
+ if(checked.builtAt!==article.builtAt||checked.blocks.length!==article.blocks.length||checked.blocks.filter(b=>b.t==='image').length!==10)throw Error('Article readback mismatch');
+ manifest.articles=manifest.articles.filter(a=>a.id!==article.id);manifest.articles.push(entry);manifest.articles.sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:0);
+ await json('manifest.json',manifest);const listed=await fresh('manifest.json');
+ if(!oldIds.every(id=>listed.articles.some(a=>a.id===id)))throw Error('Manifest lost articles');
+ globalThis.insightsImagePublish={status:'published',id:article.id,builtAt:checked.builtAt,publishedAt:new Date().toISOString(),blocks:checked.blocks.length,images:10,manifestIds:listed.articles.map(a=>a.id),backup:'insights/'+backup,cloudReadback:true};
+ console.log('INSIGHTS_IMAGES_PUBLISHED',JSON.stringify(globalThis.insightsImagePublish));
+})().catch(e=>{globalThis.insightsImagePublish=Object.assign({},globalThis.insightsImagePublish,{status:'error',error:e.errMsg||e.message||String(e)});console.error('INSIGHTS_IMAGE_PUBLISH_FAILED',JSON.stringify(globalThis.insightsImagePublish));});`;
+const output=path.join(__dirname,'.runtime-publish-images.js');fs.writeFileSync(output,script);console.log(JSON.stringify({output,bytes:Buffer.byteLength(script),images:jobs.length,builtAt:article.builtAt}));

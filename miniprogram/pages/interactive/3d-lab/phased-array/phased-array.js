@@ -1,3 +1,4 @@
+const { withFloatingControls } = require('../pkg-utils/lab-canvas');
 // pages/interactive/3d-lab/phased-array/phased-array.js —— 相控阵 3D（r108）· 暖纸舞台
 // 物理模型（Balanis《Antenna Theory》4th，Ch.6）：
 //   阵因子 AF(γ) = |sin(Nψ/2)/(N·sinψ/2)|，ψ = kd·cosγ + β，kd = 2πd/λ（Balanis 6-10c）
@@ -30,7 +31,7 @@ const RAMP = (() => {
   return a;
 })();
 
-Page({
+Page(withFloatingControls({
   data: {
     labView: 'perspective', autoRotate: false,
     S: { N: 8, d: 0.5, beta: 0, el: 'iso' },
@@ -572,4 +573,4 @@ Page({
   onShareAppMessage() {
     return { title: '相控阵扫描 3D 实验室', path: '/pages/interactive/3d-lab/phased-array/phased-array' };
   },
-});
+}, 2));

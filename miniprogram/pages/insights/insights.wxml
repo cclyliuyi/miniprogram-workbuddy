@@ -1,0 +1,49 @@
+<view class="insights-page">
+  <view class="insights-header">
+    <view class="insights-eyebrow">{{articles.length}} 篇原创 · 持续更新</view>
+    <view class="insights-title">洞见</view>
+    <view class="insights-intro">在这里沉淀我自己的思考与长文，关于复杂系统、人工智能与电磁世界。</view>
+  </view>
+
+  <view wx:if="{{loading && !articles.length}}" class="insights-state">
+    <view class="state-spinner"></view>
+    <view class="state-text">正在加载文章…</view>
+  </view>
+
+  <view wx:elif="{{!loading && !articles.length}}" class="insights-state">
+    <view class="state-emoji">✦</view>
+    <view class="state-text">暂无文章，下拉刷新试试</view>
+  </view>
+
+  <view wx:else class="article-list">
+    <view
+      class="article-card {{item.featured ? 'featured' : ''}}"
+      wx:for="{{articles}}"
+      wx:key="id"
+      data-index="{{index}}"
+      bindtap="openArticle"
+      hover-class="article-pressed"
+      aria-label="{{item.title}}，阅读全文"
+    >
+      <view class="article-cover-wrap" wx:if="{{item.cover}}">
+        <image class="article-cover" src="{{item.cover}}" mode="aspectFill" lazy-load="{{true}}" />
+        <view wx:if="{{item.featured}}" class="featured-badge">最新</view>
+      </view>
+      <view class="article-body">
+        <view class="article-kicker">
+          <text class="article-date">{{item.dateText}}</text>
+          <text class="article-dot">·</text>
+          <text>{{item.readMinutes}} 分钟阅读</text>
+        </view>
+        <view class="article-title">{{item.title}}</view>
+        <view class="article-summary">{{item.summary}}</view>
+        <view class="article-tags" wx:if="{{item.tags.length}}">
+          <text class="article-tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
+        </view>
+        <view class="article-open">阅读全文 ›</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="insights-footer">思考仍在继续，不定期更新。</view>
+</view>

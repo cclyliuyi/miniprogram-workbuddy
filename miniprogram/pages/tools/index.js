@@ -9,7 +9,10 @@ const { SECTIONS } = require('../../utils/tool-registry')
 
 Page({
   data: {
-    sections: SECTIONS,
+    sections: SECTIONS.map(s => ({ ...s,
+      intro: s.key === 'calc' ? '从参数到答案，让工程计算更从容' : '拖动参数，看见电磁规律如何发生',
+      items: s.items.map((t, i) => ({ ...t, number: String(i + 1).padStart(2, '0'),
+        mark: ({calc:'RF', array:'AF', link:'dB', radar:'R⁴', match:'Z₀', smith:'Γ', friis:'1/r²', synth:'Σ', smithc:'Γ', aperture:'λ/D', tline:'∿', pa:'Δφ', pol:'E', mom:'Z', bbm:'S₁₁', mini:'ka', radint:'∫', smart:'∇'})[t.key] || t.icon })) })),
     segs: SECTIONS.map(s => ({ key: s.key, name: s.name })),
     recent: [],
   },

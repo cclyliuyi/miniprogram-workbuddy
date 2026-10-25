@@ -1,11 +1,11 @@
 <!-- pages/interactive/3d-lab/phased-array/phased-array.wxml —— 相控阵 3D -->
-<view class="screen lab3d">
+<view class="screen fd-page lab3d">
 
   <view class="lab3d-head ">
     <view class="kicker">PHASED ARRAY · 3D BEAM STEERING</view>
     <view class="lab3d-title display">相控阵扫描</view>
     <view class="lab3d-sub">3D 方向图 · 渐进相移 β · 栅瓣锥环</view>
-  </view>
+  </view><view class="fd-stage">
 
   <!-- 3D Canvas -->
   <view class="lab3d-canvas-wrap ">
@@ -27,7 +27,8 @@
 <view class="lab-scene-caption">阵元激励 · 三维波束 · 栅瓣</view><view class="lab-color-key"><view class="lab-heat-gradient"></view><view class="lab-color-ticks"><text>0</text><text>0.5</text><text>1</text></view><view class="lab-color-caption">归一化场幅度 · 蓝色弱 / 红色强</view></view>
 
   <!-- 阵列配置 -->
-  <view class="lab3d-section ">
+  </view><!-- fd-stage:end --><view id="fd-anchor" class="fd-anchor"></view>
+<view class="lab3d-section ">
     <view class="kicker">阵列配置</view>
     <view class="tp-slider-row">
       <text class="tp-slider-label">阵元数 N</text>
@@ -117,4 +118,25 @@
     <view class="lab3d-note-item">β 每前进 360·(d/λ)° 波束扫过一个可见空间周期；间距越大越易出栅瓣</view>
   </view>
 
+<!-- floating-controls:start -->
+ <cover-view id="fd-panel" hidden="{{!fdVisible}}" class="fd-panel {{fdVisible ? 'fd-visible' : ''}}" bindtouchstart="fdTouchStart" bindtouchend="fdTouchEnd" bindtouchcancel="fdTouchEnd" catchtouchmove="fdPreventScroll">
+  <cover-view class="fd-head"><cover-view class="fd-title">实时调参</cover-view><cover-view class="fd-all" bindtap="fdShowAll">全部参数 ↓</cover-view></cover-view>
+  <cover-view class="fd-tabs"><cover-view class="fd-tab {{fdGroup === 0 ? 'selected' : ''}}" data-group="0" bindtap="fdSelect">阵列</cover-view><cover-view class="fd-tab {{fdGroup === 1 ? 'selected' : ''}}" data-group="1" bindtap="fdSelect">扫描</cover-view></cover-view>
+  <cover-view class="fd-controls"><block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">阵元数 N</cover-view>
+      <cover-view id="fd-track-0" class="fd-native-track" data-id="0" data-value="{{S.N}}" data-min="2" data-max="24" data-step="1" data-disabled="" data-changing="onNChanging" data-change="onN" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 0 ? fdPercent : ((S.N)-(2))/((24)-(2))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 0 ? fdPercent : ((S.N)-(2))/((24)-(2))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.N}} 元</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">间距 d/λ</cover-view>
+      <cover-view id="fd-track-1" class="fd-native-track" data-id="1" data-value="{{S.d}}" data-min="0.1" data-max="1.5" data-step="0.01" data-disabled="" data-changing="onDChanging" data-change="onD" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 1 ? fdPercent : ((S.d)-(0.1))/((1.5)-(0.1))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 1 ? fdPercent : ((S.d)-(0.1))/((1.5)-(0.1))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.d}} λ</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 1}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">渐进相移 β</cover-view>
+      <cover-view id="fd-track-2" class="fd-native-track" data-id="2" data-value="{{S.beta}}" data-min="-180" data-max="180" data-step="1" data-disabled="" data-changing="onBetaChanging" data-change="onBeta" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 2 ? fdPercent : ((S.beta)-(-180))/((180)-(-180))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 2 ? fdPercent : ((S.beta)-(-180))/((180)-(-180))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.beta}}°</cover-view>
+    </cover-view></block></cover-view>
+ </cover-view>
+<!-- floating-controls:end -->
 </view>

@@ -1,5 +1,5 @@
 <!-- pages/tools/link/link.wxml —— 通信链路计算（输入即算，图随参数实时变化） -->
-<view class="screen tp-page">
+<view class="screen tp-page tool-studio">
 
   <view class="tp-head rise">
     <view class="kicker">RF TOOLS · LINK</view>

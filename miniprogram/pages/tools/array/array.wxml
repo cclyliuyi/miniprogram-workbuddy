@@ -1,11 +1,11 @@
 <!-- pages/tools/array/array.wxml —— 天线阵列方向图实验室 -->
-<view class="screen tp-page">
+<view class="screen fd-page tp-page tool-studio">
 
   <view class="tp-head rise">
     <view class="kicker">ANTENNA ARRAY LAB</view>
     <view class="tp-title display">阵列方向图</view>
     <view class="tp-sub">均匀线阵阵因子 · 幅度加权 · 波束扫描 · 栅瓣</view>
-  </view>
+  </view><view class="fd-stage">
 
   <!-- 极坐标方向图（参数变化实时重绘） -->
   <view class="tp-canvas-card rise">
@@ -14,7 +14,8 @@
   </view>
 
   <!-- 参数 -->
-  <view class="tp-section rise">
+  </view><!-- fd-stage:end --><view id="fd-anchor" class="fd-anchor"></view>
+<view class="tp-section rise">
     <view class="kicker">阵列参数</view>
     <view class="tp-slider-row">
       <text class="tp-slider-label">阵元数 N</text>
@@ -110,4 +111,25 @@
     <view class="tc-insight-text">窗函数是拿主瓣宽度换副瓣：<text class="tc-hl">均匀加权主瓣最窄，但副瓣只有 −13.3 dB；切比雪夫能把副瓣压到指定电平，代价是主瓣变胖</text>——切到「切比雪夫 −30dB」亲眼对比。两条安全线：d/λ ≤ 1/(1+|sinθ₀|) 无栅瓣；N 翻倍，波束窄一半、方向性 +3 dB。</view>
   </view>
 
+<!-- floating-controls:start -->
+ <cover-view id="fd-panel" hidden="{{!fdVisible}}" class="fd-panel {{fdVisible ? 'fd-visible' : ''}}" bindtouchstart="fdTouchStart" bindtouchend="fdTouchEnd" bindtouchcancel="fdTouchEnd" catchtouchmove="fdPreventScroll">
+  <cover-view class="fd-head"><cover-view class="fd-title">实时调参</cover-view><cover-view class="fd-all" bindtap="fdShowAll">全部参数 ↓</cover-view></cover-view>
+  <cover-view class="fd-tabs"><cover-view class="fd-tab {{fdGroup === 0 ? 'selected' : ''}}" data-group="0" bindtap="fdSelect">阵列</cover-view><cover-view class="fd-tab {{fdGroup === 1 ? 'selected' : ''}}" data-group="1" bindtap="fdSelect">扫描</cover-view></cover-view>
+  <cover-view class="fd-controls"><block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">阵元数 N</cover-view>
+      <cover-view id="fd-track-0" class="fd-native-track" data-id="0" data-value="{{N}}" data-min="2" data-max="32" data-step="1" data-disabled="" data-changing="onN" data-change="onN" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 0 ? fdPercent : ((N)-(2))/((32)-(2))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 0 ? fdPercent : ((N)-(2))/((32)-(2))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{N}} 元</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">间距 d/λ</cover-view>
+      <cover-view id="fd-track-1" class="fd-native-track" data-id="1" data-value="{{dLam100}}" data-min="10" data-max="150" data-step="5" data-disabled="" data-changing="onD" data-change="onD" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 1 ? fdPercent : ((dLam100)-(10))/((150)-(10))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 1 ? fdPercent : ((dLam100)-(10))/((150)-(10))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{dStr}} λ</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 1}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">扫描角 θ₀</cover-view>
+      <cover-view id="fd-track-2" class="fd-native-track" data-id="2" data-value="{{theta0}}" data-min="-60" data-max="60" data-step="1" data-disabled="" data-changing="onTheta" data-change="onTheta" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 2 ? fdPercent : ((theta0)-(-60))/((60)-(-60))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 2 ? fdPercent : ((theta0)-(-60))/((60)-(-60))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{theta0}}°</cover-view>
+    </cover-view></block></cover-view>
+ </cover-view>
+<!-- floating-controls:end -->
 </view>

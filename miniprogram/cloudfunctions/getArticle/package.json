@@ -1,0 +1,9 @@
+{
+  "name": "getArticle",
+  "version": "1.0.0",
+  "description": "洞见模块服务端数据网关：云函数身份读取云存储 JSON，免疫客户端存储权限差异",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

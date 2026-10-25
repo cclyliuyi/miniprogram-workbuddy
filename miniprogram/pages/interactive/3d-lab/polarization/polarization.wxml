@@ -1,11 +1,11 @@
 <!-- pages/interactive/3d-lab/polarization/polarization.wxml —— 极化椭圆 3D -->
-<view class="screen lab3d">
+<view class="screen fd-page lab3d">
 
   <view class="lab3d-head ">
     <view class="kicker">POLARIZATION · 3D TRAVELING WAVE</view>
     <view class="lab3d-title display">极化椭圆</view>
     <view class="lab3d-sub">3D 行进波 · Ex / Ey 分量 · 线/圆/椭圆极化</view>
-  </view>
+  </view><view class="fd-stage">
 
   <!-- 3D Canvas -->
   <view class="lab3d-canvas-wrap ">
@@ -44,7 +44,8 @@
   </view>
 
   <!-- 参数滑块 -->
-  <view class="lab3d-section ">
+  </view><!-- fd-stage:end --><view id="fd-anchor" class="fd-anchor"></view>
+<view class="lab3d-section ">
     <view class="kicker">场分量参数</view>
     <view class="tp-slider-row">
       <text class="tp-slider-label">Ex 幅度</text>
@@ -105,4 +106,25 @@
     <view class="lab3d-note-item">2D：赭金轨迹 = E 端点 · 靛蓝虚线 = 椭圆长短轴与倾角 ψ · 灰虚线框 = 2Ex×2Ey 参考</view>
   </view>
 
+<!-- floating-controls:start -->
+ <cover-view id="fd-panel" hidden="{{!fdVisible}}" class="fd-panel {{fdVisible ? 'fd-visible' : ''}}" bindtouchstart="fdTouchStart" bindtouchend="fdTouchEnd" bindtouchcancel="fdTouchEnd" catchtouchmove="fdPreventScroll">
+  <cover-view class="fd-head"><cover-view class="fd-title">实时调参</cover-view><cover-view class="fd-all" bindtap="fdShowAll">全部参数 ↓</cover-view></cover-view>
+  <cover-view class="fd-tabs"><cover-view class="fd-tab {{fdGroup === 0 ? 'selected' : ''}}" data-group="0" bindtap="fdSelect">幅度</cover-view><cover-view class="fd-tab {{fdGroup === 1 ? 'selected' : ''}}" data-group="1" bindtap="fdSelect">相位</cover-view></cover-view>
+  <cover-view class="fd-controls"><block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">Ex 幅度</cover-view>
+      <cover-view id="fd-track-0" class="fd-native-track" data-id="0" data-value="{{S.ex}}" data-min="0" data-max="1" data-step="0.01" data-disabled="" data-changing="onExChanging" data-change="onEx" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 0 ? fdPercent : ((S.ex)-(0))/((1)-(0))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 0 ? fdPercent : ((S.ex)-(0))/((1)-(0))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.ex}}</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">Ey 幅度</cover-view>
+      <cover-view id="fd-track-1" class="fd-native-track" data-id="1" data-value="{{S.ey}}" data-min="0" data-max="1" data-step="0.01" data-disabled="" data-changing="onEyChanging" data-change="onEy" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 1 ? fdPercent : ((S.ey)-(0))/((1)-(0))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 1 ? fdPercent : ((S.ey)-(0))/((1)-(0))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.ey}}</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 1}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">相位差 δ</cover-view>
+      <cover-view id="fd-track-2" class="fd-native-track" data-id="2" data-value="{{S.del}}" data-min="-180" data-max="180" data-step="1" data-disabled="" data-changing="onDelChanging" data-change="onDel" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 2 ? fdPercent : ((S.del)-(-180))/((180)-(-180))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 2 ? fdPercent : ((S.del)-(-180))/((180)-(-180))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.del}}°</cover-view>
+    </cover-view></block></cover-view>
+ </cover-view>
+<!-- floating-controls:end -->
 </view>

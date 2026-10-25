@@ -1,19 +1,11 @@
-// pages/interactive/3d-lab/horn/horn.js —— 角锥喇叭天线 3D（r108）· 暖纸舞台
-// 物理模型（Balanis《Antenna Theory》4th, Ch.13 口径天线）：
-//   边缘程差 Δ = √(R²+(A/2)²) − R（λ 计），最大二次相位 δmax = 2πΔ（精确几何，泰勒展开即 A²/8R）
-//   口径分布（可分离方口径 A×A）：
-//     E 面 g(u) = 1（TE10 沿 E 面均匀）
-//     H 面 g(u) = p + (1−p)·cos(πu/2)，p = 10^(−边缘电平/20)（pedestal-cosine；p=0 即纯 TE10 余弦）
-//   方向图（1D 口径积分 + 单元因子）：
-//     F(θ) = (1+cosθ)/2 · |∫₋₁¹ g(u)·exp(j[πA·u·sinθ − δmax·u²]) du|
-//   口径效率（Fresnel 型积分，θ=0 的同一积分给出，读数与曲线自洽）：
-//     η_plane = |∫g·e^(−jδmax·u²)du|² / (2∫g²du)，G = 10lg(4π·ηE·ηH·(A/λ)²)
-//     校验：δ=0 时 ηE=1、ηH(p=0)=8/π²（TE10 经典因子）
-//   HPBW 直接在数值方向图上搜 −3 dB 点 —— 无任何拟合系数。
+// TE10 矩形角锥喇叭：长度均以 λ 归一化，采用可分离二次口径相位。
+// 来源：Baltzis, PIER 108 (2010), Eqs. (1)–(4), doi:10.2528/PIER10072309。
+// 固定馈电波导 a=0.75λ, b=0.375λ（该频率下仅 TE10 传播）。
+// δ(x,y)=π(x²/ρH+y²/ρE)，ρH=RA/(A−a), ρE=RB/(B−b)。
 const { registerOrbitControls } = require('../orbit-controls');
 const stage = require('../lab3d-stage');
 const lc = require('../pkg-utils/lab-canvas');
-const { THEME, rampColor } = require('../pkg-utils/lab-theme');
+const { THEME } = require('../pkg-utils/lab-theme');
 
 const ASTEP = 1;        // 方向图角度步长（°），−90..90
 const SCALE = 0.12;     // 场景缩放：1λ = 0.12 单位
@@ -21,10 +13,10 @@ const SCALE = 0.12;     // 场景缩放：1λ = 0.12 单位
 const visual = require('../pkg-utils/lab3d-visual');
 Page({
   data: {
-    labView: 'perspective', autoRotate: false,
-    aSlider: 60, aVal: '6.0 λ',
+    labView: 'perspective', autoRotate: false, phaseMode:'wrapped', phaseMax:'—',
+    aSlider: 52, aVal: '5.2 λ',
     lSlider: 80, lVal: '8.0 λ',
-    tapSlider: 10, tapVal: '-10 dB',
+    bSlider: 42, bVal: '4.2 λ', optimum: '', modelNote: '', efficiency: '',
     phase: '—', gain: '—', flare: '—', hpbw: '—',
     showHint: true,
     glReady: false,
@@ -34,7 +26,7 @@ Page({
   camera: null, controls: null, root: null,
   hornGroup: null, phaseGroup: null,
   animId: null,
-  state: { A: 6, R: 8, tap: 10 },
+  state: { A: 5.2, B: 4.2, R: 8 },
   plotCtx: null, plotW: 0, plotH: 0,
   lastKey: '', _cache: null,
 
@@ -88,7 +80,7 @@ Page({
   // ═══════════════ 物理：口径积分（无魔法系数）═══════════════
   // 口径分布 g(u)，u ∈ [−1,1]
   gDist(plane, u, p) {
-    return plane === 'H' ? p + (1 - p) * Math.cos(Math.PI * u / 2) : 1;
+    return plane === 'H' ? Math.cos(Math.PI * u / 2) : 1;
   },
 
   // ∫₋₁¹ g(u)·exp(j[πA·u·sinθ − δmax·u²]) du 的模（梯形积分）
@@ -106,71 +98,97 @@ Page({
     return Math.hypot(re, im) * du;
   },
 
-  // 数值方向图上搜 −3 dB 点（自峰值向外，线性内插）；无交点返回 null
+  // 仅为以轴向为峰值的主瓣报告宽度；分裂主瓣不能套用对称半宽。
   hpbwOf(ang, db) {
-    let mi = 0;
-    for (let i = 1; i < db.length; i++) if (db[i] > db[mi]) mi = i;
-    for (let j = mi + 1; j < db.length; j++) {
-      if (db[j] <= -3) {
-        const t = (-3 - db[j - 1]) / (db[j] - db[j - 1]);
-        return 2 * (ang[j - 1] + t * ASTEP - ang[mi]);
+    const mid = (ang.length - 1) / 2;
+    if (db[mid] < -0.05) return null;
+    for (let j = mid + 1; j < db.length; j++) {
+      if (db[j] <= -3.01029995664) {
+        const t = (-3.01029995664 - db[j-1]) / (db[j] - db[j-1]);
+        return 2 * (ang[j-1] + t * (ang[j]-ang[j-1]));
       }
     }
     return null;
   },
 
-  compute() {
-    const S = this.state;
-    const key = [S.A, S.R, S.tap].join('|');
-    if (this._cache && this._cache.key === key) return this._cache;
+  planeModel(plane, width, R) {
+    const throat = plane === 'H' ? 0.75 : 0.375;
+    const rho = R * width / (width - throat);
+    const edge = width * width / (8 * rho);
+    const dMax = 2 * Math.PI * edge;
+    const N = Math.max(128, Math.ceil(12 * (Math.PI * width + 2 * dMax)));
+    // ∫g²du：均匀为 2，纯余弦为 1。
+    const eta = this.apInt(plane, 0, width, dMax, 0, N) ** 2 / (plane === 'H' ? 2 : 4);
+    return {rho, edge, dMax, N, eta, phaseDeg:360*edge,
+      flare:Math.atan((width-throat)/(2*R))*180/Math.PI};
+  },
 
-    const A = S.A, R = S.R;
-    const edge = Math.sqrt(R * R + (A / 2) ** 2) - R;    // λ
-    const phaseDeg = 360 * edge;
-    const dMax = 2 * Math.PI * edge;                     // rad
-    const flare = Math.atan((A / 2) / R) * 180 / Math.PI;
-    const p = Math.pow(10, -S.tap / 20);
-    // 积分点数按最快相位变化自适应（πA·sinθ 项 + 二次项）
-    const N = Math.min(400, Math.max(64, Math.ceil(4 * (Math.PI * A + 2 * dMax))));
-
-    // 口径效率：θ=0 的同一积分（分子）/ 2∫g²du（分母）
-    const effPlane = (plane) => {
-      const num = this.apInt(plane, 0, A, dMax, p, N) ** 2;
-      const du = 2 / N;
-      let den = 0;
-      for (let i = 0; i <= N; i++) {
-        const w = (i === 0 || i === N) ? 0.5 : 1;
-        den += w * this.gDist(plane, -1 + i * du, p) ** 2;
-      }
-      return num / (2 * den * du);
-    };
-    const etaE = effPlane('E');
-    const etaH = effPlane('H');
-    const gain = 10 * Math.log10(4 * Math.PI * etaE * etaH * A * A);
-
-    // E/H 面数值方向图（含单元因子 (1+cosθ)/2），各自归一化
-    const ang = [], eRaw = [], hRaw = [];
-    for (let i = 0; i <= 180 / ASTEP; i++) {
-      const deg = -90 + i * ASTEP;
-      const th = deg * Math.PI / 180;
-      const el = (1 + Math.cos(th)) / 2;
-      ang.push(deg);
-      eRaw.push(el * this.apInt('E', Math.sin(th), A, dMax, p, N));
-      hRaw.push(el * this.apInt('H', Math.sin(th), A, dMax, p, N));
+  beamReading(plane, width, m) {
+    const db=plane==='E'?m.eDb:m.hDb, mid=(db.length-1)/2;
+    const dip=Math.max(0,-db[mid]);
+    let peak=mid;
+    for(let i=mid+1;i<db.length;i++) if(db[i]>db[peak]+1e-9) peak=i;
+    let label='轴向单峰';
+    // 显示分级，不是电磁学的分裂临界条件；浅双峰不夸大为明显分裂。
+    if(peak!==mid && dip>1e-6) {
+      label=dip<1?'近似平顶（浅双峰）':dip<3?'双峰趋势':'明显分裂';
+    } else {
+      const raw=m.ang.map(deg=>{
+        const th=deg*Math.PI/180;
+        return (1+Math.cos(th))/2*this.apInt(plane,Math.sin(th),width,0,0,256);
+      });
+      const mx=Math.max(...raw);
+      const ideal=this.hpbwOf(m.ang,raw.map(v=>20*Math.log10(Math.max(v/mx,1e-6))));
+      const actual=plane==='E'?m.hpbwE:m.hpbwH;
+      if(ideal && actual && actual>ideal*1.2) label='轴向单峰 · 展宽';
     }
-    const toDb = (arr) => {
-      const mx = Math.max(...arr) || 1;
-      return arr.map((v) => Math.max(-60, 20 * Math.log10(Math.max(v / mx, 1e-6))));
-    };
-    const eDb = toDb(eRaw), hDb = toDb(hRaw);
+    return {label,detail:`轴向低于峰值 ${dip.toFixed(2)} dB`+
+      (peak!==mid?` · 峰位约 ±${m.ang[peak]}°`:' · 峰位 0°')};
+  },
 
-    this._cache = {
-      key, edge, phaseDeg, dMax, flare, etaE, etaH, gain,
-      ang, eDb, hDb,
-      hpbwE: this.hpbwOf(ang, eDb),
-      hpbwH: this.hpbwOf(ang, hDb),
+  // 在本页可调网格 2..16λ / 0.2λ 内，固定轴长及波导，最大化轴向 D。
+  // D 可分离为常数 × (AηH)(BηE)，因此独立遍历两轴等价于遍历二维网格。
+  optimalDimensions(R) {
+    if (this._optimal && this._optimal.R === R) return this._optimal;
+    const pick = plane => {
+      let best = {width:2, score:-1};
+      for (let i=20;i<=160;i+=2) {
+        const width=i/10, m=this.planeModel(plane,width,R);
+        if (width*m.eta>best.score) best={width,score:width*m.eta};
+      }
+      return best;
     };
-    return this._cache;
+    const h=pick('H'), e=pick('E');
+    return (this._optimal={R,A:h.width,B:e.width,gain:10*Math.log10(4*Math.PI*h.score*e.score)});
+  },
+  useOptimal() {
+    const o=this.optimalDimensions(this.state.R);
+    this.state.A=o.A; this.state.B=o.B;
+    this.renderAll();
+  },
+  phaseAt(m,x,y) { return 180*(x*x/m.h.rho+y*y/m.e.rho); },
+  phaseFraction(phase,mode) {
+    // 两种映射都与本图最大值无关。累计模式为固定非线性色标，不截断。
+    return mode==='wrapped' ? ((phase/360)%1+1)%1 : 2/Math.PI*Math.atan(phase/180);
+  },
+  compute() {
+    const {A,B,R}=this.state;
+    const key=[A,B,R].join('|');
+    if(this._cache && this._cache.key===key) return this._cache;
+    const h=this.planeModel('H',A,R), e=this.planeModel('E',B,R);
+    const ang=[],eRaw=[],hRaw=[];
+    for(let deg=-90;deg<=90;deg+=ASTEP){
+      const th=deg*Math.PI/180, el=(1+Math.cos(th))/2;
+      ang.push(deg);
+      eRaw.push(el*this.apInt('E',Math.sin(th),B,e.dMax,0,e.N));
+      hRaw.push(el*this.apInt('H',Math.sin(th),A,h.dMax,0,h.N));
+    }
+    const toDb=arr=>{const mx=Math.max(...arr)||1;return arr.map(v=>Math.max(-60,20*Math.log10(Math.max(v/mx,1e-6))));};
+    const eDb=toDb(eRaw),hDb=toDb(hRaw);
+    return (this._cache={key,h,e,phaseDeg:Math.max(e.phaseDeg,h.phaseDeg),
+      corner:e.phaseDeg+h.phaseDeg,etaE:e.eta,etaH:h.eta,
+      gain:10*Math.log10(4*Math.PI*A*B*e.eta*h.eta),ang,eDb,hDb,
+      hpbwE:this.hpbwOf(ang,eDb),hpbwH:this.hpbwOf(ang,hDb)});
   },
 
   // ═══════════════ 3D 几何（材质色一律取 stage.THEME3D / lab-theme）═══════════════
@@ -182,16 +200,16 @@ Page({
     stage.clearGroup(this.hornGroup);
     stage.clearGroup(this.phaseGroup);
 
-    const ap = S.A * SCALE, R = S.R * SCALE, th = 0.26 * SCALE;
-    const thr = Math.max(0.42 * SCALE, ap * 0.18);
+    const ap = S.A * SCALE, bp = S.B * SCALE, R = S.R * SCALE, th = 0.26 * SCALE;
+    const thr = 0.75 * SCALE, thrB = 0.375 * SCALE;
     const z0 = -R / 2, z1 = R / 2;
 
     // ── 喇叭壁 · 赭金 ──
     const pts = [
-      [-thr / 2, -thr / 2, z0], [thr / 2, -thr / 2, z0],
-      [thr / 2, thr / 2, z0], [-thr / 2, thr / 2, z0],
-      [-ap / 2, -ap / 2, z1], [ap / 2, -ap / 2, z1],
-      [ap / 2, ap / 2, z1], [-ap / 2, ap / 2, z1]
+      [-thr / 2, -thrB / 2, z0], [thr / 2, -thrB / 2, z0],
+      [thr / 2, thrB / 2, z0], [-thr / 2, thrB / 2, z0],
+      [-ap / 2, -bp / 2, z1], [ap / 2, -bp / 2, z1],
+      [ap / 2, bp / 2, z1], [-ap / 2, bp / 2, z1]
     ].map((q) => new THREE.Vector3(q[0], q[1], q[2]));
 
     const faces = [[0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7]];
@@ -222,25 +240,27 @@ Page({
       new THREE.LineBasicMaterial({ color: C.accent, transparent: true, opacity: 0.9 })
     ));
 
-    visual.rim(THREE,this.hornGroup,[[-ap/2,-ap/2,z1],[ap/2,-ap/2,z1],[ap/2,ap/2,z1],[-ap/2,ap/2,z1]],.014,0xc4a16c);
-    visual.rim(THREE,this.hornGroup,[[-thr*.7,-thr*.7,z0],[thr*.7,-thr*.7,z0],[thr*.7,thr*.7,z0],[-thr*.7,thr*.7,z0]],.018,0x536776);
+    visual.rim(THREE,this.hornGroup,[[-ap/2,-bp/2,z1],[ap/2,-bp/2,z1],[ap/2,bp/2,z1],[-ap/2,bp/2,z1]],.014,0xc4a16c);
+    visual.rim(THREE,this.hornGroup,[[-thr*.7,-thrB*.7,z0],[thr*.7,-thrB*.7,z0],[thr*.7,thrB*.7,z0],[-thr*.7,thrB*.7,z0]],.018,0x536776);
     // ── 喉部（馈电波导段）· 暖灰 ──
     const throat = new THREE.Mesh(
-      new THREE.BoxGeometry(thr * 0.82, thr * 0.82, th),
+      new THREE.BoxGeometry(thr * 0.82, thrB * 0.82, th),
       new THREE.MeshStandardMaterial({ color: C.warmGray, metalness: 0.3, roughness: 0.6 })
     );
     throat.position.z = z0 - th * 0.55;
     this.hornGroup.add(throat);
 
-    // ── 口径相位色面：固定标尺 0°→360°（赤陶 ramp 浅→深），随参数真实变化 ──
-    const SEG = 29;
-    const pg = new THREE.PlaneBufferGeometry(ap, ap, SEG, SEG);
+    // 口径相位与方向图共用二次近似；累计模式不截断，周期模式使用闭合色环。
+    const SEG = this.data.phaseMode==='wrapped' ? Math.min(512, Math.max(64, Math.ceil(m.phaseDeg / 360 * 48))) : 64;
+    const pg = new THREE.PlaneBufferGeometry(ap, bp, SEG, SEG);
     const ppos = pg.getAttribute('position');
     const col = [];
     for (let i = 0; i < ppos.count; i++) {
-      const rl = Math.hypot(ppos.getX(i), ppos.getY(i)) / SCALE;   // 半径（λ）
-      const phase = 360 * (Math.hypot(S.R, rl) - S.R);             // 相对中心的相位滞后（°）
-      const c = new THREE.Color(visual.heatColor(Math.min(1, phase / 360)));
+      const phase = this.phaseAt(m,ppos.getX(i)/SCALE,ppos.getY(i)/SCALE);
+      const fraction=this.phaseFraction(phase,this.data.phaseMode);
+      const c = this.data.phaseMode==='wrapped'
+        ? new THREE.Color().setHSL(fraction,0.78,0.50)
+        : new THREE.Color(visual.heatColor(fraction));
       col.push(c.r, c.g, c.b);
     }
     pg.addAttribute('color', new THREE.Float32BufferAttribute(col, 3));
@@ -282,26 +302,40 @@ Page({
   // ═══════════════ 参数：拖动节流 + 松手精修 ═══════════════
   onAChanging(e) { this.state.A = e.detail.value / 10; stage.throttle(this); },
   onRChanging(e) { this.state.R = e.detail.value / 10; stage.throttle(this); },
-  onTapChanging(e) { this.state.tap = e.detail.value; stage.throttle(this); },
+  onBChanging(e) { this.state.B = e.detail.value / 10; stage.throttle(this); },
   onA(e) { this.state.A = e.detail.value / 10; this.renderAll(); },
   onR(e) { this.state.R = e.detail.value / 10; this.renderAll(); },
-  onTap(e) { this.state.tap = e.detail.value; this.renderAll(); },
+  onB(e) { this.state.B = e.detail.value / 10; this.renderAll(); },
 
-  fmtHpbw(v) { return v == null ? '>90°' : v.toFixed(1) + '°'; },
+  fmtHpbw(v) { return v == null ? '—' : v.toFixed(1) + '°'; },
 
+  setPhaseMode(e) { this.setData({phaseMode:e.currentTarget.dataset.mode},()=>this.renderAll()); },
   renderAll() {
     const S = this.state;
     const m = this.compute();
+    const o=this.optimalDimensions(S.R);
+    const eBeam=this.beamReading('E',S.B,m), hBeam=this.beamReading('H',S.A,m);
+    const difference=(v,best)=>Math.abs(v-best)<1e-6?'等于最佳口径':`${v>best?'大于':'小于'}最佳 ${(Math.abs(v-best)).toFixed(1)}λ`;
     this.setData({
+      eBeam:eBeam.label, eBeamDetail:eBeam.detail,
+      hBeam:hBeam.label, hBeamDetail:hBeam.detail,
+      apertureDifference:`H 面 A：${difference(S.A,o.A)}；E 面 B：${difference(S.B,o.B)}`,
+      optimalLoss:Math.max(0,o.gain-m.gain).toFixed(2)+' dB',
+      aSlider:Math.round(S.A*10), bSlider:Math.round(S.B*10), lSlider:Math.round(S.R*10),
+      bVal:S.B.toFixed(1)+' λ',
+      optimum:`A=${o.A.toFixed(1)}λ · B=${o.B.toFixed(1)}λ · D≈${o.gain.toFixed(1)} dBi`,
+      efficiency:(100*m.etaE*m.etaH).toFixed(1)+' %',
+      modelNote:Math.max(m.e.flare,m.h.flare)>25 ? '当前张角较大：以下是二次相位模型的外推，仅供观察趋势，工程设计需全波验证。' : 'TE₁₀ 二次相位口径近似；未计反射、损耗、高次模和边缘绕射。',
       aVal: S.A.toFixed(1) + ' λ',
       lVal: S.R.toFixed(1) + ' λ',
-      tapVal: (S.tap === 0 ? '0' : '-' + S.tap) + ' dB',
-      phase: m.phaseDeg.toFixed(0) + '°',
+
+      phase: m.e.phaseDeg.toFixed(0)+'° / '+m.h.phaseDeg.toFixed(0)+'°',
+      phaseMax: m.corner.toFixed(0)+'°',
       gain: m.gain.toFixed(1) + ' dBi',
-      flare: m.flare.toFixed(1) + '°',
+      flare:m.e.flare.toFixed(1)+'° / '+m.h.flare.toFixed(1)+'°',
       hpbw: this.fmtHpbw(m.hpbwE) + ' / ' + this.fmtHpbw(m.hpbwH),
     });
-    const key = m.key;
+    const key = m.key+'|'+this.data.phaseMode;
     if (key !== this.lastKey) {
       this.layout3d(m);
       this.lastKey = key;
@@ -333,7 +367,7 @@ Page({
     });
     lc.legend(ctx, [
       { name: 'E 面（均匀分布）', color: THEME.accent },
-      { name: 'H 面（边缘电平 ' + (this.state.tap === 0 ? '0' : '−' + this.state.tap) + ' dB）', color: THEME.teal },
+      { name: 'H 面（TE₁₀ 余弦）', color: THEME.teal },
     ], box.x, h - 12);
   },
 

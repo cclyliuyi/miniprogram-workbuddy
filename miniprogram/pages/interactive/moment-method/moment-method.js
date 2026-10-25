@@ -1,3 +1,4 @@
+const { withFloatingControls } = require('./pkg-utils/lab-canvas');
 // pages/interactive/moment-method/moment-method.js —— 矩量法实验室（真实求解）
 // 物理模型（无魔法系数，长度以 λ 归一，k=2π）：
 //   Hallén 积分方程：∫ I(z′) e^{−jkR}/(4πR) dz′ = (−j/η₀)[C₁cos kz + C₂sin kz + 特解]
@@ -21,7 +22,7 @@ const MODE_LABELS = {
   wave: '平面波接收（E∥导线，1 V/m）· 谐振长度感应电流最大',
 }
 
-Page({
+Page(withFloatingControls({
   data: {
     S: { N: 17, L: 0.5, a: 0.005, mode: 'center' },
     stats: null,
@@ -376,4 +377,4 @@ Page({
   onShareAppMessage() {
     return { title: '矩量法实验室：细线偶极子真实求解', path: '/pages/interactive/moment-method/moment-method' }
   },
-})
+}, 2))

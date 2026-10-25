@@ -1,0 +1,14 @@
+{
+  "pages/insight-detail/detail.json": "3d414ae4e2e904fb143d24a80c19e174d2a3db53eb938edd3e8b3958283c9323",
+  "app.js": "9e62512ee660054165c409369c0c1cf1873ffdbf9c52d36b612aab55ebd553f3",
+  "utils/cloud-json.js": "662bb426111d5b81ba2d62176cd6a5715398b642ad4ced766095fe3ceaa450fb",
+  "pages/insight-detail/detail.wxss": "0fcdad3eab89b4a7c38619de21ba8897f7691203ecb852bde9502e0f65329666",
+  "project.config.json": "66a394ec03b257a349509519feaad31832b5bacd7345be7548c495d03ff6eab5",
+  "app.json": "4b9910db01ec821b2576e816abb435ca8987cb2becbcb1e363889ef67e6b119c",
+  "pages/insights/insights.wxml": "e145785f4063fd52309ac88580fad32ad2292a74d7c9754eb35dff356d03b504",
+  "pages/insight-detail/detail.js": "bc7b56d4fe387ac3482910e74237bd5d46f7960b8990ac49ef5f9100f8a969f6",
+  "pages/insights/insights.json": "9224cd32a2f28487d3b8c8c6ef169865c8b6a87d81af867aa6987fe065e06fe1",
+  "pages/insight-detail/detail.wxml": "4c737ee0e69510ad9d300a4162449b4c6f2eee43d4d2b68e4bf4a6fee5222ed2",
+  "pages/insights/insights.wxss": "10da0226988004af6b5ecd0c267f8f2a1d74ac7d252b46a206dd0fd7e3f38081",
+  "pages/insights/insights.js": "cc61e4b3159f5c3c41dd23ae27cece2729f8eb79e915360b4dea888333ba719d"
+}

@@ -1,3 +1,4 @@
+const { withFloatingControls } = require('../pkg-utils/lab-canvas');
 // pages/interactive/3d-lab/polarization/polarization.js —— 极化椭圆 3D（r108）· 暖纸舞台
 // 物理模型（Balanis §4.4 / IEEE Std 145）：
 //   E(z,t) = x̂ Ex cos(ωt−βz) + ŷ Ey cos(ωt−βz+δ)
@@ -15,7 +16,7 @@ const AMP = 0.42;   // 场景缩放：|E| = 1 → 0.42 单位
 const NVEC = 13;    // 沿传播轴的 E 矢量个数（预分配，动画只改坐标）
 
 const visual = require('../pkg-utils/lab3d-visual');
-Page({
+Page(withFloatingControls({
   data: {
     labView: 'perspective', autoRotate: false,
     S: { ex: 1, ey: 0.55, del: 0, preset: 'linear' },
@@ -415,4 +416,4 @@ Page({
   onShareAppMessage() {
     return { title: '极化椭圆 3D 实验室', path: '/pages/interactive/3d-lab/polarization/polarization' };
   },
-});
+}, 2));

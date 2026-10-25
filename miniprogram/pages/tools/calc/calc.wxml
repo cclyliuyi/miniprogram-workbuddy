@@ -1,5 +1,5 @@
 <!-- pages/tools/calc/calc.wxml —— RF 换算合集（共享 tp-* UI + 实时图形） -->
-<view class="screen tp-page">
+<view class="screen tp-page tool-studio">
 
   <view class="tp-head rise">
     <view class="kicker">TOOLS · RF CONVERTER</view>

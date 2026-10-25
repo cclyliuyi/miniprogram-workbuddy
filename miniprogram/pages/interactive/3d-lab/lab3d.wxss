@@ -127,10 +127,12 @@
 .lab3d-stats-title { margin-bottom: 16rpx; }
 .lab3d-stats-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 16rpx;
 }
 .lab3d-stat {
+  min-width:0;
+  width:auto;
   background: var(--bg-soft);
   padding: 16rpx 20rpx;
   border-radius: 12rpx;
@@ -198,3 +200,9 @@
 .lab3d .tp-formula-line, .lab3d .tp-formula-cond { font-size:26rpx; line-height:1.9; }
 .lab3d .tp-slider-row { gap:12rpx; }
 .lab3d .tp-btn { min-height:48rpx; display:flex; align-items:center; justify-content:center; }
+.lab3d .rise, .lab3d .pop { animation:none; transform:none; }
+.lab3d .tp-canvas-card, .lab3d .lab3d-canvas-wrap { margin-bottom:24rpx; }
+.lab3d.fd-page .tp-canvas, .lab3d.fd-page .tp-canvas-short,
+.lab3d.fd-page .tp-canvas-tall, .lab3d.fd-page .lab3d-canvas {
+  height:36vh; min-height:200px; max-height:300px;
+}

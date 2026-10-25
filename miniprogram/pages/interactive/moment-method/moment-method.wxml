@@ -1,11 +1,11 @@
 <!-- pages/interactive/moment-method/moment-method.wxml —— 矩量法实验室 -->
-<view class="screen tp-page">
+<view class="screen fd-page tp-page tool-studio">
 
   <view class="tp-head rise">
     <view class="kicker">METHOD OF MOMENTS</view>
     <view class="tp-title display">矩量法实验室</view>
     <view class="tp-sub">Hallén 积分方程 → [Z]{I}={b} 真实求解 → 电流 · 阻抗 · 方向图</view>
-  </view>
+  </view><view class="fd-stage">
 
   <!-- 电流分布（真解） -->
   <view class="tp-canvas-card rise">
@@ -39,7 +39,8 @@
   </view>
 
   <!-- 细线模型参数 -->
-  <view class="tp-section rise">
+  </view><!-- fd-stage:end --><view id="fd-anchor" class="fd-anchor"></view>
+<view class="tp-section rise">
     <view class="kicker">细线模型</view>
     <view class="tp-slider-row">
       <text class="tp-slider-label">分段数 N</text>
@@ -100,4 +101,25 @@
     <view class="tp-note-text">电流、输入阻抗、条件数、方向图全部来自同一个复数矩阵方程的数值解：改 N 看收敛、改 a 看粗细影响、改激励看馈电位置与接收态的区别。热图展示 |Zmn| 的对角占优结构——相邻段耦合强、远段耦合弱，这正是矩量法矩阵可解的原因。</view>
   </view>
 
+<!-- floating-controls:start -->
+ <cover-view id="fd-panel" hidden="{{!fdVisible}}" class="fd-panel {{fdVisible ? 'fd-visible' : ''}}" bindtouchstart="fdTouchStart" bindtouchend="fdTouchEnd" bindtouchcancel="fdTouchEnd" catchtouchmove="fdPreventScroll">
+  <cover-view class="fd-head"><cover-view class="fd-title">实时调参</cover-view><cover-view class="fd-all" bindtap="fdShowAll">全部参数 ↓</cover-view></cover-view>
+  <cover-view class="fd-tabs"><cover-view class="fd-tab {{fdGroup === 0 ? 'selected' : ''}}" data-group="0" bindtap="fdSelect">结构</cover-view><cover-view class="fd-tab {{fdGroup === 1 ? 'selected' : ''}}" data-group="1" bindtap="fdSelect">线径</cover-view></cover-view>
+  <cover-view class="fd-controls"><block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">分段数 N</cover-view>
+      <cover-view id="fd-track-0" class="fd-native-track" data-id="0" data-value="{{S.N}}" data-min="7" data-max="35" data-step="2" data-disabled="" data-changing="onN" data-change="onN" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 0 ? fdPercent : ((S.N)-(7))/((35)-(7))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 0 ? fdPercent : ((S.N)-(7))/((35)-(7))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.N}} 段</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">总长度 L</cover-view>
+      <cover-view id="fd-track-1" class="fd-native-track" data-id="1" data-value="{{S.L}}" data-min="0.3" data-max="1.5" data-step="0.05" data-disabled="" data-changing="onL" data-change="onL" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 1 ? fdPercent : ((S.L)-(0.3))/((1.5)-(0.3))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 1 ? fdPercent : ((S.L)-(0.3))/((1.5)-(0.3))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.L}} λ</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 1}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">导线半径 a</cover-view>
+      <cover-view id="fd-track-2" class="fd-native-track" data-id="2" data-value="{{S.a}}" data-min="0.002" data-max="0.012" data-step="0.001" data-disabled="" data-changing="onA" data-change="onA" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 2 ? fdPercent : ((S.a)-(0.002))/((0.012)-(0.002))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 2 ? fdPercent : ((S.a)-(0.002))/((0.012)-(0.002))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.a}} λ</cover-view>
+    </cover-view></block></cover-view>
+ </cover-view>
+<!-- floating-controls:end -->
 </view>

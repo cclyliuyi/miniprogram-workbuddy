@@ -12,3 +12,8 @@ $RECYCLE.BIN/
 
 # Node.js
 node_modules/
+
+# 洞见发布管线产物与草稿（大体积，云端为准；源 HTML 在文章撰写目录）
+tools/insights/dist/
+tools/insights/.upload-checkpoint.json
+tools/insights/.runtime-*.js

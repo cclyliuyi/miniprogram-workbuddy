@@ -4,6 +4,7 @@
    .tp-page > .tp-head / .tp-canvas-card / .tp-section / .tp-stats / .tp-note */
 
 .tp-page { padding-top: 20rpx; padding-bottom: 40rpx; }
+.tp-page .rise, .tp-page .pop { animation:none; transform:none; }
 
 /* ── 页头 ── */
 .tp-head { padding: 20rpx 12rpx 24rpx; }
@@ -26,6 +27,7 @@
   padding-left: 8rpx;
 }
 .tp-canvas { width: 100%; height: 480rpx; }
+.tp-canvas, .tp-canvas-tall, .tp-canvas-short { display:block; position:relative; z-index:0; }
 .tp-canvas-tall { width: 100%; height: 560rpx; }
 .tp-canvas-short { width: 100%; height: 360rpx; }
 
@@ -135,15 +137,16 @@
 .tp-cta:active { transform: scale(0.97); }
 
 /* ── 读数网格 ── */
-.tp-stats-grid { display: flex; flex-wrap: wrap; gap: 12rpx; }
+.tp-stats-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12rpx; align-items:stretch; }
 .tp-stat {
-  width: calc(50% - 6rpx);
+  width:auto;
+  min-width:0;
   padding: 18rpx 20rpx;
   background: var(--paper);
   border-radius: 14rpx;
   box-sizing: border-box;
 }
-.tp-stat-wide { width: 100%; }
+.tp-stat-wide { width:auto; grid-column:1 / -1; }
 .tp-stat-label { font-size: 22rpx; color: var(--muted); margin-bottom: 6rpx; }
 .tp-stat-value {
   font-size: 30rpx;
@@ -195,3 +198,77 @@
   border: 1rpx solid var(--line-soft);
 }
 .tp-note-text { font-size: 24rpx; color: var(--muted); line-height: 1.7; }
+
+/* 工具美化限定在 tool-studio 页面，沿用已建立的共享样式依赖。 */
+/* 专用计算 / 交互动画：仅由这些页面显式引入，保持画布尺寸与计算行为。 */
+.tool-studio { --accent:#23665f; --accent-2:#387f75; --muted:#746f65; padding-top:12rpx; padding-bottom:64rpx; }
+.tool-studio .rise, .tool-studio .pop { animation:none; transform:none; }
+.tool-studio .tp-head { padding:28rpx 16rpx 32rpx; }
+.tool-studio .tp-head .kicker { color:#23665f; font-size:20rpx; letter-spacing:3rpx; }
+.tool-studio .tp-title { font-family:var(--sans); font-size:46rpx; font-weight:700; line-height:1.3; margin:12rpx 0; }
+.tool-studio .tp-sub { font-size:25rpx; line-height:1.7; }
+.tool-studio .tp-section { padding:28rpx; margin-bottom:24rpx; border-radius:26rpx; border-color:#e4dfd4; box-shadow:0 6rpx 24rpx rgba(40,51,45,.035); }
+.tool-studio .tp-section .kicker { font-size:25rpx; font-weight:600; letter-spacing:1rpx; color:#334d46; margin-bottom:22rpx; }
+.tool-studio .tp-canvas-card { padding:16rpx; margin-bottom:24rpx; border-radius:26rpx; border-color:#d6dfd7; box-shadow:0 8rpx 28rpx rgba(40,51,45,.04); }
+.tool-studio .tp-canvas-caption { padding:10rpx 12rpx 16rpx; margin-bottom:8rpx; color:#466058; font-size:24rpx; line-height:1.6; border-bottom:1rpx solid #e4e8df; }
+.tool-studio .tp-btns { gap:12rpx; }
+.tool-studio .tp-btn { padding:18rpx 10rpx; border-radius:16rpx; color:#5d6259; background:#f0eee6; border-color:transparent; font-size:25rpx; transition:background .15s; }
+.tool-studio .tp-btn.active { background:#23665f; border-color:#23665f; color:#fff; box-shadow:0 4rpx 10rpx rgba(35,102,95,.13); }
+.tool-studio .tp-input-row { flex-wrap:wrap; gap:12rpx; padding:16rpx 0; }
+.tool-studio .tp-input-label { width:160rpx; font-size:25rpx; }
+.tool-studio .tp-input { background:#fffefa; border-color:#d8ddd2; border-radius:14rpx; height:80rpx; font-family:var(--sans); font-size:30rpx; color:#244b42; padding:0 14rpx; }
+.tool-studio .tp-unit { padding:12rpx 14rpx; background:#efeee6; border-color:transparent; font-size:23rpx; }
+.tool-studio .tp-unit.active { color:#23665f; background:#e1ede5; border-color:#aac5b8; }
+.tool-studio .tp-slider-row { flex-wrap:wrap; padding:16rpx 0; border-bottom:1rpx solid #eeece4; }
+.tool-studio .tp-slider-label { width:158rpx; font-size:25rpx; }
+.tool-studio .tp-slider { min-width:100rpx; }
+.tool-studio .tp-slider-val { width:138rpx; font-size:25rpx; color:#23665f; }
+.tool-studio .tp-stat { padding:22rpx 20rpx; background:#eef2eb; border:1rpx solid #e0e7dc; border-radius:18rpx; }
+.tool-studio .tp-stat-label { font-size:24rpx; color:#5e6c61; line-height:1.5; margin-bottom:10rpx; }
+.tool-studio .tp-stat-value { font-size:34rpx; font-family:var(--sans); font-weight:700; line-height:1.4; overflow-wrap:break-word; }
+.tool-studio .tp-cta { background:#23665f; box-shadow:0 6rpx 14rpx rgba(35,102,95,.15); padding:22rpx; }
+.tool-studio .tp-formula { background:#eae8dd; border-color:#dedccd; border-radius:22rpx; padding:26rpx; }
+.tool-studio .tp-formula-title { color:#5b645a; font-size:24rpx; font-weight:600; letter-spacing:1rpx; }
+.tool-studio .tp-formula-line { font-size:27rpx; line-height:1.85; }
+.tool-studio .tp-formula-cond { font-size:24rpx; line-height:1.8; color:#746f65; }
+.tool-studio .tp-note { border-radius:22rpx; border-color:#e4dfd4; }
+.tool-studio .tp-note-text { font-size:25rpx; line-height:1.85; }
+.tool-studio .tc-chip { padding:12rpx 20rpx; font-size:24rpx; }
+@media (max-width:360px) {
+  .tool-studio .tp-input-label { width:100%; }
+  .tool-studio .tp-slider-label { width:100%; margin-bottom:8rpx; }
+  .tool-studio .tp-slider { margin-left:0; }
+  .tool-studio .tp-stat-value { font-size:30rpx; }
+}
+/* 悬浮调参：全宽底栏，安全区留白；画布节点保持原位。 */
+.fd-page .rise, .fd-page .pop { animation:none; transform:none; }
+.fd-page .tp-canvas, .fd-page .tp-canvas-tall, .fd-page .tp-canvas-short,
+.fd-page .lab3d-canvas { height:36vh; min-height:200px; max-height:300px; width:100%; }
+.fd-page .lab3d-canvas-wrap { height:auto; }
+.fd-page .tp-canvas-card, .fd-page .lab3d-canvas-wrap { margin-bottom:24rpx; }
+.fd-stage { min-height:0; }
+.fd-panel { position:fixed; left:0; right:0; bottom:0; z-index:80; padding:16rpx 28rpx calc(16rpx + env(safe-area-inset-bottom)); background:#fbfaf5; border-top:1rpx solid #d6dfd3; box-shadow:0 -8rpx 28rpx rgba(25,51,43,.10); visibility:hidden; pointer-events:none; }
+.fd-panel.fd-visible { visibility:visible; pointer-events:auto; }
+.fd-head { display:flex; align-items:center; justify-content:space-between; height:50rpx; }
+.fd-title { font-size:26rpx; font-weight:600; color:#244e44; }
+.fd-all { padding:8rpx 12rpx; font-size:23rpx; color:#527366; }
+.fd-tabs { display:flex; gap:8rpx; padding:8rpx 0; }
+.fd-tab { flex:1; padding:8rpx 4rpx; text-align:center; border-radius:10rpx; background:#ecefe7; color:#617166; font-size:23rpx; }
+.fd-tab.selected { background:#244e44; color:#fff; }
+.fd-controls { height:176rpx; }
+.fd-panel .tp-slider-row { display:flex; flex-wrap:nowrap; align-items:center; padding:8rpx 0; height:88rpx; border:0; gap:0; }
+.fd-panel .tp-slider-label { width:190rpx; flex-shrink:0; font-size:24rpx; line-height:1.35; margin:0; color:#344d40; }
+.fd-panel .tp-slider { flex:1; min-width:0; margin:0 16rpx; }
+.fd-panel .tp-slider-val { width:136rpx; flex-shrink:0; font-size:24rpx; text-align:right; color:#23665f; }
+.fd-empty { padding:20rpx 4rpx; font-size:23rpx; color:#746f65; }
+.fd-anchor { height:1px; }
+/* Native overlay controls: cover-view descendants only, above Canvas/WebGL. */
+.fd-panel { z-index:1000; overflow:hidden; }
+.fd-panel .tp-slider-row { position:relative; }
+.fd-panel .tp-slider-label { white-space:normal; }
+.fd-native-track { position:relative; flex:1; height:64rpx; margin:0 24rpx; overflow:visible; }
+.fd-native-rail { position:absolute; left:0; right:0; top:29rpx; height:6rpx; background:#e3e6e2; border-radius:3rpx; }
+.fd-native-fill { position:absolute; left:0; top:29rpx; height:6rpx; background:#23665f; border-radius:3rpx; }
+.fd-native-thumb { position:absolute; top:8rpx; width:48rpx; height:48rpx; margin-left:-24rpx; border-radius:24rpx; border:1rpx solid #d5ddd5; background:#fff; }
+/* Keep touches targeted at the stationary track, not its moving children. */
+.fd-native-rail, .fd-native-fill, .fd-native-thumb { pointer-events:none; }

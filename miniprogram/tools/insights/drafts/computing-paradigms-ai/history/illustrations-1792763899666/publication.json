@@ -1,0 +1,86 @@
+{
+  "id": "computing-paradigms-ai",
+  "title": "从数字到量子：三种计算范式与 AI 的未来",
+  "articleFileID": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/insights/articles/computing-paradigms-ai.json",
+  "publishedAt": "2026-10-23T04:04:41.915Z",
+  "date": "2026-10-22",
+  "builtAt": "2026-10-23T04:02:49.472Z",
+  "version": 2,
+  "blocks": 348,
+  "inline": 269,
+  "images": [
+    {
+      "fileID": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/insights/images/computing-paradigms-ai/img_001_8d0e8dbff456.webp",
+      "status": "ready"
+    },
+    {
+      "fileID": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/insights/images/computing-paradigms-ai/img_002_f2ab97473e21.webp",
+      "status": "ready"
+    },
+    {
+      "fileID": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/insights/images/computing-paradigms-ai/img_003_e16229f9865e.webp",
+      "status": "ready"
+    },
+    {
+      "fileID": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/insights/images/computing-paradigms-ai/img_004_80fa2c6e38ea.webp",
+      "status": "ready"
+    },
+    {
+      "fileID": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/insights/images/computing-paradigms-ai/img_005_56007ebacbeb.webp",
+      "status": "ready"
+    },
+    {
+      "fileID": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/insights/images/computing-paradigms-ai/img_006_80de72fb900d.webp",
+      "status": "ready"
+    },
+    {
+      "fileID": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/insights/images/computing-paradigms-ai/img_007_07219cc5e583.webp",
+      "status": "ready"
+    }
+  ],
+  "manifestIds": [
+    "computing-paradigms-ai",
+    "causal-emergence"
+  ],
+  "backup": {
+    "cloudPath": "insights/backups/computing-paradigms-ai-1792728251550-manifest.json",
+    "articleCloudPath": "insights/backups/computing-paradigms-ai-1792728251550-article.json"
+  },
+  "validation": {
+    "cloudReadback": true,
+    "normalListEntry": true,
+    "tocJump": true,
+    "nativeImagesReady": 7,
+    "compiledTemplates": true,
+    "contentRegression": true,
+    "finalVersion": "2026-10-23T04:02:49.472Z",
+    "device": "WeChat developer-tool simulator; real phone not tested",
+    "sourceSegmentsPreserved": 384,
+    "runtimeCodeUnchanged": true
+  },
+  "screenshots": [
+    "C:\\Users\\Administrator\\.codex\\visualizations\\2026\\10\\22\\01a1615e-18c3-7b61-9f6f-1fe1ab5ca3b3/replacement-20261023/computing-list-final-wechat.png",
+    "C:\\Users\\Administrator\\.codex\\visualizations\\2026\\10\\22\\01a1615e-18c3-7b61-9f6f-1fe1ab5ca3b3/replacement-20261023/computing-cover-final-wechat.png",
+    "C:\\Users\\Administrator\\.codex\\visualizations\\2026\\10\\22\\01a1615e-18c3-7b61-9f6f-1fe1ab5ca3b3/replacement-20261023/computing-memory-final-wechat.png",
+    "C:\\Users\\Administrator\\.codex\\visualizations\\2026\\10\\22\\01a1615e-18c3-7b61-9f6f-1fe1ab5ca3b3/replacement-20261023/computing-quantum-final-wechat.png",
+    "C:\\Users\\Administrator\\.codex\\visualizations\\2026\\10\\22\\01a1615e-18c3-7b61-9f6f-1fe1ab5ca3b3/replacement-20261023/computing-figure-1-wechat.png",
+    "C:\\Users\\Administrator\\.codex\\visualizations\\2026\\10\\22\\01a1615e-18c3-7b61-9f6f-1fe1ab5ca3b3/replacement-20261023/computing-figure-2-wechat.png",
+    "C:\\Users\\Administrator\\.codex\\visualizations\\2026\\10\\22\\01a1615e-18c3-7b61-9f6f-1fe1ab5ca3b3/replacement-20261023/computing-figure-3-wechat.png",
+    "C:\\Users\\Administrator\\.codex\\visualizations\\2026\\10\\22\\01a1615e-18c3-7b61-9f6f-1fe1ab5ca3b3/replacement-20261023/computing-figure-4-wechat.png",
+    "C:\\Users\\Administrator\\.codex\\visualizations\\2026\\10\\22\\01a1615e-18c3-7b61-9f6f-1fe1ab5ca3b3/replacement-20261023/computing-figure-5-wechat.png",
+    "C:\\Users\\Administrator\\.codex\\visualizations\\2026\\10\\22\\01a1615e-18c3-7b61-9f6f-1fe1ab5ca3b3/replacement-20261023/computing-figure-6-wechat.png",
+    "C:\\Users\\Administrator\\.codex\\visualizations\\2026\\10\\22\\01a1615e-18c3-7b61-9f6f-1fe1ab5ca3b3/replacement-20261023/computing-figure-7-wechat.png",
+    "C:\\Users\\Administrator\\.codex\\visualizations\\2026\\10\\22\\01a1615e-18c3-7b61-9f6f-1fe1ab5ca3b3/replacement-20261023/computing-reservoir-replacement-wechat.png"
+  ],
+  "source": "source-20261022-2358.md",
+  "editorialNotes": "replacement-notes.md",
+  "imagePrompts": "image-prompts.md",
+  "previousBackup": {
+    "cloudPath": "insights/backups/computing-paradigms-ai-1792651460781-manifest.json",
+    "articleCloudPath": "insights/backups/computing-paradigms-ai-1792651460781-article.json"
+  },
+  "html": "article.html",
+  "imageMode": "built-in image_gen",
+  "imagePromptsMobileRevision": "image-prompts-mobile-revision.md",
+  "replacementHistory": "D:\\WorkBuddy\\03_images_final\\miniprogram\\tools\\insights\\drafts\\computing-paradigms-ai\\history\\20261023T040211Z"
+}

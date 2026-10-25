@@ -1,3 +1,4 @@
+const { withFloatingControls } = require('./pkg-utils/lab-canvas');
 // pages/interactive/miniaturization/miniaturization.js —— 电小天线与 Chu 极限
 // 物理（全部取自 utils/rf-math，无魔法系数）：
 //   Chu–McLean 下界：Qmin = 1/(ka)³ + 1/(ka)（无耗、单模、a = 最小外接球半径）
@@ -20,7 +21,7 @@ function fmtOhm(r) {
   return (m >= 10 ? m.toFixed(1) : m.toFixed(2)) + ' mΩ'
 }
 
-Page({
+Page(withFloatingControls({
   data: {
     S: { mode: 'dipole', ka: 0.18, rloss: 5 },
     stats: null,
@@ -225,4 +226,4 @@ Page({
   onShareAppMessage() {
     return { title: '电小天线与 Chu 极限', path: '/pages/interactive/miniaturization/miniaturization' }
   },
-})
+}, 1))

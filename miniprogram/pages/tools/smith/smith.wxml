@@ -1,5 +1,5 @@
 <!-- pages/tools/smith/smith.wxml —— 交互式 Smith 圆图 -->
-<view class="screen tp-page">
+<view class="screen tp-page tool-studio">
 
   <!-- 标题 -->
   <view class="tp-head rise">

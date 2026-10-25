@@ -1,3 +1,4 @@
+const { withFloatingControls } = require('./pkg-utils/lab-canvas');
 // pages/interactive/broadband-matching/broadband-matching.js —— 宽带匹配实验
 // 物理模型（教学一阶模型，全部解析、无魔法系数）：
 //   天线：串联谐振 Z(f) = R[1 + jQ(x − 1/x)]，x = f/f0（Pozar Ch.6）
@@ -32,7 +33,7 @@ const MATCHES = [
 ]
 const SLEN_PRESET = { thin: 1000, thick: 60, folded: 700 }
 
-Page({
+Page(withFloatingControls({
   data: {
     S: { ant: 'thin', match: 'none', slen: 1000, cone: 30, spanPct: 55 },
     ants: ANTS,
@@ -273,4 +274,4 @@ Page({
   onShareAppMessage() {
     return { title: '宽带匹配实验', path: '/pages/interactive/broadband-matching/broadband-matching' }
   },
-})
+}, 2))

@@ -1,5 +1,5 @@
 <!-- pages/tools/match/match.wxml —— 传输线 & 阻抗匹配 -->
-<view class="screen tp-page tl3">
+<view class="screen tp-page tl3 tool-studio">
 
   <!-- Tab 切换 -->
   <scroll-view scroll-x class="tl3-tabs" enhanced show-scrollbar="{{false}}">

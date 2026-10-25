@@ -1,11 +1,11 @@
 <!-- pages/interactive/radiation-integral/radiation-integral.wxml —— 辐射积分 -->
-<view class="screen tp-page">
+<view class="screen fd-page tp-page tool-studio">
 
   <view class="tp-head rise">
     <view class="kicker">RADIATION INTEGRAL</view>
     <view class="tp-title display">辐射积分</view>
     <view class="tp-sub">源分布 I(z′) → 复平面矢量叠加 → 远场方向图</view>
-  </view>
+  </view><view class="fd-stage">
 
   <!-- 电流分布 -->
   <view class="tp-canvas-card rise">
@@ -14,7 +14,8 @@
   </view>
 
   <!-- 分布类型 + 源长度 -->
-  <view class="tp-section rise">
+  </view><!-- fd-stage:end --><view id="fd-anchor" class="fd-anchor"></view>
+<view class="tp-section rise">
     <view class="kicker">电流分布</view>
     <view class="tp-btns">
       <view class="tp-btn {{S.taper==='uniform' ? 'active' : ''}}" data-t="uniform" bindtap="setTaper">均匀</view>
@@ -87,4 +88,20 @@
     <view class="tp-note-text">复平面里每个点是一段源电流的复数贡献 I(z′)e^{jkz′cosθ}dz′ 的累积和。θ = 90°（宽边）时各段同相，链条拉直、|F| 最大；偏离宽边后相位散开，链条卷曲、|F| 变小；旁瓣就是链条卷绕后仍残留的净和。</view>
   </view>
 
+<!-- floating-controls:start -->
+ <cover-view id="fd-panel" hidden="{{!fdVisible}}" class="fd-panel {{fdVisible ? 'fd-visible' : ''}}" bindtouchstart="fdTouchStart" bindtouchend="fdTouchEnd" bindtouchcancel="fdTouchEnd" catchtouchmove="fdPreventScroll">
+  <cover-view class="fd-head"><cover-view class="fd-title">实时调参</cover-view><cover-view class="fd-all" bindtap="fdShowAll">全部参数 ↓</cover-view></cover-view>
+  <cover-view class="fd-tabs"><cover-view class="fd-tab {{fdGroup === 0 ? 'selected' : ''}}" data-group="0" bindtap="fdSelect">辐射积分</cover-view></cover-view>
+  <cover-view class="fd-controls"><block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">源长度 L</cover-view>
+      <cover-view id="fd-track-0" class="fd-native-track" data-id="0" data-value="{{S.L100}}" data-min="8" data-max="300" data-step="2" data-disabled="" data-changing="onLen" data-change="onLen" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 0 ? fdPercent : ((S.L100)-(8))/((300)-(8))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 0 ? fdPercent : ((S.L100)-(8))/((300)-(8))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.L100 / 100}} λ</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">观测角 θ</cover-view>
+      <cover-view id="fd-track-1" class="fd-native-track" data-id="1" data-value="{{S.theta}}" data-min="0" data-max="180" data-step="1" data-disabled="" data-changing="onTheta" data-change="onTheta" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 1 ? fdPercent : ((S.theta)-(0))/((180)-(0))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 1 ? fdPercent : ((S.theta)-(0))/((180)-(0))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.theta}}°</cover-view>
+    </cover-view></block></cover-view>
+ </cover-view>
+<!-- floating-controls:end -->
 </view>

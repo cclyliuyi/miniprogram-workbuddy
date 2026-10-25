@@ -1,11 +1,11 @@
 <!-- pages/interactive/smart-array/smart-array.wxml —— MVDR 自适应波束形成 -->
-<view class="screen tp-page">
+<view class="screen fd-page tp-page tool-studio">
 
   <view class="tp-head rise">
     <view class="kicker">ADAPTIVE BEAMFORMING</view>
     <view class="tp-title display">智能天线</view>
     <view class="tp-sub">MVDR（Capon）· 干扰功率驱动的自适应零陷</view>
-  </view>
+  </view><view class="fd-stage">
 
   <!-- 方向图 -->
   <view class="tp-canvas-card rise">
@@ -20,7 +20,8 @@
   </view>
 
   <!-- 阵列配置 -->
-  <view class="tp-section rise">
+  </view><!-- fd-stage:end --><view id="fd-anchor" class="fd-anchor"></view>
+<view class="tp-section rise">
     <view class="kicker">阵列配置</view>
     <view class="tp-slider-row">
       <text class="tp-slider-label">阵元数 N</text>
@@ -111,4 +112,40 @@
     <view class="tp-note-text">MVDR 在保持目标方向增益为 1 的前提下最小化输出总功率：干扰越强（JNR 越大）零陷越深；干扰越靠近目标，零陷被迫变浅、权值范数（噪声放大）激增——这是自适应阵的鲁棒性代价。试试把 JNR 调到 0 dB：零陷明显变浅、趋向静态方向图；或把 d 调到 1 λ：栅瓣出现。</view>
   </view>
 
+<!-- floating-controls:start -->
+ <cover-view id="fd-panel" hidden="{{!fdVisible}}" class="fd-panel {{fdVisible ? 'fd-visible' : ''}}" bindtouchstart="fdTouchStart" bindtouchend="fdTouchEnd" bindtouchcancel="fdTouchEnd" catchtouchmove="fdPreventScroll">
+  <cover-view class="fd-head"><cover-view class="fd-title">实时调参</cover-view><cover-view class="fd-all" bindtap="fdShowAll">全部参数 ↓</cover-view></cover-view>
+  <cover-view class="fd-tabs"><cover-view class="fd-tab {{fdGroup === 0 ? 'selected' : ''}}" data-group="0" bindtap="fdSelect">阵列</cover-view><cover-view class="fd-tab {{fdGroup === 1 ? 'selected' : ''}}" data-group="1" bindtap="fdSelect">目标</cover-view><cover-view class="fd-tab {{fdGroup === 2 ? 'selected' : ''}}" data-group="2" bindtap="fdSelect">干扰</cover-view></cover-view>
+  <cover-view class="fd-controls"><block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">阵元数 N</cover-view>
+      <cover-view id="fd-track-0" class="fd-native-track" data-id="0" data-value="{{S.N}}" data-min="6" data-max="24" data-step="1" data-disabled="" data-changing="onN" data-change="onN" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 0 ? fdPercent : ((S.N)-(6))/((24)-(6))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 0 ? fdPercent : ((S.N)-(6))/((24)-(6))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.N}} 元</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">阵间距 d</cover-view>
+      <cover-view id="fd-track-1" class="fd-native-track" data-id="1" data-value="{{S.d100}}" data-min="25" data-max="100" data-step="5" data-disabled="" data-changing="onD" data-change="onD" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 1 ? fdPercent : ((S.d100)-(25))/((100)-(25))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 1 ? fdPercent : ((S.d100)-(25))/((100)-(25))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.d100 / 100}} λ</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 1}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">干噪比 JNR</cover-view>
+      <cover-view id="fd-track-2" class="fd-native-track" data-id="2" data-value="{{S.jnr}}" data-min="0" data-max="40" data-step="1" data-disabled="" data-changing="onJnr" data-change="onJnr" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 2 ? fdPercent : ((S.jnr)-(0))/((40)-(0))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 2 ? fdPercent : ((S.jnr)-(0))/((40)-(0))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.jnr}} dB</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 1}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label tp-c-teal">目标 θs</cover-view>
+      <cover-view id="fd-track-3" class="fd-native-track" data-id="3" data-value="{{S.sig}}" data-min="-60" data-max="60" data-step="1" data-disabled="" data-changing="onSig" data-change="onSig" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 3 ? fdPercent : ((S.sig)-(-60))/((60)-(-60))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 3 ? fdPercent : ((S.sig)-(-60))/((60)-(-60))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.sig}}°</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 2}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label tp-c-indigo">干扰1 θi₁</cover-view>
+      <cover-view id="fd-track-4" class="fd-native-track" data-id="4" data-value="{{S.jam1}}" data-min="-75" data-max="75" data-step="1" data-disabled="" data-changing="onJam1" data-change="onJam1" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 4 ? fdPercent : ((S.jam1)-(-75))/((75)-(-75))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 4 ? fdPercent : ((S.jam1)-(-75))/((75)-(-75))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.jam1}}°</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 2}}"><cover-view class="tp-slider-row" wx:if="{{S.dual}}">
+      <cover-view class="tp-slider-label tp-c-gold">干扰2 θi₂</cover-view>
+      <cover-view id="fd-track-5" class="fd-native-track" data-id="5" data-value="{{S.jam2}}" data-min="-75" data-max="75" data-step="1" data-disabled="" data-changing="onJam2" data-change="onJam2" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 5 ? fdPercent : ((S.jam2)-(-75))/((75)-(-75))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 5 ? fdPercent : ((S.jam2)-(-75))/((75)-(-75))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.jam2}}°</cover-view>
+    </cover-view></block></cover-view>
+ </cover-view>
+<!-- floating-controls:end -->
 </view>

@@ -5,7 +5,7 @@
       <scroll-view class="lesson-scroll" scroll-y="{{true}}">
         <block wx:if="{{index >= currentIndex - 1 && index <= currentIndex + 1}}">
           <view class="illustration-wrap">
-            <image class="lesson-illustration" src="{{item.imageSrc}}" mode="widthFix" data-index="{{index}}" bindload="onImageLoad" binderror="onImageError" bindtap="previewImage" aria-label="{{item.title}}图解，点击放大" />
+            <image wx:if="{{item.imageSrc}}" class="lesson-illustration" src="{{item.imageSrc}}" mode="widthFix" data-index="{{index}}" bindload="onImageLoad" binderror="onImageError" bindtap="previewImage" aria-label="{{item.title}}图解，点击放大" />
             <view wx:if="{{item.imageStatus === 'loading'}}" class="image-status">图解加载中…</view>
             <view wx:if="{{item.imageStatus === 'error'}}" class="image-status"><text>图解暂未加载</text><button class="retry-image" data-index="{{index}}" bindtap="retryImage">重新加载</button></view>
           </view>

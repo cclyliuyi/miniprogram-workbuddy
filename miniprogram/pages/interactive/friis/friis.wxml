@@ -1,11 +1,11 @@
 <!-- pages/interactive/friis/friis.wxml —— Friis / 雷达方程链路预算 -->
-<view class="screen tp-page">
+<view class="screen fd-page tp-page tool-studio">
 
   <view class="tp-head rise">
     <view class="kicker">FRIIS / RADAR EQUATION</view>
     <view class="tp-title display">链路预算</view>
     <view class="tp-sub">接收功率 Pr 随距离 R 的变化 · 最大作用距离 Rmax</view>
-  </view>
+  </view><view class="fd-stage">
 
   <!-- 图 -->
   <view class="tp-canvas-card rise">
@@ -23,7 +23,8 @@
   </view>
 
   <!-- 发射与天线参数 -->
-  <view class="tp-section rise">
+  </view><!-- fd-stage:end --><view id="fd-anchor" class="fd-anchor"></view>
+<view class="tp-section rise">
     <view class="kicker">发射与天线参数</view>
     <view class="tp-slider-row">
       <text class="tp-slider-label">发射功率 Pt</text>
@@ -120,4 +121,45 @@
     <view class="tp-formula-cond">适用条件：远场（R &gt; 2D²/λ）、极化匹配、自由空间视距无多径；c = 299 792 458 m/s。雷达模式中"双程扩散损耗 − 目标项"已把 σ 折算进损耗读数。</view>
   </view>
 
+<!-- floating-controls:start -->
+ <cover-view id="fd-panel" hidden="{{!fdVisible}}" class="fd-panel {{fdVisible ? 'fd-visible' : ''}}" bindtouchstart="fdTouchStart" bindtouchend="fdTouchEnd" bindtouchcancel="fdTouchEnd" catchtouchmove="fdPreventScroll">
+  <cover-view class="fd-head"><cover-view class="fd-title">实时调参</cover-view><cover-view class="fd-all" bindtap="fdShowAll">全部参数 ↓</cover-view></cover-view>
+  <cover-view class="fd-tabs"><cover-view class="fd-tab {{fdGroup === 0 ? 'selected' : ''}}" data-group="0" bindtap="fdSelect">发射</cover-view><cover-view class="fd-tab {{fdGroup === 1 ? 'selected' : ''}}" data-group="1" bindtap="fdSelect">接收</cover-view><cover-view class="fd-tab {{fdGroup === 2 ? 'selected' : ''}}" data-group="2" bindtap="fdSelect">距离</cover-view><cover-view class="fd-tab {{fdGroup === 3 ? 'selected' : ''}}" data-group="3" bindtap="fdSelect">灵敏度</cover-view></cover-view>
+  <cover-view class="fd-controls"><block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">发射功率 Pt</cover-view>
+      <cover-view id="fd-track-0" class="fd-native-track" data-id="0" data-value="{{S.pt}}" data-min="-10" data-max="60" data-step="1" data-disabled="" data-changing="onPt" data-change="onPt" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 0 ? fdPercent : ((S.pt)-(-10))/((60)-(-10))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 0 ? fdPercent : ((S.pt)-(-10))/((60)-(-10))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.pt}} dBm</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">发射增益 Gt</cover-view>
+      <cover-view id="fd-track-1" class="fd-native-track" data-id="1" data-value="{{S.gt}}" data-min="0" data-max="50" data-step="0.5" data-disabled="" data-changing="onGt" data-change="onGt" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 1 ? fdPercent : ((S.gt)-(0))/((50)-(0))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 1 ? fdPercent : ((S.gt)-(0))/((50)-(0))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.gt}} dBi</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 1}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">接收增益 Gr</cover-view>
+      <cover-view id="fd-track-2" class="fd-native-track" data-id="2" data-value="{{S.gr}}" data-min="0" data-max="50" data-step="0.5" data-disabled="" data-changing="onGr" data-change="onGr" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 2 ? fdPercent : ((S.gr)-(0))/((50)-(0))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 2 ? fdPercent : ((S.gr)-(0))/((50)-(0))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.gr}} dBi</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 1}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">频率 f</cover-view>
+      <cover-view id="fd-track-3" class="fd-native-track" data-id="3" data-value="{{S.f}}" data-min="0.1" data-max="40" data-step="0.1" data-disabled="" data-changing="onFreq" data-change="onFreq" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 3 ? fdPercent : ((S.f)-(0.1))/((40)-(0.1))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 3 ? fdPercent : ((S.f)-(0.1))/((40)-(0.1))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.f}} GHz</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 2}}"><block wx:if="{{S.mode === 'radar'}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">目标 RCS σ</cover-view>
+      <cover-view id="fd-track-4" class="fd-native-track" data-id="4" data-value="{{S.rcsDbsm}}" data-min="-30" data-max="40" data-step="1" data-disabled="" data-changing="onRcs" data-change="onRcs" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 4 ? fdPercent : ((S.rcsDbsm)-(-30))/((40)-(-30))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 4 ? fdPercent : ((S.rcsDbsm)-(-30))/((40)-(-30))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.rcsDbsm}} dBsm</cover-view>
+    </cover-view></block></block>
+<block wx:if="{{fdGroup === 2}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">距离 R</cover-view>
+      <cover-view id="fd-track-5" class="fd-native-track" data-id="5" data-value="{{S.rExp}}" data-min="0" data-max="5" data-step="0.1" data-disabled="" data-changing="onRExp" data-change="onRExp" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 5 ? fdPercent : ((S.rExp)-(0))/((5)-(0))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 5 ? fdPercent : ((S.rExp)-(0))/((5)-(0))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{readout.R}}</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 3}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">灵敏度 Pmin</cover-view>
+      <cover-view id="fd-track-6" class="fd-native-track" data-id="6" data-value="{{S.smin}}" data-min="-130" data-max="-40" data-step="1" data-disabled="" data-changing="onSmin" data-change="onSmin" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 6 ? fdPercent : ((S.smin)-(-130))/((-40)-(-130))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 6 ? fdPercent : ((S.smin)-(-130))/((-40)-(-130))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.smin}} dBm</cover-view>
+    </cover-view></block></cover-view>
+ </cover-view>
+<!-- floating-controls:end -->
 </view>

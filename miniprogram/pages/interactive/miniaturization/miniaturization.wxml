@@ -1,11 +1,11 @@
 <!-- pages/interactive/miniaturization/miniaturization.wxml —— 电小天线与 Chu 极限 -->
-<view class="screen tp-page">
+<view class="screen fd-page tp-page tool-studio">
 
   <view class="tp-head rise">
     <view class="kicker">ELECTRICALLY SMALL ANTENNAS</view>
     <view class="tp-title display">电小天线与 Chu 极限</view>
     <view class="tp-sub">ka · 辐射电阻 · 效率 · 带宽</view>
-  </view>
+  </view><view class="fd-stage">
 
   <!-- Chu 球场景（几何按 ka 真实比例） -->
   <view class="tp-canvas-card rise">
@@ -29,7 +29,8 @@
   </view>
 
   <!-- 参数 -->
-  <view class="tp-section rise">
+  </view><!-- fd-stage:end --><view id="fd-anchor" class="fd-anchor"></view>
+<view class="tp-section rise">
     <view class="kicker">参数</view>
     <view class="tp-slider-row">
       <text class="tp-slider-label">电尺寸 ka = 2πa/λ</text>
@@ -88,4 +89,20 @@
     <view class="tp-note-text">ka 越小：近场储能激增（Qmin ∝ 1/(ka)³），Rrad 骤降（偶极子 ∝(ka)²，环 ∝(ka)⁴），很快被欧姆损耗淹没 → 效率崩塌。注意带宽读数：加大 Rloss 会让带宽"变宽"，但那是用辐射效率换来的 —— 匹配电阻吸收了能量，不等于天线性能变好。</view>
   </view>
 
+<!-- floating-controls:start -->
+ <cover-view id="fd-panel" hidden="{{!fdVisible}}" class="fd-panel {{fdVisible ? 'fd-visible' : ''}}" bindtouchstart="fdTouchStart" bindtouchend="fdTouchEnd" bindtouchcancel="fdTouchEnd" catchtouchmove="fdPreventScroll">
+  <cover-view class="fd-head"><cover-view class="fd-title">实时调参</cover-view><cover-view class="fd-all" bindtap="fdShowAll">全部参数 ↓</cover-view></cover-view>
+  <cover-view class="fd-tabs"><cover-view class="fd-tab {{fdGroup === 0 ? 'selected' : ''}}" data-group="0" bindtap="fdSelect">尺寸与损耗</cover-view></cover-view>
+  <cover-view class="fd-controls"><block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">电尺寸 ka = 2πa/λ</cover-view>
+      <cover-view id="fd-track-0" class="fd-native-track" data-id="0" data-value="{{S.ka}}" data-min="0.06" data-max="0.80" data-step="0.01" data-disabled="" data-changing="onKa" data-change="onKa" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 0 ? fdPercent : ((S.ka)-(0.06))/((0.80)-(0.06))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 0 ? fdPercent : ((S.ka)-(0.06))/((0.80)-(0.06))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.ka}}</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">损耗电阻 Rloss</cover-view>
+      <cover-view id="fd-track-1" class="fd-native-track" data-id="1" data-value="{{S.rloss}}" data-min="0.2" data-max="20" data-step="0.1" data-disabled="" data-changing="onLoss" data-change="onLoss" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 1 ? fdPercent : ((S.rloss)-(0.2))/((20)-(0.2))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 1 ? fdPercent : ((S.rloss)-(0.2))/((20)-(0.2))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.rloss}} Ω</cover-view>
+    </cover-view></block></cover-view>
+ </cover-view>
+<!-- floating-controls:end -->
 </view>

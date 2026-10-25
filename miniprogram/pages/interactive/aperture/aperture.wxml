@@ -1,11 +1,11 @@
 <!-- pages/interactive/aperture/aperture.wxml —— 口径场与波束宽度 -->
-<view class="screen tp-page">
+<view class="screen fd-page tp-page tool-studio">
 
   <view class="tp-head rise">
     <view class="kicker">APERTURE RADIATION</view>
     <view class="tp-title display">口径衍射</view>
     <view class="tp-sub">矩形/圆形口径 · 照明分布 → 远场方向图</view>
-  </view>
+  </view><view class="fd-stage">
 
   <!-- 远场方向图 -->
   <view class="tp-canvas-card rise">
@@ -20,7 +20,8 @@
   </view>
 
   <!-- 参数 -->
-  <view class="tp-section rise">
+  </view><!-- fd-stage:end --><view id="fd-anchor" class="fd-anchor"></view>
+<view class="tp-section rise">
     <view class="kicker">口径参数</view>
 
     <view class="tp-btns ap-btns-gap">
@@ -100,4 +101,20 @@
     <view class="tp-note-text">照明越向边缘收窄（锥削越深），旁瓣越低，但主瓣变宽、口径效率下降——均匀照明 η = 100% 但 SLL 最高；余弦照明 η ≈ 81%，矩形口径旁瓣降到约 −23 dB。图上 −3 dB 虚线与两枚圆点即半功率波束宽的读取位置。</view>
   </view>
 
+<!-- floating-controls:start -->
+ <cover-view id="fd-panel" hidden="{{!fdVisible}}" class="fd-panel {{fdVisible ? 'fd-visible' : ''}}" bindtouchstart="fdTouchStart" bindtouchend="fdTouchEnd" bindtouchcancel="fdTouchEnd" catchtouchmove="fdPreventScroll">
+  <cover-view class="fd-head"><cover-view class="fd-title">实时调参</cover-view><cover-view class="fd-all" bindtap="fdShowAll">全部参数 ↓</cover-view></cover-view>
+  <cover-view class="fd-tabs"><cover-view class="fd-tab {{fdGroup === 0 ? 'selected' : ''}}" data-group="0" bindtap="fdSelect">口径与照明</cover-view></cover-view>
+  <cover-view class="fd-controls"><block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">口径尺寸 D</cover-view>
+      <cover-view id="fd-track-0" class="fd-native-track" data-id="0" data-value="{{S.D}}" data-min="1" data-max="20" data-step="0.5" data-disabled="" data-changing="onD" data-change="onD" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 0 ? fdPercent : ((S.D)-(1))/((20)-(1))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 0 ? fdPercent : ((S.D)-(1))/((20)-(1))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.D}} λ</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row {{S.illum !== 'tapered' ? 'ap-row-dim' : ''}}">
+      <cover-view class="tp-slider-label">边缘锥削</cover-view>
+      <cover-view id="fd-track-1" class="fd-native-track" data-id="1" data-value="{{S.tap}}" data-min="-40" data-max="0" data-step="1" data-disabled="{{S.illum !== 'tapered'}}" data-changing="onTap" data-change="onTap" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 1 ? fdPercent : ((S.tap)-(-40))/((0)-(-40))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 1 ? fdPercent : ((S.tap)-(-40))/((0)-(-40))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.illum === 'tapered' ? S.tap + ' dB' : '—'}}</cover-view>
+    </cover-view></block></cover-view>
+ </cover-view>
+<!-- floating-controls:end -->
 </view>

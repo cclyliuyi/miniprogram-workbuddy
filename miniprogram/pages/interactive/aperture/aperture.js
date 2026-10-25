@@ -1,3 +1,4 @@
+const { withFloatingControls } = require('./pkg-utils/lab-canvas');
 // pages/interactive/aperture/aperture.js —— 口径场与波束宽度
 // 物理模型（Balanis 4th, Ch.12 口径天线）：
 //   矩形口径（一维线源，H 面切面）：
@@ -36,7 +37,7 @@ function besselJ0(x) {
   return Math.sqrt(0.636619772 / ax) * (Math.cos(xx) * p1 - z * Math.sin(xx) * p2)
 }
 
-Page({
+Page(withFloatingControls({
   data: {
     S: {
       shape: 'rect',    // rect | circ
@@ -275,4 +276,4 @@ Page({
   onShareAppMessage() {
     return { title: '口径衍射 · 照明分布与波束宽度', path: '/pages/interactive/aperture/aperture' }
   },
-})
+}, 1))

@@ -2,14 +2,14 @@
   "pages": [
     "pages/calendar/calendar",
     "pages/favs/favs",
-    "pages/eit/eit",
+    "pages/insights/insights",
     "pages/method/method",
     "pages/tools/index"
   ],
   "subPackages": [
     {
-      "root": "pages/eit-detail",
-      "name": "eit-detail",
+      "root": "pages/insight-detail",
+      "name": "insight-detail",
       "pages": [
         "detail"
       ]
@@ -245,10 +245,10 @@
         "iv-3dlab"
       ]
     },
-    "pages/eit/eit": {
+    "pages/insights/insights": {
       "network": "wifi",
       "packages": [
-        "eit-detail"
+        "insight-detail"
       ]
     },
     "pages/method/method": {
@@ -277,8 +277,8 @@
         "selectedIconPath": "assets/tabbar/calendar_active.png"
       },
       {
-        "pagePath": "pages/eit/eit",
-        "text": "前沿",
+        "pagePath": "pages/insights/insights",
+        "text": "洞见",
         "iconPath": "assets/tabbar/frontier_default.png",
         "selectedIconPath": "assets/tabbar/frontier_active.png"
       },

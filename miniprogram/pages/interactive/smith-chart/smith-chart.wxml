@@ -1,5 +1,5 @@
 <!-- pages/interactive/smith-chart/smith-chart.wxml —— 交互式 Smith 圆图 -->
-<view class="screen tp-page">
+<view class="screen tp-page tool-studio">
 
   <view class="tp-head rise">
     <view class="kicker">SMITH CHART</view>

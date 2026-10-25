@@ -364,3 +364,111 @@ module.exports = {
   dot, arrow, label, legend, heatmap, barH, fmtNum,
   THEME, alpha,
 }
+
+// Shared viewport controls live with the already-loaded canvas module.
+// A compact mirror of the existing sliders. The original controls stay in flow.
+// Event handlers/data are shared; canvas nodes are never moved or recreated.
+function shouldFloat(anchorTop, viewportHeight, panelHeight) {
+  return Number.isFinite(anchorTop) && anchorTop > viewportHeight - panelHeight;
+}
+function dragCoordinate(touch, key) {
+  if(!touch)return null;
+  const keys=key?[key]:['pageX','clientX','x'];
+  for(const name of keys)if(typeof touch[name]==='number' && Number.isFinite(touch[name]))return {key:name,value:touch[name]};
+  return null;
+}
+function withFloatingControls(definition, groups) {
+  const ready = definition.onReady, scroll = definition.onPageScroll;
+  const hide = definition.onHide, show = definition.onShow, unload = definition.onUnload;
+  return Object.assign({}, definition, {
+    data: Object.assign({}, definition.data, { fdVisible:false, fdGroup:0, fdGroups:groups, fdHeight:0 }),
+    onReady() {
+      this._fdAlive = true;
+      if (ready) ready.call(this);
+      this.fdMeasure();
+    },
+    onShow() { if(show) show.call(this); if(this._fdAlive) this.fdMeasure(); },
+    onHide() { this.fdCancelPending(); clearTimeout(this._fdTimer); this._fdTimer=null; if(hide) hide.call(this); },
+    onUnload() { this._fdAlive=false; this.fdCancelPending(); clearTimeout(this._fdTimer); if(unload) unload.call(this); },
+    onPageScroll(e) {
+      if(scroll) scroll.call(this,e);
+      if(!this._fdTimer) this._fdTimer=setTimeout(()=>{this._fdTimer=null;this.fdMeasure();},32);
+    },
+    fdMeasure() {
+      if(!this._fdAlive || this._fdDragging) return;
+      const win = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
+      wx.createSelectorQuery().in(this).select('#fd-anchor').boundingClientRect()
+        .select('#fd-panel').boundingClientRect().exec(rects=>{
+          if(!this._fdAlive || this._fdDragging || !rects[0]) return;
+          const height = rects[1] && rects[1].height > 0 ? rects[1].height : this.data.fdHeight || 340 * win.windowWidth / 750;
+          const visible=shouldFloat(rects[0].top,win.windowHeight,height);
+          if(visible!==this.data.fdVisible || height!==this.data.fdHeight) this.setData({fdVisible:visible,fdHeight:height});
+        });
+    },
+    fdSelect(e) { this.setData({fdGroup:Number(e.currentTarget.dataset.group)}); },
+    fdTouchStart() { this._fdDragging=true; },
+    fdTouchEnd() { this._fdDragging=false; this.fdMeasure(); },
+    fdPreventScroll() {},
+    fdCancelPending() {
+      clearTimeout(this._fdFrame);clearTimeout(this._fdCompute);
+      this._fdFrame=null;this._fdCompute=null;this._fdNative=null;this._fdDragging=false;
+    },
+    fdNativeStart(e) {
+      const d=e.currentTarget.dataset;
+      if(d.disabled===true || d.disabled==='true')return;
+      const point=dragCoordinate(e.touches && e.touches[0]);
+      const value=Number(d.value);
+      if(!point || !Number.isFinite(value))return;
+      this._fdDragging=true;
+      const drag={dataset:d, key:point.key, startX:point.value, x:point.value, startValue:value, moved:false, ended:false};
+      this._fdNative=drag;
+      wx.createSelectorQuery().in(this).select('#fd-track-'+d.id).boundingClientRect().exec(r=>{
+        if(!this._fdAlive || this._fdNative!==drag)return;
+        if(!r[0] || !(r[0].width>0)){this._fdNative=null;this.fdTouchEnd();return;}
+        drag.rect=r[0];if(drag.moved || drag.ended)this.fdNativeApply(drag,drag.ended);
+      });
+    },
+    fdNativeMove(e) {
+      const drag=this._fdNative;if(!drag)return;
+      const point=dragCoordinate(e.touches && e.touches[0],drag.key);
+      if(!point)return;
+      drag.x=point.value;drag.moved=drag.moved || Math.abs(drag.x-drag.startX)>=2;
+      if(!drag.moved)return;
+      if(drag.rect && !this._fdFrame)this._fdFrame=setTimeout(()=>{
+        this._fdFrame=null;
+        if(this._fdNative===drag)this.fdNativeApply(drag,false);
+      },16);
+    },
+    fdNativeEnd(e) {
+      const drag=this._fdNative;if(!drag)return;
+      clearTimeout(this._fdFrame);clearTimeout(this._fdCompute);this._fdFrame=null;this._fdCompute=null;
+      // Commit the last move. Native cover-view touchend may report a zero or
+      // differently based coordinate on phones; it must not move the handle.
+      drag.ended=true;if(drag.rect)this.fdNativeApply(drag,true);
+    },
+    fdNativeApply(drag,final) {
+      const d=drag.dataset,min=Number(d.min),max=Number(d.max),step=Number(d.step)||1;
+      const raw=drag.startValue+(drag.x-drag.startX)/drag.rect.width*(max-min);
+      const value=Number(Math.max(min,Math.min(max,min+Math.round((raw-min)/step)*step)).toFixed(8));
+      if(drag.moved && Number.isFinite(value)) {
+        const percent=Math.max(0,Math.min(100,(raw-min)/(max-min)*100));
+        if(!final)this.setData({fdActiveId:Number(d.id),fdPercent:percent});
+        drag.pendingValue=value;
+        const emit=()=>{
+          this._fdCompute=null;
+          if(!final && this._fdNative!==drag)return;
+          const handler=final?d.change:(d.changing||d.change);
+          if((final || drag.lastValue!==drag.pendingValue) && typeof this[handler]==='function'){
+            drag.lastValue=drag.pendingValue;
+            this[handler]({detail:{value:drag.pendingValue},currentTarget:{dataset:d}});
+          }
+        };
+        if(final)emit();else if(!this._fdCompute)this._fdCompute=setTimeout(emit,48);
+      }
+      if(final){this.setData({fdActiveId:''});this._fdNative=null;this.fdTouchEnd();}
+    },
+    fdShowAll() { wx.pageScrollTo({selector:'#fd-anchor',offsetTop:-12,duration:260}); },
+  });
+}
+module.exports.withFloatingControls = withFloatingControls;
+module.exports.shouldFloat = shouldFloat;

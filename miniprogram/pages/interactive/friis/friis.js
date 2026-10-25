@@ -1,3 +1,4 @@
+const { withFloatingControls } = require('./pkg-utils/lab-canvas');
 // pages/interactive/friis/friis.js —— Friis / 雷达方程链路预算
 // 物理公式全部来自 utils/rf-math（无魔法系数）：
 //   Friis 单程：Pr(dBm) = Pt + Gt + Gr − 20lg(4πR/λ)，λ = c/f
@@ -9,7 +10,7 @@ const rf = require('./pkg-utils/rf-math')
 const lc = require('./pkg-utils/lab-canvas')
 const { THEME, alpha } = require('./pkg-utils/lab-theme')
 
-Page({
+Page(withFloatingControls({
   data: {
     S: {
       mode: 'friis',
@@ -182,4 +183,4 @@ Page({
   onShareAppMessage() {
     return { title: '链路预算 · Friis / 雷达方程', path: '/pages/interactive/friis/friis' }
   },
-})
+}, 4))

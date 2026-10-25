@@ -1,3 +1,4 @@
+const { withFloatingControls } = require('./pkg-utils/lab-canvas');
 // pages/interactive/radiation-integral/radiation-integral.js —— 辐射积分可视化
 // 物理（Balanis Ch.4/12 线源，全部真实公式）：
 //   空间因子 F(θ) = ∫ I(z′) e^{jkz′cosθ} dz′（z′ 以 λ 计，k = 2π/λ）
@@ -15,7 +16,7 @@ const TAPER_LABELS = {
   cos2: '余弦平方锥削',
 }
 
-Page({
+Page(withFloatingControls({
   data: {
     S: { L100: 50, taper: 'dipole', theta: 90 },
     stats: null,
@@ -310,4 +311,4 @@ Page({
   onShareAppMessage() {
     return { title: '辐射积分可视化', path: '/pages/interactive/radiation-integral/radiation-integral' }
   },
-})
+}, 1))

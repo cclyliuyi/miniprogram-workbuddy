@@ -10,7 +10,7 @@ function getResources() {
       text: [c.body,c.tag,c.trivia,c.monthTheme].join(' '), month: +m, day: +d,
       url: `/pages/day-detail/day-detail?month=${m}&day=${d}` }
   })
-  const groups = [['eit','前沿',require('../pages/eit/eit-data').CARDS], ['method','方法论',require('../pages/method/method-data').CARDS]]
+  const groups = [['method','方法论',require('../pages/method/method-data').CARDS]]
   const cards = groups.flatMap(([key,type,list]) => list.map((c,i) => ({
     id: `${key}:${c.id}`, type, title:c.title, desc:c.subtitle, text:JSON.stringify(c),
     url:`/pages/${key}-detail/detail?index=${i}`

@@ -1,11 +1,11 @@
 <!-- pages/interactive/synthesis/synthesis.wxml —— 线阵方向图综合 -->
-<view class="screen tp-page">
+<view class="screen fd-page tp-page tool-studio">
 
   <view class="tp-head rise">
     <view class="kicker">ARRAY SYNTHESIS</view>
     <view class="tp-title display">阵列综合</view>
     <view class="tp-sub">线阵加权 · 阵因子 vs 方向角</view>
-  </view>
+  </view><view class="fd-stage">
 
   <!-- 方向图 -->
   <view class="tp-canvas-card rise">
@@ -20,7 +20,8 @@
   </view>
 
   <!-- 参数控制 -->
-  <view class="tp-section rise">
+  </view><!-- fd-stage:end --><view id="fd-anchor" class="fd-anchor"></view>
+<view class="tp-section rise">
     <view class="kicker">阵列参数</view>
     <view class="tp-slider-row">
       <text class="tp-slider-label">阵元数 N</text>
@@ -86,4 +87,25 @@
     <view class="tp-formula-cond">适用条件：侧射线阵（未加扫描相位）、各向同性阵元；窗函数取对称约定（分母 N−1，余弦端点归零、汉明端点 0.08）；D₀ 按线阵绕轴对称数值积分，对任意 d/λ 有效（含栅瓣）；ηₜ 是口径锥削效率，非辐射效率；主瓣宽于 ±90° 找不到 −3dB 点时 HPBW 显示 —；扫描阵不出栅瓣需 d/λ &lt; 1/(1+|sinθ₀|)。</view>
   </view>
 
+<!-- floating-controls:start -->
+ <cover-view id="fd-panel" hidden="{{!fdVisible}}" class="fd-panel {{fdVisible ? 'fd-visible' : ''}}" bindtouchstart="fdTouchStart" bindtouchend="fdTouchEnd" bindtouchcancel="fdTouchEnd" catchtouchmove="fdPreventScroll">
+  <cover-view class="fd-head"><cover-view class="fd-title">实时调参</cover-view><cover-view class="fd-all" bindtap="fdShowAll">全部参数 ↓</cover-view></cover-view>
+  <cover-view class="fd-tabs"><cover-view class="fd-tab {{fdGroup === 0 ? 'selected' : ''}}" data-group="0" bindtap="fdSelect">阵列</cover-view><cover-view class="fd-tab {{fdGroup === 1 ? 'selected' : ''}}" data-group="1" bindtap="fdSelect">旁瓣</cover-view></cover-view>
+  <cover-view class="fd-controls"><block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">阵元数 N</cover-view>
+      <cover-view id="fd-track-0" class="fd-native-track" data-id="0" data-value="{{S.N}}" data-min="2" data-max="32" data-step="1" data-disabled="" data-changing="onN" data-change="onN" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 0 ? fdPercent : ((S.N)-(2))/((32)-(2))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 0 ? fdPercent : ((S.N)-(2))/((32)-(2))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.N}} 元</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">间距 d/λ</cover-view>
+      <cover-view id="fd-track-1" class="fd-native-track" data-id="1" data-value="{{S.d}}" data-min="0.1" data-max="1" data-step="0.05" data-disabled="" data-changing="onD" data-change="onD" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 1 ? fdPercent : ((S.d)-(0.1))/((1)-(0.1))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 1 ? fdPercent : ((S.d)-(0.1))/((1)-(0.1))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.d}} λ</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 1}}"><cover-view class="tp-slider-row" wx:if="{{S.w === 'chebyshev'}}">
+      <cover-view class="tp-slider-label">目标旁瓣 SLL</cover-view>
+      <cover-view id="fd-track-2" class="fd-native-track" data-id="2" data-value="{{S.sll}}" data-min="-50" data-max="-10" data-step="1" data-disabled="" data-changing="onSll" data-change="onSll" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 2 ? fdPercent : ((S.sll)-(-50))/((-10)-(-50))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 2 ? fdPercent : ((S.sll)-(-50))/((-10)-(-50))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.sll}} dB</cover-view>
+    </cover-view></block></cover-view>
+ </cover-view>
+<!-- floating-controls:end -->
 </view>

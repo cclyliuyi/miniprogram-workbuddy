@@ -45,32 +45,36 @@
 
   <!-- 分区渲染 -->
   <block wx:for="{{sections}}" wx:key="key" wx:for-item="sec">
-    <view id="sec-{{sec.key}}" class="tl-section-title">
+    <view id="sec-{{sec.key}}" class="tl-section-title {{!sec.compact ? 'tl-section-studio' : ''}}">
       <view class="rule-dot"></view>
       <text class="tl-section-name">{{sec.name}}</text>
       <text class="tl-section-en">{{sec.en}}</text>
       <view class="rule-dot"></view>
     </view>
 
+    <view wx:if="{{!sec.compact}}" class="tl-section-intro">{{sec.intro}}<text class="tl-count">{{sec.items.length}} 款工具</text></view>
+
     <!-- 大卡（单列） -->
-    <view class="tl-grid" wx:if="{{!sec.compact}}">
+    <view class="tl-grid tl-grid-{{sec.key}}" wx:if="{{!sec.compact}}">
       <view
         wx:for="{{sec.items}}"
         wx:key="key"
         wx:for-item="tool"
-        class="tl-card rise"
+        class="tl-card tl-studio-card"
+        hover-class="tl-card-pressed"
         data-url="{{tool.url}}" data-key="{{tool.key}}" data-name="{{tool.name}}"
         data-icon="{{tool.icon}}" data-cls="{{tool.cls}}"
         bindtap="onCard"
         style="animation-delay:{{index * 0.05}}s">
         <view class="tl-card-icon {{tool.cls}}">
-          <view class="tl-icon-inner">{{tool.icon}}</view>
+          <view class="tl-icon-inner">{{tool.mark}}</view>
         </view>
         <view class="tl-card-body">
           <view class="tl-card-name">{{tool.name}}</view>
           <view class="tl-card-desc">{{tool.desc}}</view>
         </view>
-        <view class="tl-card-arrow">›</view>
+        <view class="tl-card-arrow">↗</view>
+        <text class="tl-card-number">{{tool.number}}</text>
       </view>
     </view>
 

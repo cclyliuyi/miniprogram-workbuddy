@@ -8,7 +8,7 @@
     <view class="stage-heading"><text class="stage-number">0{{group.number}}</text><text>{{group.title}}</text></view>
     <view class="stage-description">{{group.description}}</view>
     <view class="lesson-card" wx:for="{{group.cards}}" wx:key="id" bindtap="openCard" data-index="{{item.index}}" hover-class="lesson-pressed" role="button" aria-label="{{item.title}}，打开图解">
-      <image class="lesson-thumbnail" src="{{item.imageSrc}}" mode="aspectFit" lazy-load="{{true}}" />
+      <image wx:if="{{item.imageSrc}}" class="lesson-thumbnail" src="{{item.imageSrc}}" mode="aspectFit" lazy-load="{{true}}" />
       <view class="lesson-summary">
         <view class="lesson-meta"><text>{{item.number < 10 ? '0' : ''}}{{item.number}}</text><text wx:if="{{item.isRead}}" class="read-label">已读</text></view>
         <view class="lesson-title">{{item.title}}</view>

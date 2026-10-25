@@ -1,0 +1,44 @@
+[
+  {
+    "name": "01-cover.webp",
+    "width": 1672,
+    "height": 941,
+    "bytes": 202852
+  },
+  {
+    "name": "02-memory-wall.webp",
+    "width": 1672,
+    "height": 941,
+    "bytes": 157016
+  },
+  {
+    "name": "03-software-ecosystem.webp",
+    "width": 1448,
+    "height": 1086,
+    "bytes": 137504
+  },
+  {
+    "name": "04-analog-visual-v2.webp",
+    "width": 1448,
+    "height": 1086,
+    "bytes": 109730
+  },
+  {
+    "name": "05-interference.webp",
+    "width": 1448,
+    "height": 1086,
+    "bytes": 61264
+  },
+  {
+    "name": "06-quantum-loop-visual-v3.webp",
+    "width": 1448,
+    "height": 1086,
+    "bytes": 171870
+  },
+  {
+    "name": "07-hybrid-future.webp",
+    "width": 1448,
+    "height": 1086,
+    "bytes": 141480
+  }
+]

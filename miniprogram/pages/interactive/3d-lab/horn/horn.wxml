@@ -23,12 +23,21 @@
     <view class="lab-view-choice {{labView==='top'?'selected':''}}" data-view="top" bindtap="onLabView">俯视</view>
     <view class="lab-view-choice {{autoRotate?'selected':''}}" bindtap="onLabRotate">{{autoRotate?'停止环视':'自动环视'}}</view>
   </view>
-<view class="lab-scene-caption">金属喇叭 · 口径相位滞后</view><view class="lab-color-key"><view class="lab-heat-gradient"></view><view class="lab-color-ticks"><text>0°</text><text>180°</text><text>≥360°</text></view><view class="lab-color-caption">口径相位滞后 · 固定色标</view></view>
+  <view class="tp-btns horn-phase-modes">
+    <view class="tp-btn {{phaseMode==='unwrapped'?'active':''}}" data-mode="unwrapped" bindtap="setPhaseMode">累计滞后</view>
+    <view class="tp-btn {{phaseMode==='wrapped'?'active':''}}" data-mode="wrapped" bindtap="setPhaseMode">360° 相位环</view>
+  </view>
+  <view class="lab-color-key">
+    <view class="lab-heat-gradient {{phaseMode==='wrapped'?'horn-phase-cycle':''}}"></view>
+    <view class="lab-color-ticks"><text>0°</text><text>180°</text><text>{{phaseMode==='wrapped'?'360° ≡ 0°':'趋于 ∞'}}</text></view>
+    <view class="lab-color-caption">{{phaseMode==='wrapped'?'固定色环 · 每重复一圈代表增加 360°':'固定非线性色标 · 180° 位于中点 · 不自动缩放'}}</view>
+  </view>
+  <view class="lab-scene-caption">中心 0° · E/H 边中 {{phase}} · 角点 {{phaseMax}}</view>
 
   <view class="lab3d-section ">
     <view class="kicker">几何尺寸</view>
     <view class="tp-slider-row">
-      <text class="tp-slider-label">口径 A/λ</text>
+      <text class="tp-slider-label">H 面口径 A/λ</text>
       <slider class="tp-slider" min="20" max="160" step="2" value="{{aSlider}}" bindchanging="onAChanging" bindchange="onA" />
       <text class="tp-slider-val">{{aVal}}</text>
     </view>
@@ -38,18 +47,18 @@
       <text class="tp-slider-val">{{lVal}}</text>
     </view>
     <view class="tp-slider-row">
-      <text class="tp-slider-label">照明边缘电平</text>
-      <slider class="tp-slider" min="0" max="24" step="1" value="{{tapSlider}}" bindchanging="onTapChanging" bindchange="onTap" />
-      <text class="tp-slider-val">{{tapVal}}</text>
+      <text class="tp-slider-label">E 面口径 B/λ</text>
+      <slider class="tp-slider" min="20" max="160" step="2" value="{{bSlider}}" bindchanging="onBChanging" bindchange="onB" />
+      <text class="tp-slider-val">{{bVal}}</text>
     </view>
   </view>
 
   <view class="lab3d-stats ">
     <view class="kicker lab3d-stats-title">读数</view>
     <view class="lab3d-stats-grid">
-      <view class="lab3d-stat"><view class="lab3d-stat-value num tp-c-gold">{{phase}}</view><view class="lab3d-stat-name">边缘相位误差 δmax</view></view>
-      <view class="lab3d-stat"><view class="lab3d-stat-value num tp-c-accent">{{gain}}</view><view class="lab3d-stat-name">增益（口径积分 η）</view></view>
-      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{flare}}</view><view class="lab3d-stat-name">半张角 ψ</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num tp-c-gold">{{phase}}</view><view class="lab3d-stat-name">E / H 边中累计相位滞后</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num tp-c-accent">{{gain}}</view><view class="lab3d-stat-name">轴向方向性估计（未计损耗）</view></view>
+      <view class="lab3d-stat"><view class="lab3d-stat-value num">{{flare}}</view><view class="lab3d-stat-name">E / H 面半张角</view></view>
       <view class="lab3d-stat"><view class="lab3d-stat-value num tp-c-teal">{{hpbw}}</view><view class="lab3d-stat-name">HPBW E/H（数值 −3 dB）</view></view>
     </view>
   </view>
@@ -59,20 +68,43 @@
     <canvas type="2d" id="plot" class="tp-canvas-short"></canvas>
   </view>
 
-  <!-- 公式注脚 -->
-  <view class="tp-formula ">
-    <view class="tp-formula-title">所用公式</view>
-    <view class="tp-formula-line">Δ = √(R²+(A/2)²) − R　·　δmax = 2πΔ/λ　·　ψ = atan(A/2R)</view>
-    <view class="tp-formula-line">F(θ) = (1+cosθ)/2 · |∫₋₁¹ g(u)·e^(j[πA·u·sinθ/λ − δmax·u²]) du|</view>
-    <view class="tp-formula-line">g_E = 1　·　g_H = p+(1−p)cos(πu/2)，p = 10^(−边缘电平/20)　·　G = 10lg(4π·ηE·ηH·(A/λ)²)</view>
-    <view class="tp-formula-cond">适用条件：方口径 A×A、两面同轴长 R 的教学模型；η 与方向图出自同一二次相位（Fresnel 型）口径积分，HPBW 直接取数值方向图 −3 dB 点，读数与曲线自洽；未计边缘绕射与法兰反射。校验点：δ=0 时 ηE=1、纯余弦 ηH=8/π²，H 面首旁瓣约 −23 dB。</view>
+  <view class="lab3d-section">
+    <view class="kicker">波束形态 · 按当前数值曲线判读</view>
+    <view class="lab3d-note-item">E 面：{{eBeam}}</view>
+    <view class="lab3d-note-item">{{eBeamDetail}}</view>
+    <view class="lab3d-note-item">H 面：{{hBeam}}</view>
+    <view class="lab3d-note-item">{{hBeamDetail}}</view>
+    <view class="tp-formula-cond">显示分级：离轴双峰的中心凹陷不足 1 dB 标为近似平顶，1～3 dB 为双峰趋势，达到 3 dB 为明显分裂。轴向单峰的半功率宽度比同口径、同振幅的零相位误差参考大 20% 以上，标为展宽。这些是阅读提示，不是物理临界值；峰位按 1° 采样估计。</view>
   </view>
 
-  <view class="lab3d-note ">
-    <view class="kicker">原理</view>
-    <view class="lab3d-note-item">口径越大理想增益越高；但喇叭太短时边缘路径变长，二次相位误差抹平主瓣、填平零点</view>
-    <view class="lab3d-note-item">边缘电平越低（锥削越深），H 面旁瓣越低，代价是口径效率与增益略降</view>
-    <view class="lab3d-note-item">赭金 = 喇叭壁 · 口径色面 = 相位滞后（蓝→红对应 0°→360°，固定标尺）· 金属边框 = 口径边缘</view>
+  <view class="lab3d-section">
+    <view class="kicker">固定当前长度 · 寻找最佳口径</view>
+    <view class="lab3d-note-item">{{optimum}}</view>
+    <view class="lab3d-note-item">{{apertureDifference}}</view>
+    <view class="lab3d-note-item">相对上述最佳值，当前轴向方向性降低 {{optimalLoss}}。</view>
+    <view class="tp-btn active" bindtap="useOptimal">应用本模型的最佳口径</view>
+    <view class="lab3d-note-item">固定 R 和馈电波导，在 A、B = 2～16λ、步长 0.2λ 内，数值搜索最大的轴向方向性。当前口径效率 {{efficiency}}。</view>
+    <view class="lab3d-note-item">经典近似设计取 E 面边中滞后约 90°、H 面约 135°：B(B−b)≈2λR，A(A−a)≈3λR。这里的搜索保留有限喉口尺寸，结果不必恰好等于经典近似。</view>
   </view>
 
+  <view class="tp-formula">
+    <view class="tp-formula-title">TE₁₀ 矩形角锥喇叭 · 口径场模型</view>
+    <view class="tp-formula-line">馈电波导固定：a=0.75λ，b=0.375λ；A 沿 x（H 面），B 沿 y（E 面），R 为喉口到口径的轴长。</view>
+    <view class="tp-formula-line">ρH = RA/(A−a)，ρE = RB/(B−b)</view>
+    <view class="tp-formula-line">Δφ(x,y) ≈ (π/λ)(x²/ρH + y²/ρE)</view>
+    <view class="tp-formula-line">Eap ∝ cos(πx/A) · exp(−jΔφ)，口径中心为相位基准。</view>
+    <view class="tp-formula-line">D轴 ≈ (4πAB/λ²)ηEηH；η由同一复口径场积分求得。零相位误差时 ηEηH=8/π²≈81.1%。</view>
+    <view class="tp-formula-cond">{{modelNote}} 大误差可能导致波束分裂，此时不报告轴向 HPBW；方向性估计不是含损耗、失配的实际增益。</view>
+  </view>
+
+  <view class="lab3d-note">
+    <view class="kicker">为什么存在最佳尺寸？</view>
+    <view class="lab3d-note-item">固定长度，增大口径能增加辐射面积，但边缘相位滞后按 A(A−a) 或 B(B−b) 增大，口径场相消更明显。面积收益与相位损失的平衡形成最佳口径。</view>
+    <view class="lab3d-note-item">固定口径，加长喇叭使相位滞后按 1/R 减小，口径逐渐同相。在通常的设计区间，方向性逐渐接近理想口径极限，代价是更长、更重。</view>
+    <view class="lab3d-note-item">E、H 面曲率一般不同，等相位线是椭圆。累计滞后不会在 360° 归零；相位环只是取模显示。固定尺寸时相对相位不随时间变化；改变尺寸，颜色和方向图同步重新计算。</view>
+    <view class="lab3d-note-item">最佳尺寸没有脱离约束的唯一答案：固定长度、固定增益而最小体积、最小侧面积，会得到不同设计。</view>
+    <view class="lab3d-note-item">E 面口径振幅近似均匀；H 面呈余弦分布，边缘场弱，因此通常更能容忍边缘相位误差。H 面也可能出现平顶或双峰，继续扩大口径时峰值还可能重新排列。</view>
+    <view class="lab3d-note-item">最佳口径不是波束分裂的临界口径。即使仍是轴向单峰，方向性也可能已经下降；请结合最佳口径对照和方向性损失一起判断。</view>
+    <view class="lab3d-note-item">依据：K. B. Baltzis，PIER 108 (2010)，式 (1)–(4) 及最佳设计准则讨论。DOI: 10.2528/PIER10072309。</view>
+  </view>
 </view>

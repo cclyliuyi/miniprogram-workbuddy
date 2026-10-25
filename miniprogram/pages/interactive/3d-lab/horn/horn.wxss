@@ -1,2 +1,5 @@
 /* 喇叭天线 —— 公共舞台样式取自 ../lab3d.wxss（内含 tool-ui.wxss），无页面特有样式 */
 @import "../lab3d.wxss";
+
+.horn-phase-cycle { background:linear-gradient(90deg,#e31c1c,#e3e31c,#1ce31c,#1ce3e3,#1c1ce3,#e31ce3,#e31c1c); }
+.horn-phase-modes { margin:16rpx 12rpx; }

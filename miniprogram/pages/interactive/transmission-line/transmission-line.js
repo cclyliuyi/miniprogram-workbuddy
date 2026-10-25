@@ -1,3 +1,4 @@
+const { withFloatingControls } = require('./pkg-utils/lab-canvas');
 // pages/interactive/transmission-line/transmission-line.js —— 传输线驻波
 // 物理公式全部来自 utils/rf-math（复数运算 / Γ / SWR）：
 //   Γ_L = (Z_L − Z₀)/(Z_L + Z₀)（短路 Γ=−1、开路 Γ=+1 直接精确取值）
@@ -10,7 +11,7 @@ const rf = require('./pkg-utils/rf-math')
 const lc = require('./pkg-utils/lab-canvas')
 const { THEME, alpha } = require('./pkg-utils/lab-theme')
 
-Page({
+Page(withFloatingControls({
   data: {
     S: {
       Z0: 50,
@@ -203,4 +204,4 @@ Page({
   onShareAppMessage() {
     return { title: '传输线驻波实验', path: '/pages/interactive/transmission-line/transmission-line' }
   },
-})
+}, 1))

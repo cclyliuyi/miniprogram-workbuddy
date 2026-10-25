@@ -1,3 +1,4 @@
+const { withFloatingControls } = require('./pkg-utils/lab-canvas');
 // pages/tools/array/array.js —— 天线阵列方向图实验室
 // 物理模型（无魔法系数，公式见 utils/rf-math.js）：
 //   AF(θ) = Σ wₙ·exp[jn·kd(sinθ−sinθ₀)]，kd = 2πd/λ（Balanis 6-10）
@@ -12,7 +13,7 @@ const D2R = Math.PI / 180
 const FLOOR_DB = -40   // 极坐标图动态范围
 const STEP = 0.25      // 角度采样步长（°），只算可见区 −90°~+90°
 
-Page({
+Page(withFloatingControls({
   data: {
     N: 8,
     dLam100: 50,      // d/λ × 100（滑杆整数）
@@ -269,4 +270,4 @@ Page({
   onShareAppMessage() {
     return { title: '天线阵列方向图实验室', path: '/pages/tools/array/array' }
   },
-})
+}, 2))

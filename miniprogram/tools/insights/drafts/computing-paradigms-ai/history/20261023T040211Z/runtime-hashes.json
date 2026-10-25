@@ -1,0 +1,14 @@
+{
+  "pages/insights/insights.js": "1bc67e8bb48810b7886ddb4a2fbfd5b5fcd6e5741607d6753d46f4699d9444e4",
+  "pages/insights/insights.json": "9224cd32a2f28487d3b8c8c6ef169865c8b6a87d81af867aa6987fe065e06fe1",
+  "pages/insights/insights.wxml": "e145785f4063fd52309ac88580fad32ad2292a74d7c9754eb35dff356d03b504",
+  "pages/insights/insights.wxss": "10da0226988004af6b5ecd0c267f8f2a1d74ac7d252b46a206dd0fd7e3f38081",
+  "pages/insight-detail/detail.js": "eac409cab9a8803ffd77f1831413dbbd4e8e3ac2a1a541106ca57d34422fab28",
+  "pages/insight-detail/detail.json": "3d414ae4e2e904fb143d24a80c19e174d2a3db53eb938edd3e8b3958283c9323",
+  "pages/insight-detail/detail.wxml": "4c737ee0e69510ad9d300a4162449b4c6f2eee43d4d2b68e4bf4a6fee5222ed2",
+  "pages/insight-detail/detail.wxss": "0fcdad3eab89b4a7c38619de21ba8897f7691203ecb852bde9502e0f65329666",
+  "app.js": "9e62512ee660054165c409369c0c1cf1873ffdbf9c52d36b612aab55ebd553f3",
+  "app.json": "4b9910db01ec821b2576e816abb435ca8987cb2becbcb1e363889ef67e6b119c",
+  "utils/cloud-json.js": "79561c35ec2995d931c6c98139b589ce8c63d70b82fb3bc35c6ed90bf5d40e83",
+  "project.config.json": "66a394ec03b257a349509519feaad31832b5bacd7345be7548c495d03ff6eab5"
+}

@@ -1,0 +1,21 @@
+{
+  "status": 200,
+  "manifest": {
+    "articles": [
+      {
+        "id": "causal-emergence",
+        "title": "因果涌现",
+        "summary": "从鸟群到蚁群，从大脑到大模型——用同一把数学尺子量一量。",
+        "date": "2026-10-21",
+        "tags": [
+          "原创",
+          "复杂系统",
+          "因果涌现"
+        ],
+        "charCount": 7467,
+        "readMinutes": 17,
+        "coverFileID": "cloud://cloud1-d3gsxamaw26beccb8.636c-cloud1-d3gsxamaw26beccb8-1312580783/insights/images/causal-emergence/img_001.webp"
+      }
+    ]
+  }
+}

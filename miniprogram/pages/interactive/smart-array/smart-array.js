@@ -1,3 +1,4 @@
+const { withFloatingControls } = require('./pkg-utils/lab-canvas');
 // pages/interactive/smart-array/smart-array.js —— MVDR（Capon）自适应波束形成
 // 真实协方差实现（非硬约束零陷）：
 //   R = σ²I + Σ JNRᵢ·a(θᵢ)a(θᵢ)ᴴ，σ² = 1（空间白噪声）
@@ -21,7 +22,7 @@ const cdiv = (a, b) => {
 const conj = (a) => [a[0], -a[1]]
 const cmag = (a) => Math.hypot(a[0], a[1])
 
-Page({
+Page(withFloatingControls({
   data: {
     S: { N: 12, d100: 50, jnr: 25, sig: 20, jam1: -35, jam2: 45, dual: true },
     stats: null,
@@ -273,4 +274,4 @@ Page({
   onShareAppMessage() {
     return { title: '智能天线 · MVDR 自适应零陷', path: '/pages/interactive/smart-array/smart-array' }
   },
-})
+}, 3))

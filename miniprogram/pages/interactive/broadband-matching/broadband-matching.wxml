@@ -1,11 +1,11 @@
 <!-- pages/interactive/broadband-matching/broadband-matching.wxml —— 宽带匹配 -->
-<view class="screen tp-page">
+<view class="screen fd-page tp-page tool-studio">
 
   <view class="tp-head rise">
     <view class="kicker">BROADBAND MATCHING</view>
     <view class="tp-title display">宽带匹配</view>
     <view class="tp-sub">回波损耗 · Smith 轨迹 · Bode–Fano 极限</view>
-  </view>
+  </view><view class="fd-stage">
 
   <!-- 回波损耗曲线 -->
   <view class="tp-canvas-card rise">
@@ -40,7 +40,8 @@
   </view>
 
   <!-- 结构参数 -->
-  <view class="tp-section rise">
+  </view><!-- fd-stage:end --><view id="fd-anchor" class="fd-anchor"></view>
+<view class="tp-section rise">
     <view class="kicker">结构参数</view>
     <view class="tp-slider-row" wx:if="{{S.ant!=='bicone'}}">
       <text class="tp-slider-label">细长比 L/2a</text>
@@ -103,4 +104,25 @@
     <view class="tp-note-text">结构越粗（细长比小 / 锥角大），Za 越低 → Q 越低 → 阻抗随频率变化越慢 → 带宽越宽。Smith 轨迹越收拢在圆心附近，匹配带越宽；L 匹配只能把 f₀ 附近"拉"到圆心（窄带），渐变线把整段阻抗抬到 R 附近（宽带，但低频端 βL 太小时失效）。</view>
   </view>
 
+<!-- floating-controls:start -->
+ <cover-view id="fd-panel" hidden="{{!fdVisible}}" class="fd-panel {{fdVisible ? 'fd-visible' : ''}}" bindtouchstart="fdTouchStart" bindtouchend="fdTouchEnd" bindtouchcancel="fdTouchEnd" catchtouchmove="fdPreventScroll">
+  <cover-view class="fd-head"><cover-view class="fd-title">实时调参</cover-view><cover-view class="fd-all" bindtap="fdShowAll">全部参数 ↓</cover-view></cover-view>
+  <cover-view class="fd-tabs"><cover-view class="fd-tab {{fdGroup === 0 ? 'selected' : ''}}" data-group="0" bindtap="fdSelect">结构</cover-view><cover-view class="fd-tab {{fdGroup === 1 ? 'selected' : ''}}" data-group="1" bindtap="fdSelect">扫频</cover-view></cover-view>
+  <cover-view class="fd-controls"><block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row" wx:if="{{S.ant!=='bicone'}}">
+      <cover-view class="tp-slider-label">细长比 L/2a</cover-view>
+      <cover-view id="fd-track-0" class="fd-native-track" data-id="0" data-value="{{S.slen}}" data-min="25" data-max="2000" data-step="25" data-disabled="" data-changing="onSlen" data-change="onSlen" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 0 ? fdPercent : ((S.slen)-(25))/((2000)-(25))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 0 ? fdPercent : ((S.slen)-(25))/((2000)-(25))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.slen}}</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 0}}"><cover-view class="tp-slider-row" wx:if="{{S.ant==='bicone'}}">
+      <cover-view class="tp-slider-label">半锥角 θh</cover-view>
+      <cover-view id="fd-track-1" class="fd-native-track" data-id="1" data-value="{{S.cone}}" data-min="10" data-max="60" data-step="1" data-disabled="" data-changing="onCone" data-change="onCone" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 1 ? fdPercent : ((S.cone)-(10))/((60)-(10))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 1 ? fdPercent : ((S.cone)-(10))/((60)-(10))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">{{S.cone}}°</cover-view>
+    </cover-view></block>
+<block wx:if="{{fdGroup === 1}}"><cover-view class="tp-slider-row">
+      <cover-view class="tp-slider-label">扫频范围</cover-view>
+      <cover-view id="fd-track-2" class="fd-native-track" data-id="2" data-value="{{S.spanPct}}" data-min="30" data-max="80" data-step="2" data-disabled="" data-changing="onSpan" data-change="onSpan" catchtouchstart="fdNativeStart" catchtouchmove="fdNativeMove" catchtouchend="fdNativeEnd" catchtouchcancel="fdNativeEnd"><cover-view class="fd-native-rail"></cover-view><cover-view class="fd-native-fill" style="width:{{fdActiveId === 2 ? fdPercent : ((S.spanPct)-(30))/((80)-(30))*100}}%"></cover-view><cover-view class="fd-native-thumb" style="left:{{fdActiveId === 2 ? fdPercent : ((S.spanPct)-(30))/((80)-(30))*100}}%"></cover-view></cover-view>
+      <cover-view class="tp-slider-val">±{{S.spanPct}}%</cover-view>
+    </cover-view></block></cover-view>
+ </cover-view>
+<!-- floating-controls:end -->
 </view>

@@ -1,3 +1,4 @@
+const { withFloatingControls } = require('./pkg-utils/lab-canvas');
 // pages/interactive/synthesis/synthesis.js —— 线阵方向图综合（阵因子 · 加权窗）
 // 物理（全部来自 utils/rf-math，无魔法系数）：
 //   阵因子 AF(θ) = Σ wₙ e^{j2π(d/λ)(n−m)sinθ}，m=(N−1)/2，侧射阵（未加扫描相位）
@@ -14,7 +15,7 @@ const { THEME, alpha } = require('./pkg-utils/lab-theme')
 const W_LABELS = { uniform: '均匀', cosine: '余弦', hamming: '汉明', chebyshev: '切比雪夫' }
 const SAMPLES = 721 // 0.25° 步长
 
-Page({
+Page(withFloatingControls({
   data: {
     S: { N: 12, d: 0.5, w: 'uniform', sll: -20 },
     wLabel: W_LABELS.uniform,
@@ -248,4 +249,4 @@ Page({
   onShareAppMessage() {
     return { title: '阵列综合 · 方向图加权实验', path: '/pages/interactive/synthesis/synthesis' }
   },
-})
+}, 2))

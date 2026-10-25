@@ -1,0 +1,176 @@
+<!-- 洞见 · 文章阅读页（页面级滚动，pageScrollTo 锚点跳转） -->
+<view class="reader {{theme.serif ? 'serif' : ''}}" style="--accent:{{theme.accent}};--line:{{theme.line}};background:{{theme.bg}};color:{{theme.ink}};">
+
+  <!-- 加载态 -->
+  <view wx:if="{{loading}}" class="reader-state">
+    <view class="state-spinner"></view>
+    <view class="state-text">正在展开文章…</view>
+  </view>
+
+  <!-- 错误态 -->
+  <view wx:elif="{{loadError}}" class="reader-state">
+    <view class="state-emoji">✦</view>
+    <view class="state-text">{{loadError}}</view>
+    <button class="retry-btn" bindtap="retryLoad">重新加载</button>
+  </view>
+
+  <block wx:else>
+    <!-- Hero 封面区 -->
+    <view class="hero {{article.hero.coverUrl ? 'has-cover' : ''}}">
+      <image
+        wx:if="{{article.hero.coverUrl}}"
+        class="hero-cover"
+        src="{{article.hero.coverUrl}}"
+        mode="aspectFill"
+      />
+      <view class="hero-inner">
+        <view class="hero-brand">洞见 <text>INSIGHTS / 原创长文</text></view>
+        <view class="hero-kicker" wx:if="{{article.hero.kicker}}">{{article.hero.kicker}}</view>
+        <view class="hero-title">{{article.hero.title || article.title}}</view>
+        <view class="hero-sub" wx:if="{{article.hero.subtitle}}">{{article.hero.subtitle}}</view>
+        <view class="hero-meta">
+          <text>{{article.dateText}}</text>
+          <text class="meta-dot">·</text>
+          <text>{{article.readMinutes}} 分钟</text>
+          <text class="meta-dot">·</text>
+          <text>{{article.charCountText}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="reading-guide" wx:if="{{toc.length}}" style="border-color:{{theme.line}};" bindtap="toggleToc">
+      <view class="guide-label" style="color:{{theme.accent}};">阅读导览 · {{toc.length}} 个章节</view>
+      <view class="guide-copy">{{article.summary}}</view>
+      <view class="guide-link" style="color:{{theme.accent}};">展开文章目录 →</view>
+    </view>
+
+    <!-- 标签 -->
+    <view class="tag-row" wx:if="{{article.tags.length}}">
+      <text class="tag" wx:for="{{article.tags}}" wx:key="*this">{{item}}</text>
+    </view>
+
+    <!-- 正文 blocks -->
+    <view class="article-body">
+      <block wx:for="{{blocks}}" wx:key="key">
+        <!-- 章节标题 -->
+        <view wx:if="{{item.t === 'section-label'}}" class="section-label">
+          <text class="section-label-cn">{{item.label}}</text>
+          <text class="section-label-en">{{item.english}}</text>
+          <view class="section-label-rule"></view>
+        </view>
+        <view wx:elif="{{item.t === 'h2'}}" class="b-h2" id="sec-{{item.anchor}}">
+          <text class="h2-index" style="color:{{theme.accent}};">{{item.num}}</text>
+          <text class="h2-text">{{item.text}}</text>
+        </view>
+        <view wx:elif="{{item.t === 'h3'}}" class="b-h3 heading-level-{{item.level || 3}}">{{item.text}}</view>
+
+        <!-- 段落 -->
+        <view wx:elif="{{item.t === 'p'}}" class="b-p {{item.lead ? 'b-lead' : ''}}" style="color:{{theme.ink}};">
+          <rich-text wx:if="{{item.nodes}}" nodes="{{item.nodes}}" user-select="{{true}}" />
+          <text wx:else user-select="{{true}}">{{item.text}}</text>
+        </view>
+
+        <view wx:elif="{{item.t === 'list'}}" class="b-list">
+          <view class="list-row" wx:for="{{item.items}}" wx:for-item="entry" wx:key="index">
+            <text class="list-marker" style="color:{{theme.accent}};">{{entry.marker}}</text>
+            <rich-text class="list-copy" nodes="{{entry.nodes}}" user-select="{{true}}" />
+          </view>
+        </view>
+
+        <view wx:elif="{{item.t === 'callout'}}" class="b-callout callout-{{item.variant || 'default'}} {{item.featured ? 'callout-featured' : ''}} {{item.kind === 'formula' ? 'b-formula' : ''}}">
+          <view wx:if="{{item.eyebrow || item.badge}}" class="callout-meta">
+            <text wx:if="{{item.eyebrow}}" class="callout-eyebrow">{{item.eyebrow}}</text>
+            <text wx:if="{{item.badge}}" class="callout-badge">{{item.badge}}</text>
+          </view>
+          <view class="callout-heading">
+            <view class="callout-title">{{item.title}}</view>
+            <view wx:if="{{item.levelMarks}}" class="level-marks" aria-label="{{item.level}} 级，共 3 级">
+              <view wx:for="{{item.levelMarks}}" wx:for-item="mark" wx:key="n" class="level-mark {{mark.active ? 'level-mark-active' : ''}}"></view>
+            </view>
+          </view>
+          <rich-text wx:if="{{item.nodes}}" nodes="{{item.nodes}}" user-select="{{true}}" />
+          <text wx:else user-select="{{true}}">{{item.text}}</text>
+        </view>
+
+        <scroll-view wx:elif="{{item.t === 'table'}}" class="b-table-scroll" scroll-x="{{true}}">
+          <view class="b-table">
+            <view class="table-row" wx:for="{{item.rows}}" wx:for-item="row" wx:key="index">
+              <view class="table-cell {{cell.heading ? 'table-heading' : ''}}" wx:for="{{row.cells}}" wx:for-item="cell" wx:key="index"><rich-text nodes="{{cell.nodes}}" user-select="{{true}}" /></view>
+            </view>
+          </view>
+        </scroll-view>
+
+        <!-- 引用 -->
+        <view wx:elif="{{item.t === 'quote'}}" class="b-quote {{item.kind === 'pullquote' ? 'b-pullquote' : ''}}">
+          <view wx:if="{{item.kind === 'pullquote'}}" class="quote-mark">“</view>
+          <rich-text wx:if="{{item.nodes}}" nodes="{{item.nodes}}" user-select="{{true}}" />
+          <text wx:else style="color:{{theme.ink2}};" user-select="{{true}}">{{item.text}}</text>
+          <view wx:if="{{item.credit}}" class="quote-credit">{{item.credit}}</view>
+        </view>
+
+        <!-- 图片 -->
+        <view wx:elif="{{item.t === 'image'}}" class="b-figure">
+          <view class="figure-frame" style="padding-top:{{item.paddingTop}};">
+            <image
+              wx:if="{{item.src}}"
+              class="figure-img"
+              src="{{item.src}}"
+              mode="aspectFit"
+              data-index="{{item.index}}"
+              bindload="onImageLoad"
+              binderror="onImageError"
+              bindtap="previewImage"
+              lazy-load="{{true}}"
+            />
+            <view wx:if="{{item.status === 'loading' && !item.src}}" class="figure-status" style="color:{{theme.ink3}};">插图加载中…</view>
+            <view wx:if="{{item.status === 'error'}}" class="figure-status" style="color:{{theme.ink3}};">
+              <text>插图暂未加载</text>
+              <button class="retry-image" data-index="{{item.index}}" bindtap="retryImage">重新加载</button>
+            </view>
+          </view>
+          <view wx:if="{{item.caption}}" class="figure-caption" style="color:{{theme.ink3}};">{{item.caption}} · 点击可放大</view>
+        </view>
+
+        <!-- 分隔线 -->
+        <view wx:elif="{{item.t === 'hr'}}" class="b-hr" style="color:{{theme.line}};">✦</view>
+      </block>
+    </view>
+
+    <!-- 尾部 -->
+    <view class="article-end" style="color:{{theme.ink3}};">
+      <view class="end-rule" style="background:{{theme.line}};"></view>
+      <view class="end-text">完 · 感谢阅读</view>
+      <button class="end-share" style="color:{{theme.accent}};" open-type="share">分享这篇文章</button>
+    </view>
+  </block>
+</view>
+
+<!-- 底部悬浮：进度 + 目录 -->
+<view class="float-bar" wx:if="{{!loading && !loadError}}">
+  <view class="progress-track">
+    <view class="progress-fill" style="width:{{progress}}%;background:{{theme.accent}};"></view>
+  </view>
+  <view class="float-actions">
+    <text class="progress-text">{{progress}}%</text>
+    <button wx:if="{{toc.length}}" class="toc-btn" style="color:{{theme.accent}};" bindtap="toggleToc">目录</button>
+  </view>
+</view>
+
+<!-- 目录抽屉 -->
+<view class="toc-mask {{showToc ? 'open' : ''}}" bindtap="toggleToc"></view>
+<view class="toc-drawer {{showToc ? 'open' : ''}}" style="background:{{theme.surface}};">
+  <view class="toc-title" style="color:{{theme.ink}};">目录</view>
+  <scroll-view class="toc-list" scroll-y="{{true}}">
+    <view
+      class="toc-item {{index === activeSection ? 'active' : ''}}"
+      wx:for="{{toc}}"
+      wx:key="id"
+      data-index="{{index}}"
+      bindtap="jumpToSection"
+      style="color:{{index === activeSection ? theme.accent : theme.ink2}};"
+    >
+      <text class="toc-num" style="color:{{theme.accent}};">{{item.num}}</text>
+      <text class="toc-text">{{item.title}}</text>
+    </view>
+  </scroll-view>
+</view>
